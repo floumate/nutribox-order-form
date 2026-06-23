@@ -1,4 +1,8 @@
 import type { Macros, PlanId, Sex } from "../types";
+import iconFatLoss from "../assets/icons/fat-loss.svg";
+import iconLeanGains from "../assets/icons/lean-gains.svg";
+import iconMuscleGain from "../assets/icons/muscle-gain.svg";
+import iconHighProtein from "../assets/icons/layer1.svg";
 
 // =====================================================================
 // PLANOVI (ciljevi) + makro tabela.
@@ -12,6 +16,7 @@ export interface Plan {
   id: PlanId;
   name: string;
   tagline: string;
+  icon: string;
   /** Fiksni makro ciljevi po polu. */
   macros: Record<Sex, Macros>;
 }
@@ -23,6 +28,7 @@ export const PLANS: Plan[] = [
     id: "nutrislim",
     name: "NutriSlim",
     tagline: "Paket visoko proteinskih obroka za mršavljenje",
+    icon: iconFatLoss,
     macros: {
       Muški: { ...PRAZNO },
       Ženski: { ...PRAZNO },
@@ -32,6 +38,7 @@ export const PLANS: Plan[] = [
     id: "nutribalance",
     name: "NutriBalance",
     tagline: "Paket pravilno izbalansiranih obroka za tvoj dan",
+    icon: iconLeanGains,
     macros: {
       Muški: { ...PRAZNO },
       Ženski: { ...PRAZNO },
@@ -41,6 +48,7 @@ export const PLANS: Plan[] = [
     id: "nutripump",
     name: "NutriPump",
     tagline: "Paket visoko proteinskih obroka za dobijanje mišićne mase",
+    icon: iconMuscleGain,
     macros: {
       Muški: { ...PRAZNO },
       Ženski: { ...PRAZNO },
@@ -50,6 +58,7 @@ export const PLANS: Plan[] = [
     id: "highprotein",
     name: "High Protein",
     tagline: "Paket sa najvišim udelom proteina",
+    icon: iconHighProtein,
     macros: {
       Muški: { ...PRAZNO },
       Ženski: { ...PRAZNO },

@@ -56,8 +56,6 @@ function bindInput(
 // Ikone (placeholder — zameni pravim asset-ima kasnije)
 // ---------------------------------------------------------------------
 
-const ICON_PLAN = `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="17"/><path d="M16 24.5l5.5 5.5L33 18"/></svg>`;
-const ICON_DIET = `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 36c0-13 11-23 25-24-1 14-11 24-25 24z"/><path d="M19 31c4-5 9-8 14-10"/></svg>`;
 const ICON_PKG = `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7l16 8-16 8-16-8z"/><path d="M8 15v18l16 8 16-8V15"/><path d="M24 23v18"/></svg>`;
 
 // ---------------------------------------------------------------------
@@ -68,7 +66,7 @@ function renderPlanCards(container: HTMLElement): void {
   container.innerHTML = PLANS.map(
     (p) => `
     <button type="button" class="card card--choice" data-choice="${p.id}">
-      <span class="card__icon">${ICON_PLAN}</span>
+      <span class="card__icon"><img src="${p.icon}" alt="" /></span>
       <span class="card__title">${p.name}</span>
       <span class="card__desc">${p.tagline}</span>
     </button>`,
@@ -91,7 +89,7 @@ function renderDietCards(container: HTMLElement): void {
   container.innerHTML = DIET_TYPES.map(
     (d) => `
     <button type="button" class="card card--choice" data-choice="${d.id}">
-      <span class="card__icon">${ICON_DIET}</span>
+      <span class="card__icon"><img src="${d.icon}" alt="" /></span>
       <span class="card__title">${d.name}</span>
       <span class="card__desc">${d.description}</span>
     </button>`,

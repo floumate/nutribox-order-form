@@ -112,6 +112,9 @@ body {
 .fields--2 {
   grid-template-columns: 1fr 1fr;
 }
+.fields--3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
 .field {
   display: flex;
   flex-direction: column;
@@ -122,8 +125,10 @@ body {
   font-weight: 500;
   color: var(--ink);
 }
-/* Input identičan live formi (.input_field): 2px #dedede, radius 8px, 50px. */
-.field input {
+/* Input/select/textarea identični live formi: 2px #dedede, radius 8px, 50px. */
+.field input,
+.field select,
+.field textarea {
   width: 100%;
   min-height: 50px;
   padding: 12px 16px;
@@ -135,12 +140,27 @@ body {
   outline: none;
   transition: border-color 0.15s ease;
 }
-.field input::placeholder {
+.field textarea {
+  resize: vertical;
+  min-height: 84px;
+}
+.field input::placeholder,
+.field textarea::placeholder {
   color: #98a0a8;
 }
 .field input:hover,
-.field input:focus {
+.field input:focus,
+.field select:hover,
+.field select:focus,
+.field textarea:hover,
+.field textarea:focus {
   border-color: var(--green);
+}
+.delivery-note {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+  margin: 4px 0 0;
 }
 
 /* ---------- Card grids ---------- */
@@ -220,10 +240,6 @@ body {
 }
 .card--pol .card__title {
   font-size: 17px;
-}
-.card--pay {
-  align-items: flex-start;
-  text-align: left;
 }
 
 /* ---------- Stats (makro vrednosti) ---------- */
@@ -587,6 +603,15 @@ body {
   display: flex !important;
   align-items: center !important;
   gap: 6px;
+  font-size: 15px !important;
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year {
+  font-size: 15px !important;
+  font-weight: 600;
+}
+.flatpickr-current-month .numInputWrapper {
+  width: 6ch;
 }
 .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month:hover,
 .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month:focus,

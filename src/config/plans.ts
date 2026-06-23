@@ -2,7 +2,9 @@ import type { Macros, PlanId, Sex } from "../types";
 import iconFatLoss from "../assets/icons/fat-loss.svg";
 import iconLeanGains from "../assets/icons/lean-gains.svg";
 import iconMuscleGain from "../assets/icons/muscle-gain.svg";
-import iconHighProtein from "../assets/icons/layer1.svg";
+// High Protein nema svoju ikonicu na CDN-u (nije na live formi) — placeholder.
+// TODO: zameni pravom HP ikonicom kad stigne.
+const iconHighProtein = iconMuscleGain;
 
 // =====================================================================
 // PLANOVI (ciljevi) + makro tabela.

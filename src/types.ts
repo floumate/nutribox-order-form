@@ -34,6 +34,16 @@ export interface FirmaData {
   maticniBrojFirme: string;
 }
 
+/** Podaci za dostavu (adresa). */
+export interface DostavaData {
+  naselje: string;
+  adresa: string;
+  brojStana: string;
+  brojSprata: string;
+  sifraUlaznihVrata: string;
+  instrukcije: string;
+}
+
 /** Glavno stanje forme — popunjava se kroz korake. */
 export interface FormState {
   ime: string;
@@ -46,6 +56,7 @@ export interface FormState {
   tipIshrane: DietId | null;
   paket: PackageId | null;
   datumDostave: string; // d.m.Y (flatpickr)
+  dostava: DostavaData;
 
   nacinPlacanja: PaymentMethod | null;
   firma: FirmaData;
@@ -62,6 +73,14 @@ export function createInitialState(): FormState {
     tipIshrane: null,
     paket: null,
     datumDostave: "",
+    dostava: {
+      naselje: "",
+      adresa: "",
+      brojStana: "",
+      brojSprata: "",
+      sifraUlaznihVrata: "",
+      instrukcije: "",
+    },
     nacinPlacanja: null,
     firma: {
       nazivFirme: "",

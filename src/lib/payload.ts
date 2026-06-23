@@ -29,6 +29,13 @@ export function buildPayload(): Record<string, unknown> {
     paket: state.paket ?? "",
     datumDostave: state.datumDostave,
 
+    naselje: state.dostava.naselje,
+    adresa: state.dostava.adresa,
+    brojStana: state.dostava.brojStana,
+    brojSprata: state.dostava.brojSprata,
+    sifraUlaznihVrata: state.dostava.sifraUlaznihVrata,
+    instrukcije: state.dostava.instrukcije,
+
     kcal: macros?.kcal ?? "",
     proteini: macros?.proteini ?? "",
     uh: macros?.uh ?? "",

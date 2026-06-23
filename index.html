@@ -162,7 +162,57 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 8: Plaćanje ============ -->
+        <!-- ============ STEP 8: Podaci za dostavu ============ -->
+        <section class="step" data-step="adresa">
+          <h2 class="step__title">Unesite podatke za dostavu</h2>
+          <div class="fields fields--2">
+            <label class="field">
+              <span class="field__label">Naselje</span>
+              <select class="field-select" data-dostava="naselje"></select>
+            </label>
+            <label class="field">
+              <span class="field__label">Adresa</span>
+              <input type="text" data-dostava="adresa" placeholder="npr. Petra Petrovića" />
+            </label>
+          </div>
+          <div class="fields fields--3">
+            <label class="field">
+              <span class="field__label">Broj stana</span>
+              <input type="text" data-dostava="brojStana" placeholder="npr. 12" />
+            </label>
+            <label class="field">
+              <span class="field__label">Broj sprata</span>
+              <input type="text" data-dostava="brojSprata" placeholder="npr. 3" />
+            </label>
+            <label class="field">
+              <span class="field__label">Šifra ulaznih vrata</span>
+              <input type="text" data-dostava="sifraUlaznihVrata" placeholder="Šifra" />
+            </label>
+          </div>
+          <div class="fields">
+            <label class="field">
+              <span class="field__label">Instrukcije za vozača</span>
+              <textarea
+                data-dostava="instrukcije"
+                rows="3"
+                placeholder="Ako nemate instrukcija ostavite prazno polje"
+              ></textarea>
+            </label>
+          </div>
+          <p class="delivery-note">
+            Naša standardna dostava vrši se svakog dana u periodu od 7:30 do 9:30
+            časova. Ukoliko vam je potrebna lična predaja, kurir će vas
+            kontaktirati pre dolaska. Za beskontaktne isporuke, obroci se mogu
+            ostaviti prema vašim uputstvima.
+          </p>
+          <div class="error-message"><span class="error-message__text"></span></div>
+          <footer class="step__nav">
+            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
+            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
+          </footer>
+        </section>
+
+        <!-- ============ STEP 9: Plaćanje ============ -->
         <section class="step" data-step="placanje">
           <h2 class="step__title">Način plaćanja</h2>
           <div class="card-grid card-grid--3" data-grid="placanje"></div>
@@ -197,7 +247,14 @@
 
           <label class="consent-row">
             <input type="checkbox" class="consent" />
-            <span>Prihvatam uslove korišćenja i politiku privatnosti.</span>
+            <span>Pročitao/la sam i prihvatam Opšte uslove korišćenja</span>
+          </label>
+          <label class="consent-row">
+            <input type="checkbox" class="consent" />
+            <span
+              >Pročitao/la sam Politiku privatnosti i slažem se sa obradom mojih
+              ličnih podataka u skladu sa njom</span
+            >
           </label>
 
           <div class="error-message"><span class="error-message__text"></span></div>

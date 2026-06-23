@@ -8,6 +8,8 @@ import { PLANS, getPlan, getMacros } from "../config/plans";
 import { DIET_TYPES, getDiet } from "../config/dietTypes";
 import { PACKAGES, getPackage } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
+import { NASELJA } from "../config/delivery";
+import { PAYMENT_OPTIONS } from "../config/payments";
 import type {
   DietId,
   FirmaData,
@@ -130,20 +132,14 @@ function renderPackageCards(container: HTMLElement): void {
 }
 
 function renderPaymentCards(container: HTMLElement): void {
-  const opcije: { value: PaymentMethod; desc: string }[] = [
-    { value: "Kartica", desc: "Plati odmah karticom (Raiffeisen)" },
-    { value: "Pouzeće", desc: "Plati kuriru pri dostavi" },
-    { value: "Firma", desc: "Plaćanje preko računa firme" },
-  ];
-  container.innerHTML = opcije
-    .map(
-      (o) => `
-    <button type="button" class="card card--choice card--pay" data-choice="${o.value}">
-      <span class="card__title">${o.value}</span>
+  container.innerHTML = PAYMENT_OPTIONS.map(
+    (o) => `
+    <button type="button" class="card card--choice" data-choice="${o.value}">
+      <span class="card__icon"><img src="${o.icon}" alt="" /></span>
+      <span class="card__title">${o.title}</span>
       <span class="card__desc">${o.desc}</span>
     </button>`,
-    )
-    .join("");
+  ).join("");
 }
 
 // ---------------------------------------------------------------------
@@ -208,6 +204,23 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   const futureDate = reqEl<HTMLInputElement>(stepDatum, "#futureDate");
   initDatepicker(futureDate, (v) => (state.datumDostave = v));
 
+  // ----- STEP: Podaci za dostavu -----
+  const stepAdresa = reqEl<HTMLElement>(form, '[data-step="adresa"]');
+  const naseljeSelect = reqEl<HTMLSelectElement>(stepAdresa, "[data-dostava='naselje']");
+  naseljeSelect.innerHTML =
+    `<option value="">Izaberite naselje</option>` +
+    NASELJA.map((n) => `<option value="${n}">${n}</option>`).join("");
+  stepAdresa
+    .querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+      "[data-dostava]",
+    )
+    .forEach((el) => {
+      const key = el.dataset.dostava as keyof typeof state.dostava;
+      const handler = () => (state.dostava[key] = el.value);
+      el.addEventListener("input", handler);
+      el.addEventListener("change", handler);
+    });
+
   // ----- STEP: Plaćanje -----
   const stepPay = reqEl<HTMLElement>(form, '[data-step="placanje"]');
   const payGrid = reqEl<HTMLElement>(stepPay, '[data-grid="placanje"]');
@@ -239,12 +252,22 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       row("Tip ishrane", diet?.name ?? "") +
       row("Paket", pkg?.name ?? "") +
       row("Datum dostave", state.datumDostave) +
+      row("Naselje", state.dostava.naselje) +
+      row("Adresa", state.dostava.adresa) +
       `<div class="summary__row summary__total"><span>Ukupno</span><strong>${formatPrice(price)} RSD</strong></div>`;
   };
 
   // Generičko skrivanje errora na promenu unutar koraka.
-  [stepInfo, stepPlan, stepPol, stepDiet, stepPaket, stepDatum, stepPay].forEach(
-    (s) => {
+  [
+    stepInfo,
+    stepPlan,
+    stepPol,
+    stepDiet,
+    stepPaket,
+    stepDatum,
+    stepAdresa,
+    stepPay,
+  ].forEach((s) => {
     s.addEventListener("input", () => hideError(s));
     s.addEventListener("change", () => hideError(s));
   });
@@ -330,6 +353,17 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       validate: () => {
         if (!state.datumDostave.trim()) {
           showError(stepDatum, "Molimo izaberite datum početka dostave.");
+          return false;
+        }
+        return true;
+      },
+    },
+    {
+      id: "adresa",
+      el: stepAdresa,
+      validate: () => {
+        if (!state.dostava.naselje.trim() || !state.dostava.adresa.trim()) {
+          showError(stepAdresa, "Molimo unesite naselje i adresu.");
           return false;
         }
         return true;

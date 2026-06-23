@@ -1,0 +1,470 @@
+/* =====================================================================
+   Nutribox order form — stilovi
+   Boje/dimenzije su preko CSS varijabli (lako retheme kad stignu tačne).
+   ===================================================================== */
+
+:root {
+  /* Brend */
+  --green: #2f7a39;
+  --green-dark: #235c2b;
+  --green-tint: #f1f7f2;
+  --green-border: #bcd9c2;
+
+  /* Tekst / neutralno */
+  --ink: #1f2d3d;
+  --muted: #6b7b73;
+  --line: #e3e6e3;
+  --bg: #ffffff;
+  --bg-soft: #f7f9f7;
+
+  --error: #ff4444;
+
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 2px rgba(16, 40, 24, 0.04), 0 8px 24px rgba(16, 40, 24, 0.06);
+
+  --font: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* iOS input zoom fix */
+input,
+textarea,
+select {
+  font-size: 16px;
+  line-height: 1.5rem;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--bg-soft);
+  -webkit-font-smoothing: antialiased;
+}
+
+.form-shell {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+/* ---------- Progress ---------- */
+.progress {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+.progress__seg {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  transition: background 0.25s ease;
+}
+.progress__seg.filled {
+  background: var(--green);
+}
+
+/* ---------- Steps ---------- */
+.step {
+  display: none;
+  animation: fade 0.25s ease;
+}
+.step--active {
+  display: block;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.step__title {
+  font-size: 26px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+.step__subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 24px;
+}
+
+/* ---------- Fields ---------- */
+.fields {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.fields--2 {
+  grid-template-columns: 1fr 1fr;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.field input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.field input::placeholder {
+  color: #aab4ad;
+}
+.field input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(47, 122, 57, 0.12);
+}
+
+/* ---------- Card grids ---------- */
+.card-grid {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.card-grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.card-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.card-grid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 24px 18px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
+  transition: border-color 0.15s ease, background 0.15s ease,
+    box-shadow 0.15s ease, transform 0.05s ease;
+}
+.card:hover {
+  border-color: var(--green-border);
+}
+.card:active {
+  transform: scale(0.99);
+}
+.card--selected {
+  border-color: var(--green);
+  background: var(--green-tint);
+  box-shadow: 0 0 0 3px rgba(47, 122, 57, 0.1);
+}
+
+.card__icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  color: var(--green-dark);
+}
+.card__icon svg {
+  width: 100%;
+  height: 100%;
+}
+.card__title {
+  font-size: 17px;
+  font-weight: 600;
+}
+.card__desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.card--pol {
+  padding: 28px 18px;
+}
+.card--pay {
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* ---------- Stats (makro vrednosti) ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.stat {
+  background: var(--green-tint);
+  border: 1px solid var(--green-border);
+  border-radius: var(--radius-lg);
+  padding: 28px 16px;
+  text-align: center;
+}
+.stat__value {
+  display: block;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--green-dark);
+  line-height: 1.1;
+}
+.stat__label {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- Paketi ---------- */
+.pkg-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.card--pkg {
+  position: relative;
+  align-items: flex-start;
+  text-align: left;
+}
+.card__sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+.card__price {
+  margin-top: auto;
+  padding-top: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--green-dark);
+}
+.card__price small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.card__badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: var(--green);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* Hijerarhija paketa */
+.card--hero {
+  grid-column: 1 / -1;
+  border-color: var(--green);
+  background: var(--green-tint);
+  padding: 28px;
+}
+.card--hero .card__title {
+  font-size: 22px;
+}
+.card--hero .card__price {
+  font-size: 26px;
+}
+.card--secondary {
+  grid-column: 1 / -1;
+}
+.card--muted {
+  opacity: 0.92;
+}
+.card--trial {
+  grid-column: 1 / -1;
+  padding: 16px 20px;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+}
+.card--trial .card__icon {
+  width: 32px;
+  height: 32px;
+}
+.card--trial .card__price {
+  margin-top: 0;
+  padding-top: 0;
+  margin-left: auto;
+  font-size: 18px;
+}
+
+/* ---------- Firma / summary / consent ---------- */
+.firma {
+  margin: 20px 0;
+  padding: 20px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.firma__title {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.summary {
+  margin: 20px 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.summary__row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.summary__row:last-child {
+  border-bottom: none;
+}
+.summary__row span {
+  color: var(--muted);
+}
+.summary__total {
+  background: var(--green-tint);
+  font-size: 16px;
+}
+.summary__total strong {
+  color: var(--green-dark);
+}
+
+.consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink);
+  margin: 16px 0;
+  cursor: pointer;
+}
+.consent-row input {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--green);
+  flex-shrink: 0;
+}
+
+/* ---------- Buttons / nav ---------- */
+.step__nav {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+  margin-top: 28px;
+}
+.step__nav--single {
+  grid-template-columns: 1fr;
+}
+.btn {
+  padding: 16px 24px;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+.btn--primary {
+  background: var(--green);
+  color: #fff;
+}
+.btn--primary:hover {
+  background: var(--green-dark);
+}
+.btn--primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.btn--ghost {
+  background: var(--bg);
+  border-color: var(--line);
+  color: var(--ink);
+}
+.btn--ghost:hover {
+  border-color: var(--green-border);
+}
+
+/* ---------- Error ---------- */
+.error-message {
+  display: none;
+  color: var(--error);
+  font-size: 15px;
+  margin-top: 14px;
+  font-weight: 400;
+}
+.error-message.visible {
+  display: block;
+}
+
+.form-footnote {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 28px;
+}
+
+/* ---------- intl-tel-input ---------- */
+.iti {
+  width: 100%;
+}
+.iti--allow-dropdown input {
+  width: 100%;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px) {
+  .step__title {
+    font-size: 22px;
+  }
+  .card-grid--3,
+  .card-grid--4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .fields--2 {
+    grid-template-columns: 1fr;
+  }
+  .card-grid--2,
+  .card-grid--3,
+  .card-grid--4,
+  .pkg-grid {
+    grid-template-columns: 1fr;
+  }
+  .step__nav {
+    grid-template-columns: 1fr;
+  }
+}

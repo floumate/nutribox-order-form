@@ -1,0 +1,19 @@
+{
+  "name": "nutribox-order-form",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Nutribox multi-step order form (Vite + TypeScript)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "intl-tel-input": "^25.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  }
+}

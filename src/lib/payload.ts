@@ -27,6 +27,7 @@ export function buildPayload(): Record<string, unknown> {
     pol: state.pol ?? "",
     tipIshrane: diet?.name ?? "",
     paket: state.paket ?? "",
+    datumDostave: state.datumDostave,
 
     kcal: macros?.kcal ?? "",
     proteini: macros?.proteini ?? "",

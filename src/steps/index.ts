@@ -2,6 +2,7 @@ import type { StepConfig } from "./stepEngine";
 import { state } from "../lib/state";
 import { urlContext } from "../lib/urlParams";
 import { isPhoneValid } from "../lib/phone";
+import { initDatepicker } from "../lib/datepicker";
 import { showError, hideError, EMAIL_REGEX } from "../lib/validation";
 import { PLANS, getPlan, getMacros } from "../config/plans";
 import { DIET_TYPES, getDiet } from "../config/dietTypes";
@@ -202,6 +203,11 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   renderPackageCards(paketGrid);
   wireChoiceGrid(paketGrid, (v) => (state.paket = v as PackageId));
 
+  // ----- STEP: Početni datum dostave -----
+  const stepDatum = reqEl<HTMLElement>(form, '[data-step="datum"]');
+  const futureDate = reqEl<HTMLInputElement>(stepDatum, "#futureDate");
+  initDatepicker(futureDate, (v) => (state.datumDostave = v));
+
   // ----- STEP: Plaćanje -----
   const stepPay = reqEl<HTMLElement>(form, '[data-step="placanje"]');
   const payGrid = reqEl<HTMLElement>(stepPay, '[data-grid="placanje"]');
@@ -232,11 +238,13 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       row("Pol", state.pol ?? "") +
       row("Tip ishrane", diet?.name ?? "") +
       row("Paket", pkg?.name ?? "") +
+      row("Datum dostave", state.datumDostave) +
       `<div class="summary__row summary__total"><span>Ukupno</span><strong>${formatPrice(price)} RSD</strong></div>`;
   };
 
   // Generičko skrivanje errora na promenu unutar koraka.
-  [stepInfo, stepPlan, stepPol, stepDiet, stepPaket, stepPay].forEach((s) => {
+  [stepInfo, stepPlan, stepPol, stepDiet, stepPaket, stepDatum, stepPay].forEach(
+    (s) => {
     s.addEventListener("input", () => hideError(s));
     s.addEventListener("change", () => hideError(s));
   });
@@ -311,6 +319,17 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       validate: () => {
         if (!state.paket) {
           showError(stepPaket, "Molimo izaberite paket.");
+          return false;
+        }
+        return true;
+      },
+    },
+    {
+      id: "datum",
+      el: stepDatum,
+      validate: () => {
+        if (!state.datumDostave.trim()) {
+          showError(stepDatum, "Molimo izaberite datum početka dostave.");
           return false;
         }
         return true;

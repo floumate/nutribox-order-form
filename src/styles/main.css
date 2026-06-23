@@ -474,8 +474,9 @@ body {
 #telefon {
   padding-left: 112px !important;
 }
-/* Ukloni mali hover samo na zastavi (lib default); zadrži veći preko celog. */
-.iti--allow-dropdown .iti__selected-country-primary:hover {
+/* Zastava nikad nema svoju pozadinu (gasi i hover i highlight kad se hoveruje
+   dropdown). Hover ide isključivo preko celog selektora ispod. */
+.iti__selected-country-primary {
   background-color: transparent !important;
 }
 .iti__selected-country:hover {
@@ -498,6 +499,112 @@ body {
 .iti__search-input {
   padding: 8px 14px 8px 32px !important;
   min-height: 38px;
+}
+
+/* ---------- Datepicker (flatpickr) ---------- */
+.datepicker-wrap {
+  position: relative;
+  width: 100%;
+}
+#futureDate {
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 21px;
+  padding: 8px 24px;
+  border: 2px solid var(--line);
+  border-radius: 16px 4px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 50px;
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+#futureDate:hover {
+  border-color: var(--green);
+}
+#futureDate + .dropdown-arrow {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.flatpickr-calendar {
+  border-radius: 28px 6px !important;
+  border: 2px solid var(--line) !important;
+  padding: 20px;
+  overflow: hidden;
+  font-family: var(--font);
+  z-index: 9999;
+}
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  background-color: var(--green) !important;
+  border-color: var(--green) !important;
+  color: #fff !important;
+}
+.flatpickr-day:hover {
+  background-color: rgba(49, 112, 57, 0.1) !important;
+}
+.flatpickr-months {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 12px;
+}
+.flatpickr-month {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px;
+  flex-grow: 1;
+}
+.flatpickr-prev-month,
+.flatpickr-next-month {
+  position: static !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+.flatpickr-prev-month::after {
+  content: "<";
+  font-size: 16px;
+  color: var(--ink);
+}
+.flatpickr-next-month::after {
+  content: ">";
+  font-size: 16px;
+  color: var(--ink);
+}
+.flatpickr-current-month {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px;
+}
+.flatpickr-monthDropdown-months .flatpickr-monthDropdown-month:hover,
+.flatpickr-monthDropdown-months .flatpickr-monthDropdown-month:focus,
+.flatpickr-monthDropdown-months
+  .flatpickr-monthDropdown-month[aria-selected="true"] {
+  background: var(--green) !important;
+  color: #fff !important;
+}
+.flatpickr-weekdaycontainer {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+}
+.flatpickr-weekday {
+  text-align: center !important;
+  padding: 4px 0 !important;
+  font-weight: 600;
+  font-size: 13px;
+  font-family: var(--font);
 }
 
 /* ---------- Responsive ---------- */

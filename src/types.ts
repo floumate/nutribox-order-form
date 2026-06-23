@@ -45,6 +45,7 @@ export interface FormState {
   pol: Sex | null;
   tipIshrane: DietId | null;
   paket: PackageId | null;
+  datumDostave: string; // d.m.Y (flatpickr)
 
   nacinPlacanja: PaymentMethod | null;
   firma: FirmaData;
@@ -60,6 +61,7 @@ export function createInitialState(): FormState {
     pol: null,
     tipIshrane: null,
     paket: null,
+    datumDostave: "",
     nacinPlacanja: null,
     firma: {
       nazivFirme: "",

@@ -128,7 +128,41 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 7: Plaćanje ============ -->
+        <!-- ============ STEP 7: Početni datum dostave ============ -->
+        <section class="step" data-step="datum">
+          <h2 class="step__title">Početni datum dostave</h2>
+          <p class="step__subtitle">Izaberi kada želiš da krene dostava.</p>
+          <div class="datepicker-wrap">
+            <input
+              type="text"
+              id="futureDate"
+              name="datum-dostave"
+              placeholder="Unesite datum početka dostave"
+              readonly
+            />
+            <svg
+              class="dropdown-arrow"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#101a24"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+          <div class="error-message"><span class="error-message__text"></span></div>
+          <footer class="step__nav">
+            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
+            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
+          </footer>
+        </section>
+
+        <!-- ============ STEP 8: Plaćanje ============ -->
         <section class="step" data-step="placanje">
           <h2 class="step__title">Način plaćanja</h2>
           <div class="card-grid card-grid--3" data-grid="placanje"></div>

@@ -166,8 +166,8 @@ body {
   text-align: center;
   gap: 8px;
   padding: 24px 18px;
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-lg);
+  border: 2px solid var(--line);
+  border-radius: 24px 8px;
   background: var(--bg);
   cursor: pointer;
   font-family: inherit;
@@ -176,7 +176,7 @@ body {
     box-shadow 0.15s ease, transform 0.05s ease;
 }
 .card:hover {
-  border-color: var(--green-border);
+  border-color: var(--green);
 }
 .card:active {
   transform: scale(0.99);
@@ -227,13 +227,14 @@ body {
   color: var(--text);
   line-height: 1.45;
 }
-/* Pol — manje kartice, blaži radius (vizuelno različite od dugmadi). */
+/* Pol — visina 80px (desktop); od dugmadi se razlikuju visinom i radiusom. */
 .card--pol {
-  padding: 16px 18px;
-  border-radius: 12px;
+  min-height: 80px;
+  justify-content: center;
+  padding: 18px;
 }
 .card--pol .card__title {
-  font-size: 16px;
+  font-size: 17px;
 }
 .card--pay {
   align-items: flex-start;
@@ -291,6 +292,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 .card__sub {
   font-size: 13px;
@@ -486,9 +488,12 @@ body {
 #telefon {
   padding-left: 104px !important;
 }
-/* Dropdown search: odvoji lupu od teksta. */
+/* Dropdown search: odvoji lupu od teksta + viši field. */
 .iti__search-input {
   padding-left: 38px !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  min-height: 46px;
 }
 
 /* ---------- Responsive ---------- */
@@ -514,7 +519,26 @@ body {
   .pkg-grid {
     grid-template-columns: 1fr;
   }
+  /* Nav: Dalje IZNAD Nazad-a. */
   .step__nav {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+  .step__nav [data-nav="next"] {
+    order: -1;
+  }
+  /* Paketi: kompaktnije da stanu u container. */
+  .card--pkg {
+    padding: 16px;
+    gap: 12px;
+  }
+  .card--hero {
+    padding: 18px 16px;
+  }
+  .card--pkg .card__price {
+    font-size: 17px;
+  }
+  .card--hero .card__price {
+    font-size: 19px;
   }
 }

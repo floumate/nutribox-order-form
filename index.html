@@ -218,8 +218,11 @@
           <div class="card-grid card-grid--3" data-grid="placanje"></div>
 
           <div class="firma" data-firma-wrap style="display: none">
-            <h3 class="firma__title">Podaci firme</h3>
-            <div class="fields fields--2">
+            <h3 class="firma__title">Plaćanje preko firme</h3>
+            <p class="firma__desc">
+              Na mejl koji ste uneli u formi će Vam stići popunjena faktura.
+            </p>
+            <div class="fields fields--3">
               <label class="field">
                 <span class="field__label">Naziv firme</span>
                 <input type="text" data-firma="nazivFirme" />
@@ -231,7 +234,10 @@
               <label class="field">
                 <span class="field__label">Email firme</span>
                 <input type="email" data-firma="emailFirme" />
+                <span class="field__hint">(na ovom email-u ćemo vam poslati fakturu)</span>
               </label>
+            </div>
+            <div class="fields fields--2">
               <label class="field">
                 <span class="field__label">PIB</span>
                 <input type="text" data-firma="pibFirme" />

@@ -365,9 +365,19 @@ body {
   border-radius: var(--radius);
 }
 .firma__title {
-  margin: 0 0 16px;
-  font-size: 16px;
+  margin: 0 0 4px;
+  font-size: 18px;
   font-weight: 600;
+}
+.firma__desc {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--text);
+}
+.field__hint {
+  font-size: 12px;
+  color: var(--green-dark);
+  margin-top: 2px;
 }
 
 .summary {
@@ -484,7 +494,7 @@ body {
 /* Selektor države: razmak od ivice + prošireno udesno + rounded hover. */
 .iti__selected-country {
   padding-left: 12px !important;
-  padding-right: 14px !important;
+  padding-right: 8px !important;
   border-radius: 8px !important;
 }
 #telefon {

@@ -1,7 +1,7 @@
 import type { PaymentMethod } from "../types";
-import iconKartica from "../assets/icons/pay-kartica.svg";
-import iconPouzece from "../assets/icons/pay-pouzece.svg";
-import iconFirma from "../assets/icons/pay-firma.svg";
+import iconCard from "../assets/icons/pay-card.svg";
+import iconCash from "../assets/icons/pay-cash.svg";
+import iconBuilding from "../assets/icons/pay-building.svg";
 
 // =====================================================================
 // Načini plaćanja — tekstovi i ikonice kao live forma.
@@ -20,18 +20,18 @@ export const PAYMENT_OPTIONS: PaymentOption[] = [
     value: "Kartica",
     title: "Plaćanje karticom",
     desc: "Platite odmah pomoću kartice, uputstva Vam šaljemo na email.",
-    icon: iconKartica,
+    icon: iconCard,
   },
   {
     value: "Pouzeće",
     title: "Plaćanje pri pouzeću",
     desc: "Platite dostavljaču pri prvoj dostavi, detaljna uputstva Vam šaljemo na email.",
-    icon: iconPouzece,
+    icon: iconCash,
   },
   {
     value: "Firma",
     title: "Plaćanje preko firme",
     desc: "Na mejl koji ste uneli iznad šaljemo Vam fakturu na osnovu koje možete platiti.",
-    icon: iconFirma,
+    icon: iconBuilding,
   },
 ];

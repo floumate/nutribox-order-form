@@ -34,17 +34,17 @@ const PRICES: Record<PackageId, PriceSet> = {
     affiliates: { thundertopteam: 18900, NUTRI10: 18900, mimavelickovic: 18900 },
   },
   "20-dnevni": {
-    default: null, // TODO
-    discounts: {},
-    affiliates: {},
+    default: 60000,
+    discounts: {}, // TODO: discount cene za 20-dnevni (ako se primenjuju)
+    affiliates: {}, // TODO: affiliate cene za 20-dnevni
   },
   "5-dnevni": {
-    default: null, // TODO
-    discounts: {},
-    affiliates: {},
+    default: 15000,
+    discounts: {}, // TODO: discount cene za 5-dnevni
+    affiliates: {}, // TODO: affiliate cene za 5-dnevni
   },
   probni: {
-    default: null, // TODO
+    default: null, // TODO: cena probnog (1-dnevni)
     discounts: {},
     affiliates: {},
   },

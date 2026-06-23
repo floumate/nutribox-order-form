@@ -300,11 +300,11 @@ body {
   align-self: flex-start;
   background: var(--green);
   color: #fff;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 4px 10px;
+  padding: 5px 14px;
   border-radius: 999px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 /* Hijerarhija paketa (default neutralno; zeleno tek kad je SELECTED) */
@@ -465,22 +465,39 @@ body {
 .iti--allow-dropdown input {
   width: 100%;
 }
-/* Zastava odmaknuta od leve ivice + dovoljno mesta za broj. */
+/* Selektor države: razmak od ivice + prošireno udesno + rounded hover. */
 .iti__selected-country {
   padding-left: 12px !important;
+  padding-right: 14px !important;
+  border-radius: 8px !important;
 }
 #telefon {
-  padding-left: 104px !important;
+  padding-left: 112px !important;
 }
-/* Dropdown search: niži field + padding kao ostali inputi (lupa odvojena). */
-.iti__search-input {
-  padding: 9px 16px 9px 38px !important;
-  min-height: 40px;
+/* Ukloni mali hover samo na zastavi (lib default); zadrži veći preko celog. */
+.iti--allow-dropdown .iti__selected-country-primary:hover {
+  background-color: transparent !important;
 }
-/* Hover preko pozivnog broja i zastave. */
 .iti__selected-country:hover {
   background: rgba(0, 0, 0, 0.06);
-  border-radius: 8px;
+}
+/* Veće zastave (2x sprite — bez gubitka kvaliteta). */
+.iti__flag {
+  transform: scale(1.2);
+}
+.iti__country-list .iti__flag {
+  transform: scale(1.15);
+}
+/* Dropdown search: uži, odvojen sa svih ivica, lupa odvojena od teksta. */
+.iti__search-input-wrapper {
+  padding: 10px 14px;
+}
+.iti__search-icon {
+  left: 24px !important;
+}
+.iti__search-input {
+  padding: 8px 14px 8px 32px !important;
+  min-height: 38px;
 }
 
 /* ---------- Responsive ---------- */

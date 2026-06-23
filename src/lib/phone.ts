@@ -33,6 +33,16 @@ export function initPhone(input: HTMLInputElement): void {
 
   // Izloži globalno (kao stara forma — kompatibilnost + debug).
   (window as unknown as { iti?: typeof iti }).iti = iti;
+
+  // v25 ne zatvori dropdown kad se izabere država — zatvori ga Escape-om.
+  // Odloženo (setTimeout 0) da se izvrši POSLE interne selekcije lib-a.
+  input.addEventListener("countrychange", () => {
+    setTimeout(() => {
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
+    }, 0);
+  });
 }
 
 /** E.164 broj (npr. +381641234567) ili "" ako nije inicijalizovan. */

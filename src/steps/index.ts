@@ -29,7 +29,9 @@ function reqEl<T extends HTMLElement>(root: ParentNode, sel: string): T {
 function wireChoiceGrid(
   container: HTMLElement,
   onSelect: (value: string, card: HTMLElement) => void,
+  autoNext = false,
 ): void {
+  let timer: number | undefined;
   container.addEventListener("click", (e) => {
     const card = (e.target as HTMLElement).closest<HTMLElement>("[data-choice]");
     if (!card || !container.contains(card)) return;
@@ -39,6 +41,15 @@ function wireChoiceGrid(
     onSelect(card.dataset.choice ?? "", card);
     const step = container.closest<HTMLElement>(".step");
     if (step) hideError(step);
+
+    // Auto-next: posle kratkog highlighta pređi na sledeći korak.
+    if (autoNext && step) {
+      const nextBtn = step.querySelector<HTMLElement>('[data-nav="next"]');
+      if (nextBtn) {
+        clearTimeout(timer);
+        timer = window.setTimeout(() => nextBtn.click(), 280);
+      }
+    }
   });
 }
 
@@ -108,8 +119,10 @@ function renderPackageCards(container: HTMLElement): void {
     <button type="button" class="card card--pkg card--${p.tier}" data-choice="${p.id}">
       ${badge}
       <span class="card__icon">${ICON_PKG}</span>
-      <span class="card__title">${p.name}</span>
-      <span class="card__sub">${p.subtitle}</span>
+      <span class="card__info">
+        <span class="card__title">${p.name}</span>
+        <span class="card__sub">${p.subtitle}</span>
+      </span>
       ${priceHtml}
     </button>`;
   }).join("");
@@ -148,13 +161,13 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   const stepPlan = reqEl<HTMLElement>(form, '[data-step="plan"]');
   const planGrid = reqEl<HTMLElement>(stepPlan, '[data-grid="plan"]');
   renderPlanCards(planGrid);
-  wireChoiceGrid(planGrid, (v) => (state.plan = v as PlanId));
+  wireChoiceGrid(planGrid, (v) => (state.plan = v as PlanId), true);
 
   // ----- STEP: Pol -----
   const stepPol = reqEl<HTMLElement>(form, '[data-step="pol"]');
   const polGrid = reqEl<HTMLElement>(stepPol, '[data-grid="pol"]');
   renderPolCards(polGrid);
-  wireChoiceGrid(polGrid, (v) => (state.pol = v as Sex));
+  wireChoiceGrid(polGrid, (v) => (state.pol = v as Sex), true);
 
   // ----- STEP: Makro vrednosti (read-only) -----
   const stepMacros = reqEl<HTMLElement>(form, '[data-step="macros"]');
@@ -181,7 +194,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   const stepDiet = reqEl<HTMLElement>(form, '[data-step="diet"]');
   const dietGrid = reqEl<HTMLElement>(stepDiet, '[data-grid="diet"]');
   renderDietCards(dietGrid);
-  wireChoiceGrid(dietGrid, (v) => (state.tipIshrane = v as DietId));
+  wireChoiceGrid(dietGrid, (v) => (state.tipIshrane = v as DietId), true);
 
   // ----- STEP: Paket -----
   const stepPaket = reqEl<HTMLElement>(form, '[data-step="paket"]');

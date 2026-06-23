@@ -50,20 +50,20 @@ body {
 }
 
 .form-shell {
-  max-width: 920px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: 28px 20px 48px;
 }
 
 /* ---------- Progress ---------- */
 .progress {
   display: flex;
-  gap: 8px;
-  margin-bottom: 36px;
+  gap: 6px;
+  margin-bottom: 18px;
 }
 .progress__seg {
-  flex: 0 0 46px;
-  height: 6px;
+  flex: 0 0 34px;
+  height: 5px;
   border-radius: 999px;
   background: #dcdcdc;
   transition: background 0.25s ease;
@@ -181,10 +181,27 @@ body {
 .card:active {
   transform: scale(0.99);
 }
+/* Selected za plan/diet — meki zeleni tint. */
 .card--selected {
   border-color: var(--green);
   background: var(--green-tint);
   box-shadow: 0 0 0 3px rgba(49, 112, 57, 0.1);
+}
+/* Selected za pol i pakete — TAMNO zeleno, jasno da je kliknuto. */
+.card--pol.card--selected,
+.card--pkg.card--selected {
+  background: var(--green-dark);
+  border-color: var(--green-dark);
+  color: #fff;
+  box-shadow: none;
+}
+.card--pkg.card--selected .card__sub,
+.card--pkg.card--selected .card__price,
+.card--pkg.card--selected .card__price small {
+  color: #fff;
+}
+.card--pkg.card--selected .card__icon {
+  color: #fff;
 }
 
 .card__icon {
@@ -210,8 +227,13 @@ body {
   color: var(--text);
   line-height: 1.45;
 }
+/* Pol — manje kartice, blaži radius (vizuelno različite od dugmadi). */
 .card--pol {
-  padding: 28px 18px;
+  padding: 16px 18px;
+  border-radius: 12px;
+}
+.card--pol .card__title {
+  font-size: 16px;
 }
 .card--pay {
   align-items: flex-start;
@@ -255,16 +277,29 @@ body {
 }
 .card--pkg {
   position: relative;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
   text-align: left;
+  gap: 18px;
+  padding: 20px 24px;
+}
+.card--pkg .card__icon {
+  margin-bottom: 0;
+  flex: 0 0 auto;
+}
+.card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .card__sub {
   font-size: 13px;
   color: var(--muted);
 }
 .card__price {
-  margin-top: auto;
-  padding-top: 10px;
+  margin-left: auto;
+  text-align: right;
+  white-space: nowrap;
   font-size: 20px;
   font-weight: 700;
   color: var(--green-dark);
@@ -286,12 +321,11 @@ body {
   border-radius: 999px;
 }
 
-/* Hijerarhija paketa */
+/* Hijerarhija paketa (default neutralno; zeleno tek kad je SELECTED) */
 .card--hero {
   grid-column: 1 / -1;
-  border-color: var(--green);
-  background: var(--green-tint);
   padding: 28px;
+  box-shadow: var(--shadow);
 }
 .card--hero .card__title {
   font-size: 22px;
@@ -301,9 +335,6 @@ body {
 }
 .card--secondary {
   grid-column: 1 / -1;
-}
-.card--muted {
-  opacity: 0.92;
 }
 .card--trial {
   grid-column: 1 / -1;
@@ -391,12 +422,12 @@ body {
 .step__nav--single {
   grid-template-columns: 1fr;
 }
-/* Dugme identično live formi (.submit_button): asimetričan radius 28px 6px. */
+/* Dugme identično live formi (.submit_button): padding 12/12, radius 28px 6px. */
 .btn {
-  padding: 16px 28px;
+  padding: 12px 28px;
   border-radius: 28px 6px;
   font-family: inherit;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   border: 2px solid transparent;
@@ -447,6 +478,17 @@ body {
 }
 .iti--allow-dropdown input {
   width: 100%;
+}
+/* Zastava odmaknuta od leve ivice + dovoljno mesta za broj. */
+.iti__selected-country {
+  padding-left: 12px !important;
+}
+#telefon {
+  padding-left: 104px !important;
+}
+/* Dropdown search: odvoji lupu od teksta. */
+.iti__search-input {
+  padding-left: 38px !important;
 }
 
 /* ---------- Responsive ---------- */

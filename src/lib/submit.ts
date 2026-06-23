@@ -15,6 +15,15 @@ import { EMAIL_REGEX, showError, hideError } from "./validation";
 // Sve uz bulletproof slanje na Make.
 // =====================================================================
 
+/** Navigacija na TOP prozor (da Raiffeisen/thank-you izađu iz iframe-a na Webflow-u). */
+function navigateTop(url: string): void {
+  try {
+    (window.top ?? window).location.href = url;
+  } catch {
+    window.location.href = url;
+  }
+}
+
 function setButtonLoading(btn: HTMLButtonElement, loading: boolean, original: string) {
   btn.disabled = loading;
   btn.textContent = loading ? "Učitavanje..." : original;
@@ -97,7 +106,7 @@ export function attachSubmit(form: HTMLFormElement): void {
       tyParams.set("order_id", orderId);
 
       const base = tyPath ? ENDPOINTS.thankYouBase + tyPath : ENDPOINTS.thankYouBase;
-      window.location.href = base + "?" + tyParams.toString();
+      navigateTop(base + "?" + tyParams.toString());
       return;
     }
 
@@ -140,7 +149,7 @@ export function attachSubmit(form: HTMLFormElement): void {
       if (!response.ok) throw new Error("Problem sa serverom pri inicijalizaciji");
       const data = (await response.json()) as { redirectUrl?: string };
       if (data.redirectUrl) {
-        window.location.href = data.redirectUrl;
+        navigateTop(data.redirectUrl);
       } else {
         throw new Error("URL za plaćanje nije generisan.");
       }

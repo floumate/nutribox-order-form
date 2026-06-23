@@ -30,6 +30,22 @@ function boot(): void {
     const t = e.target as HTMLElement;
     if (t.tagName === "INPUT") e.preventDefault();
   });
+
+  // Auto-visina kad je forma u iframe-u (Webflow embed) — javlja parent-u visinu.
+  setupHeightReporter();
+}
+
+function setupHeightReporter(): void {
+  if (window.parent === window) return; // nismo u iframe-u
+  const report = () => {
+    const h = document.documentElement.scrollHeight;
+    window.parent.postMessage({ type: "nutribox-height", height: h }, "*");
+  };
+  report();
+  window.addEventListener("load", report);
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(report).observe(document.body);
+  }
 }
 
 if (document.readyState === "loading") {

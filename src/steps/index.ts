@@ -66,6 +66,21 @@ function bindInput(
   input.addEventListener("input", () => onChange(input.value));
 }
 
+/** Programatski označi karticu u gridu (za inline izmenu sa summary-ja). */
+function selectCardInGrid(grid: HTMLElement, value: string): void {
+  grid
+    .querySelectorAll<HTMLElement>("[data-choice]")
+    .forEach((c) => c.classList.toggle("card--selected", c.dataset.choice === value));
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(
+    /[&<>"]/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] ?? c,
+  );
+}
+
 // ---------------------------------------------------------------------
 // Ikone (placeholder — zameni pravim asset-ima kasnije)
 // ---------------------------------------------------------------------
@@ -207,6 +222,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   // ----- STEP: Podaci za dostavu -----
   const stepAdresa = reqEl<HTMLElement>(form, '[data-step="adresa"]');
   const naseljeSelect = reqEl<HTMLSelectElement>(stepAdresa, "[data-dostava='naselje']");
+  const adresaInput = reqEl<HTMLInputElement>(stepAdresa, "[data-dostava='adresa']");
   naseljeSelect.innerHTML =
     `<option value="">Izaberite naselje</option>` +
     NASELJA.map((n) => `<option value="${n}">${n}</option>`).join("");
@@ -237,25 +253,157 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     });
   });
 
+  // ---- Summary recap sa inline izmenom ("Izmeni" / "Sačuvaj") ----
+  const summaryEl = reqEl<HTMLElement>(stepPay, "[data-summary]");
+
+  interface SumField {
+    label: string;
+    kind: "select" | "text" | "date";
+    options?: { value: string; label: string }[];
+    stored: () => string;
+    display: () => string;
+    apply: (v: string) => void;
+  }
+
+  const SUM_FIELDS: SumField[] = [
+    {
+      label: "Plan",
+      kind: "select",
+      options: PLANS.map((p) => ({ value: p.id, label: p.name })),
+      stored: () => state.plan ?? "",
+      display: () => (state.plan ? (getPlan(state.plan)?.name ?? "") : ""),
+      apply: (v) => {
+        state.plan = v as PlanId;
+        selectCardInGrid(planGrid, v);
+      },
+    },
+    {
+      label: "Pol",
+      kind: "select",
+      options: [
+        { value: "Muški", label: "Muški" },
+        { value: "Ženski", label: "Ženski" },
+      ],
+      stored: () => state.pol ?? "",
+      display: () => state.pol ?? "",
+      apply: (v) => {
+        state.pol = v as Sex;
+        selectCardInGrid(polGrid, v);
+      },
+    },
+    {
+      label: "Tip ishrane",
+      kind: "select",
+      options: DIET_TYPES.map((d) => ({ value: d.id, label: d.name })),
+      stored: () => state.tipIshrane ?? "",
+      display: () =>
+        state.tipIshrane ? (getDiet(state.tipIshrane)?.name ?? "") : "",
+      apply: (v) => {
+        state.tipIshrane = v as DietId;
+        selectCardInGrid(dietGrid, v);
+      },
+    },
+    {
+      label: "Paket",
+      kind: "select",
+      options: PACKAGES.map((p) => ({ value: p.id, label: p.name })),
+      stored: () => state.paket ?? "",
+      display: () => (state.paket ? (getPackage(state.paket)?.name ?? "") : ""),
+      apply: (v) => {
+        state.paket = v as PackageId;
+        selectCardInGrid(paketGrid, v);
+      },
+    },
+    {
+      label: "Datum dostave",
+      kind: "date",
+      stored: () => state.datumDostave,
+      display: () => state.datumDostave,
+      apply: (v) => {
+        state.datumDostave = v;
+        const fp = (futureDate as unknown as { _flatpickr?: { setDate: (d: string, t: boolean, f: string) => void } })._flatpickr;
+        if (fp) fp.setDate(v, false, "d.m.Y");
+        else futureDate.value = v;
+      },
+    },
+    {
+      label: "Naselje",
+      kind: "select",
+      options: NASELJA.map((n) => ({ value: n, label: n })),
+      stored: () => state.dostava.naselje,
+      display: () => state.dostava.naselje,
+      apply: (v) => {
+        state.dostava.naselje = v;
+        naseljeSelect.value = v;
+      },
+    },
+    {
+      label: "Adresa",
+      kind: "text",
+      stored: () => state.dostava.adresa,
+      display: () => state.dostava.adresa,
+      apply: (v) => {
+        state.dostava.adresa = v;
+        adresaInput.value = v;
+      },
+    },
+  ];
+
   const renderSummary = () => {
-    const summary = stepPay.querySelector<HTMLElement>("[data-summary]");
-    if (!summary) return;
-    const plan = state.plan ? getPlan(state.plan) : undefined;
-    const diet = state.tipIshrane ? getDiet(state.tipIshrane) : undefined;
-    const pkg = state.paket ? getPackage(state.paket) : undefined;
     const price = state.paket ? computePrice(state.paket, urlContext) : null;
-    const row = (label: string, value: string) =>
-      `<div class="summary__row"><span>${label}</span><strong>${value || "—"}</strong></div>`;
-    summary.innerHTML =
-      row("Plan", plan?.name ?? "") +
-      row("Pol", state.pol ?? "") +
-      row("Tip ishrane", diet?.name ?? "") +
-      row("Paket", pkg?.name ?? "") +
-      row("Datum dostave", state.datumDostave) +
-      row("Naselje", state.dostava.naselje) +
-      row("Adresa", state.dostava.adresa) +
-      `<div class="summary__row summary__total"><span>Ukupno</span><strong>${formatPrice(price)} RSD</strong></div>`;
+    summaryEl.innerHTML =
+      SUM_FIELDS.map(
+        (f, i) => `
+        <div class="summary__row" data-srow="${i}">
+          <span class="summary__label">${f.label}</span>
+          <span class="summary__value">${escapeHtml(f.display() || "—")}</span>
+          <button type="button" class="summary__edit" data-sedit="${i}">Izmeni</button>
+        </div>`,
+      ).join("") +
+      `<div class="summary__row summary__total"><span class="summary__label">Ukupno</span><strong>${formatPrice(price)} RSD</strong></div>`;
   };
+
+  summaryEl.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-sedit]");
+    if (!btn) return;
+    const field = SUM_FIELDS[Number(btn.dataset.sedit)];
+    if (!field) return;
+    const row = btn.closest<HTMLElement>(".summary__row");
+    if (!row) return;
+
+    const existing = row.querySelector<HTMLElement>(".summary__editor");
+    if (!existing) {
+      // uđi u edit mod
+      const valueSpan = row.querySelector<HTMLElement>(".summary__value");
+      if (valueSpan) valueSpan.style.display = "none";
+      let editor: HTMLInputElement | HTMLSelectElement;
+      if (field.kind === "select") {
+        const sel = document.createElement("select");
+        sel.innerHTML = (field.options ?? [])
+          .map(
+            (o) =>
+              `<option value="${escapeHtml(o.value)}">${escapeHtml(o.label)}</option>`,
+          )
+          .join("");
+        sel.value = field.stored();
+        editor = sel;
+      } else {
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.value = field.stored();
+        if (field.kind === "date") inp.readOnly = true;
+        editor = inp;
+      }
+      editor.className = "summary__editor";
+      btn.insertAdjacentElement("beforebegin", editor);
+      if (field.kind === "date") initDatepicker(editor as HTMLInputElement, () => {});
+      btn.textContent = "Sačuvaj";
+    } else {
+      // sačuvaj
+      field.apply((existing as HTMLInputElement | HTMLSelectElement).value);
+      renderSummary();
+    }
+  });
 
   // Generičko skrivanje errora na promenu unutar koraka.
   [

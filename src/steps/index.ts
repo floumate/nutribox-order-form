@@ -117,9 +117,9 @@ function renderPackageCards(container: HTMLElement): void {
     const badge = p.badge ? `<span class="card__badge">${p.badge}</span>` : "";
     return `
     <button type="button" class="card card--pkg card--${p.tier}" data-choice="${p.id}">
-      ${badge}
       <span class="card__icon">${ICON_PKG}</span>
       <span class="card__info">
+        ${badge}
         <span class="card__title">${p.name}</span>
         <span class="card__sub">${p.subtitle}</span>
       </span>

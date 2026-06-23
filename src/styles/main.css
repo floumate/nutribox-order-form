@@ -4,20 +4,21 @@
    ===================================================================== */
 
 :root {
-  /* Brend */
-  --green: #2f7a39;
-  --green-dark: #235c2b;
-  --green-tint: #f1f7f2;
-  --green-border: #bcd9c2;
+  /* Brend (zvanične vrednosti iz Webflow-a) */
+  --green: #317039;
+  --green-hover: #388041; /* hover je SVETLIJI od baze */
+  --green-dark: #25542c; /* tamnija nijansa za jake akcente */
+  --green-tint: #eef4f0; /* meki zeleni tint za selected/stat */
+  --green-border: #b9d4be;
 
   /* Tekst / neutralno */
-  --ink: #1f2d3d;
-  --muted: #6b7b73;
-  --line: #e3e6e3;
+  --ink: #101a24;
+  --muted: #5d6c7b;
+  --line: #dedede;
   --bg: #ffffff;
-  --bg-soft: #f7f9f7;
+  --bg-soft: #f8f8f8;
 
-  --error: #ff4444;
+  --error: #e22c44;
 
   --radius: 12px;
   --radius-lg: 16px;
@@ -136,7 +137,7 @@ body {
 }
 .field input:focus {
   border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(47, 122, 57, 0.12);
+  box-shadow: 0 0 0 3px rgba(49, 112, 57, 0.12);
 }
 
 /* ---------- Card grids ---------- */
@@ -180,7 +181,7 @@ body {
 .card--selected {
   border-color: var(--green);
   background: var(--green-tint);
-  box-shadow: 0 0 0 3px rgba(47, 122, 57, 0.1);
+  box-shadow: 0 0 0 3px rgba(49, 112, 57, 0.1);
 }
 
 .card__icon {
@@ -399,7 +400,7 @@ body {
   color: #fff;
 }
 .btn--primary:hover {
-  background: var(--green-dark);
+  background: var(--green-hover);
 }
 .btn--primary:disabled {
   opacity: 0.6;

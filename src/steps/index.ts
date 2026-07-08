@@ -99,11 +99,6 @@ function escapeHtml(s: string): string {
 }
 
 // ---------------------------------------------------------------------
-// Ikone (placeholder — zameni pravim asset-ima kasnije)
-// ---------------------------------------------------------------------
-
-const ICON_PKG = `<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M24 7l16 8-16 8-16-8z"/><path d="M8 15v18l16 8 16-8V15"/><path d="M24 23v18"/></svg>`;
-
 // ---------------------------------------------------------------------
 // Render kartica
 // ---------------------------------------------------------------------
@@ -169,7 +164,6 @@ function renderPackageCards(container: HTMLElement, isMax: boolean): void {
     const badge = p.badge ? `<span class="card__badge">${p.badge}</span>` : "";
     return `
     <button type="button" class="card card--pkg card--${p.tier}" data-choice="${p.id}">
-      <span class="card__icon">${ICON_PKG}</span>
       <span class="card__info">
         ${badge}
         <span class="card__title">${p.name}</span>

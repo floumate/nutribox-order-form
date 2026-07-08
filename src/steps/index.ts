@@ -7,7 +7,7 @@ import { showError, hideError, EMAIL_REGEX } from "../lib/validation";
 import { PLANS, getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { DIET_TYPES, getDiet } from "../config/dietTypes";
 import { getAllergensFor } from "../config/allergens";
-import { PACKAGES, getPackage } from "../config/packages";
+import { PACKAGES, PACKAGE_GROUPS, getPackage } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
 import { NASELJA } from "../config/delivery";
 import { PAYMENT_OPTIONS } from "../config/payments";
@@ -160,7 +160,7 @@ function renderAllergenCards(
 }
 
 function renderPackageCards(container: HTMLElement, isMax: boolean): void {
-  container.innerHTML = PACKAGES.map((p) => {
+  const cardHtml = (p: (typeof PACKAGES)[number]): string => {
     const price = computePrice(p.id, urlContext, isMax);
     const priceHtml =
       price != null
@@ -177,6 +177,15 @@ function renderPackageCards(container: HTMLElement, isMax: boolean): void {
       </span>
       ${priceHtml}
     </button>`;
+  };
+
+  container.innerHTML = PACKAGE_GROUPS.map((g) => {
+    const cards = PACKAGES.filter((p) => p.group === g.id).map(cardHtml).join("");
+    return `
+    <div class="pkg-group">
+      <span class="pkg-group__label">${g.label}</span>
+      <div class="pkg-group__cards">${cards}</div>
+    </div>`;
   }).join("");
 }
 

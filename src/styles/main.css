@@ -292,6 +292,30 @@ body {
   gap: 16px;
   margin-bottom: 8px;
 }
+/* Grupe paketa (Mesečni / Nedeljni / Probni) */
+.pkg-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  margin-bottom: 8px;
+}
+.pkg-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pkg-group__label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--green-dark);
+}
+.pkg-group__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 .card--pkg {
   position: relative;
   flex-direction: row;
@@ -600,12 +624,17 @@ body {
 #futureDate:hover {
   border-color: var(--green);
 }
-#futureDate + .dropdown-arrow {
+/* Strelica pozicionirana u odnosu na wrap (radi i za #futureDate i #datumRodjenja). */
+.datepicker-wrap .dropdown-arrow {
   position: absolute;
   top: 50%;
   right: 16px;
   transform: translateY(-50%);
   pointer-events: none;
+}
+/* Prostor desno da tekst/placeholder ne ide ispod strelice. */
+.datepicker-wrap input {
+  padding-right: 42px;
 }
 
 .flatpickr-calendar {
@@ -706,7 +735,8 @@ body {
   }
 }
 @media (max-width: 480px) {
-  .fields--2 {
+  .fields--2,
+  .fields--3 {
     grid-template-columns: 1fr;
   }
   .card-grid--2,

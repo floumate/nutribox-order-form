@@ -1,12 +1,12 @@
 import type { DietId } from "../types";
 import iconBalanced from "../assets/icons/balanced.svg";
 import iconVeggie from "../assets/icons/veggie.svg";
-import iconPescatarian from "../assets/icons/pescatarian.svg";
+import iconFish from "../assets/icons/pescatarian.svg";
 import iconVegan from "../assets/icons/vegan.svg";
 
 // =====================================================================
-// TIPOVI ISHRANE. Tekst ispod = šta tip uključuje/isključuje (samo opis,
-// nema pod-opcija). Nazivi/redosled identični live formi.
+// TIPOVI ISHRANE. Tekst ispod = šta tip uključuje/isključuje (samo opis).
+// Redosled/nazivi po klijentovoj šemi: Balance, Fish, Vegan, Vegeterian.
 // =====================================================================
 
 export interface DietType {
@@ -24,18 +24,11 @@ export const DIET_TYPES: DietType[] = [
     icon: iconBalanced,
   },
   {
-    id: "vegetarian",
-    name: "Vegeterian",
-    description:
-      "Uključuje povrće, voće, žitarice, mahunarke, jaja i mlečne proizvode – bez mesa i ribe",
-    icon: iconVeggie,
-  },
-  {
-    id: "pescaterian",
-    name: "Pescaterian",
+    id: "fish",
+    name: "Fish",
     description:
       "Uključuje ribu, morske plodove, jaja, mlečne proizvode, povrće i voće – bez mesa",
-    icon: iconPescatarian,
+    icon: iconFish,
   },
   {
     id: "vegan",
@@ -43,6 +36,13 @@ export const DIET_TYPES: DietType[] = [
     description:
       "Uključuje biljne namirnice – povrće, voće, žitarice, mahunarke, bez ikakvih proizvoda životinjskog porekla",
     icon: iconVegan,
+  },
+  {
+    id: "vegetarian",
+    name: "Vegeterian",
+    description:
+      "Uključuje povrće, voće, žitarice, mahunarke, jaja i mlečne proizvode – bez mesa i ribe",
+    icon: iconVeggie,
   },
 ];
 

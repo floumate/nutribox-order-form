@@ -2,11 +2,11 @@
 // Centralni tipovi za celu formu.
 // =====================================================================
 
-export type PlanId = "nutrislim" | "nutribalance" | "nutripump" | "highprotein";
+export type PlanId = "nutrislim" | "nutribalance" | "nutripump" | "nutrimax";
 
 export type Sex = "Muški" | "Ženski";
 
-export type DietId = "balance" | "pescaterian" | "vegetarian" | "vegan";
+export type DietId = "balance" | "fish" | "vegetarian" | "vegan";
 
 export type PackageId =
   | "28-dnevni"
@@ -38,8 +38,9 @@ export interface FirmaData {
 export interface DostavaData {
   naselje: string;
   adresa: string;
-  brojStana: string;
+  kucniBroj: string;
   brojSprata: string;
+  brojStana: string;
   sifraUlaznihVrata: string;
   instrukcije: string;
 }
@@ -48,12 +49,15 @@ export interface DostavaData {
 export interface FormState {
   ime: string;
   prezime: string;
+  datumRodjenja: string; // d.m.Y (flatpickr)
   email: string;
   telefon: string; // E.164 (iz intl-tel-input)
 
   plan: PlanId | null;
   pol: Sex | null;
   tipIshrane: DietId | null;
+  /** Namirnice izabrane za isključivanje (zavisi od tipa ishrane). */
+  izuzeteNamirnice: string[];
   paket: PackageId | null;
   datumDostave: string; // d.m.Y (flatpickr)
   dostava: DostavaData;
@@ -66,18 +70,21 @@ export function createInitialState(): FormState {
   return {
     ime: "",
     prezime: "",
+    datumRodjenja: "",
     email: "",
     telefon: "",
     plan: null,
     pol: null,
     tipIshrane: null,
+    izuzeteNamirnice: [],
     paket: null,
     datumDostave: "",
     dostava: {
       naselje: "",
       adresa: "",
-      brojStana: "",
+      kucniBroj: "",
       brojSprata: "",
+      brojStana: "",
       sifraUlaznihVrata: "",
       instrukcije: "",
     },

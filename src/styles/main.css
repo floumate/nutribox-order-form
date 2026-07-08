@@ -242,6 +242,21 @@ body {
   font-size: 17px;
 }
 
+/* ---------- NutriChef banner (izbacivanje namirnica step) ---------- */
+.nutrichef-banner {
+  margin-top: 20px;
+  padding: 18px 20px;
+  background: #f2ecfb;
+  border: 1px solid #ddc9f5;
+  border-radius: var(--radius-lg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.nutrichef-banner strong {
+  color: #6b3fa0;
+}
+
 /* ---------- Stats (makro vrednosti) ---------- */
 .stats {
   display: grid;

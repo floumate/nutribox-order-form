@@ -2,10 +2,11 @@ import type { StepConfig } from "./stepEngine";
 import { state } from "../lib/state";
 import { urlContext } from "../lib/urlParams";
 import { isPhoneValid } from "../lib/phone";
-import { initDatepicker } from "../lib/datepicker";
+import { initDatepicker, initBirthDatepicker } from "../lib/datepicker";
 import { showError, hideError, EMAIL_REGEX } from "../lib/validation";
-import { PLANS, getPlan, getMacros } from "../config/plans";
+import { PLANS, getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { DIET_TYPES, getDiet } from "../config/dietTypes";
+import { getAllergensFor } from "../config/allergens";
 import { PACKAGES, getPackage } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
 import { NASELJA } from "../config/delivery";
@@ -53,6 +54,22 @@ function wireChoiceGrid(
         timer = window.setTimeout(() => nextBtn.click(), 280);
       }
     }
+  });
+}
+
+/** Multi-select toggle (za izbacivanje namirnica) — svaka kartica se toggluje nezavisno. */
+function wireMultiToggle(
+  container: HTMLElement,
+  onToggle: (value: string, selected: boolean) => void,
+): void {
+  container.addEventListener("click", (e) => {
+    const card = (e.target as HTMLElement).closest<HTMLElement>("[data-choice]");
+    if (!card || !container.contains(card)) return;
+    const nowSelected = !card.classList.contains("card--selected");
+    card.classList.toggle("card--selected", nowSelected);
+    onToggle(card.dataset.choice ?? "", nowSelected);
+    const step = container.closest<HTMLElement>(".step");
+    if (step) hideError(step);
   });
 }
 
@@ -125,9 +142,26 @@ function renderDietCards(container: HTMLElement): void {
   ).join("");
 }
 
-function renderPackageCards(container: HTMLElement): void {
+function renderAllergenCards(
+  container: HTMLElement,
+  options: string[],
+  selected: string[],
+): void {
+  container.innerHTML = options
+    .map(
+      (label) => `
+    <button type="button" class="card card--choice card--allergen${
+      selected.includes(label) ? " card--selected" : ""
+    }" data-choice="${escapeHtml(label)}">
+      <span class="card__title">${escapeHtml(label)}</span>
+    </button>`,
+    )
+    .join("");
+}
+
+function renderPackageCards(container: HTMLElement, isMax: boolean): void {
   container.innerHTML = PACKAGES.map((p) => {
-    const price = computePrice(p.id, urlContext);
+    const price = computePrice(p.id, urlContext, isMax);
     const priceHtml =
       price != null
         ? `<span class="card__price">${formatPrice(price)} <small>RSD</small></span>`
@@ -162,14 +196,7 @@ function renderPaymentCards(container: HTMLElement): void {
 // ---------------------------------------------------------------------
 
 export function buildSteps(form: HTMLFormElement): StepConfig[] {
-  // ----- STEP: Informacije -----
-  const stepInfo = reqEl<HTMLElement>(form, '[data-step="info"]');
-  bindInput(stepInfo, "#ime", (v) => (state.ime = v));
-  bindInput(stepInfo, "#prezime", (v) => (state.prezime = v));
-  bindInput(stepInfo, "#email", (v) => (state.email = v));
-  bindInput(stepInfo, "#telefon", (v) => (state.telefon = v));
-
-  // ----- STEP: Plan -----
+  // ----- STEP: Plan (cilj) -----
   const stepPlan = reqEl<HTMLElement>(form, '[data-step="plan"]');
   const planGrid = reqEl<HTMLElement>(stepPlan, '[data-grid="plan"]');
   renderPlanCards(planGrid);
@@ -208,11 +235,38 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   renderDietCards(dietGrid);
   wireChoiceGrid(dietGrid, (v) => (state.tipIshrane = v as DietId), true);
 
+  // ----- STEP: Izbacivanje namirnica -----
+  const stepNamirnice = reqEl<HTMLElement>(form, '[data-step="namirnice"]');
+  const namirniceGrid = reqEl<HTMLElement>(stepNamirnice, '[data-grid="namirnice"]');
+  wireMultiToggle(namirniceGrid, (value, selected) => {
+    if (selected) {
+      if (!state.izuzeteNamirnice.includes(value)) state.izuzeteNamirnice.push(value);
+    } else {
+      state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => v !== value);
+    }
+  });
+  const renderNamirnice = () => {
+    const options = getAllergensFor(state.tipIshrane);
+    // zadrži samo selekcije koje su i dalje validne za trenutni tip ishrane
+    state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => options.includes(v));
+    renderAllergenCards(namirniceGrid, options, state.izuzeteNamirnice);
+  };
+
   // ----- STEP: Paket -----
   const stepPaket = reqEl<HTMLElement>(form, '[data-step="paket"]');
   const paketGrid = reqEl<HTMLElement>(stepPaket, '[data-grid="paket"]');
-  renderPackageCards(paketGrid);
+  const renderPaket = () => renderPackageCards(paketGrid, isMaxPlan(state.plan));
+  renderPaket();
   wireChoiceGrid(paketGrid, (v) => (state.paket = v as PackageId));
+
+  // ----- STEP: Lične informacije -----
+  const stepLicneInfo = reqEl<HTMLElement>(form, '[data-step="licneInformacije"]');
+  bindInput(stepLicneInfo, "#ime", (v) => (state.ime = v));
+  bindInput(stepLicneInfo, "#prezime", (v) => (state.prezime = v));
+  bindInput(stepLicneInfo, "#email", (v) => (state.email = v));
+  bindInput(stepLicneInfo, "#telefon", (v) => (state.telefon = v));
+  const birthDateInput = reqEl<HTMLInputElement>(stepLicneInfo, "#datumRodjenja");
+  initBirthDatepicker(birthDateInput, (v) => (state.datumRodjenja = v));
 
   // ----- STEP: Početni datum dostave -----
   const stepDatum = reqEl<HTMLElement>(form, '[data-step="datum"]');
@@ -350,7 +404,9 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   ];
 
   const renderSummary = () => {
-    const price = state.paket ? computePrice(state.paket, urlContext) : null;
+    const price = state.paket
+      ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
+      : null;
     summaryEl.innerHTML =
       SUM_FIELDS.map(
         (f, i) => `
@@ -407,11 +463,12 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
 
   // Generičko skrivanje errora na promenu unutar koraka.
   [
-    stepInfo,
     stepPlan,
     stepPol,
     stepDiet,
+    stepNamirnice,
     stepPaket,
+    stepLicneInfo,
     stepDatum,
     stepAdresa,
     stepPay,
@@ -421,31 +478,6 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   });
 
   return [
-    {
-      id: "info",
-      el: stepInfo,
-      validate: () => {
-        if (!state.ime.trim() || !state.prezime.trim()) {
-          showError(stepInfo, "Molimo unesite ime i prezime.");
-          return false;
-        }
-        if (!EMAIL_REGEX.test(state.email.trim())) {
-          showError(stepInfo, "Molimo unesite ispravan email.");
-          return false;
-        }
-        const phone = stepInfo.querySelector<HTMLInputElement>("#telefon");
-        if (!phone || phone.value.trim() === "") {
-          showError(stepInfo, "Molimo unesite broj telefona.");
-          return false;
-        }
-        if (!isPhoneValid()) {
-          showError(stepInfo, "Broj telefona nije ispravan.");
-          return false;
-        }
-        hideError(stepInfo);
-        return true;
-      },
-    },
     {
       id: "plan",
       el: stepPlan,
@@ -485,13 +517,48 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       },
     },
     {
+      id: "namirnice",
+      el: stepNamirnice,
+      onEnter: renderNamirnice,
+    },
+    {
       id: "paket",
       el: stepPaket,
+      onEnter: renderPaket,
       validate: () => {
         if (!state.paket) {
           showError(stepPaket, "Molimo izaberite paket.");
           return false;
         }
+        return true;
+      },
+    },
+    {
+      id: "licneInformacije",
+      el: stepLicneInfo,
+      validate: () => {
+        if (!state.ime.trim() || !state.prezime.trim()) {
+          showError(stepLicneInfo, "Molimo unesite ime i prezime.");
+          return false;
+        }
+        if (!state.datumRodjenja.trim()) {
+          showError(stepLicneInfo, "Molimo unesite datum rođenja.");
+          return false;
+        }
+        if (!EMAIL_REGEX.test(state.email.trim())) {
+          showError(stepLicneInfo, "Molimo unesite ispravan email.");
+          return false;
+        }
+        const phone = stepLicneInfo.querySelector<HTMLInputElement>("#telefon");
+        if (!phone || phone.value.trim() === "") {
+          showError(stepLicneInfo, "Molimo unesite broj telefona.");
+          return false;
+        }
+        if (!isPhoneValid()) {
+          showError(stepLicneInfo, "Broj telefona nije ispravan.");
+          return false;
+        }
+        hideError(stepLicneInfo);
         return true;
       },
     },

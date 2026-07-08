@@ -1,7 +1,7 @@
 import { state } from "./state";
 import { urlContext } from "./urlParams";
 import { getPhoneNumber } from "./phone";
-import { getPlan, getMacros } from "../config/plans";
+import { getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { getDiet } from "../config/dietTypes";
 import { computePrice } from "../config/pricing";
 
@@ -15,22 +15,27 @@ export function buildPayload(): Record<string, unknown> {
   const diet = state.tipIshrane ? getDiet(state.tipIshrane) : undefined;
   const macros =
     state.plan && state.pol ? getMacros(state.plan, state.pol) : null;
-  const price = state.paket ? computePrice(state.paket, urlContext) : null;
+  const price = state.paket
+    ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
+    : null;
 
   const payload: Record<string, unknown> = {
     Ime: state.ime,
     Prezime: state.prezime,
+    datumRodjenja: state.datumRodjenja,
     Email: state.email,
     "Broj-telefona": getPhoneNumber() || state.telefon,
 
     nutriPlan: plan?.name ?? "",
     pol: state.pol ?? "",
     tipIshrane: diet?.name ?? "",
+    izuzeteNamirnice: state.izuzeteNamirnice.join(", "),
     paket: state.paket ?? "",
     datumDostave: state.datumDostave,
 
     naselje: state.dostava.naselje,
     adresa: state.dostava.adresa,
+    kucniBroj: state.dostava.kucniBroj,
     brojStana: state.dostava.brojStana,
     brojSprata: state.dostava.brojSprata,
     sifraUlaznihVrata: state.dostava.sifraUlaznihVrata,

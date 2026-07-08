@@ -2,16 +2,14 @@ import type { Macros, PlanId, Sex } from "../types";
 import iconFatLoss from "../assets/icons/fat-loss.svg";
 import iconLeanGains from "../assets/icons/lean-gains.svg";
 import iconMuscleGain from "../assets/icons/muscle-gain.svg";
-// High Protein nema svoju ikonicu na CDN-u (nije na live formi) — placeholder.
-// TODO: zameni pravom HP ikonicom kad stigne.
-const iconHighProtein = iconMuscleGain;
+// NutriMax nema svoju ikonicu na CDN-u — placeholder (deli sa NutriPump).
+// TODO: zameni pravom NutriMax ikonicom kad stigne.
+const iconNutriMax = iconMuscleGain;
 
 // =====================================================================
 // PLANOVI (ciljevi) + makro tabela.
-//
-// ⚠️ MAKRO VREDNOSTI SU PLACEHOLDER (null = "—" u UI-ju).
-//    Popuni kcal/proteini/uh/masti za svaku kombinaciju Plan × Pol
-//    kad klijent pošalje brojke. Ništa drugo ne treba da se menja.
+// Vrednosti su iz klijentove šeme (Zakonitosti za određivanje veličine
+// paketa za kuhinju: XS/S/M/L/XL po kcal).
 // =====================================================================
 
 export interface Plan {
@@ -23,8 +21,6 @@ export interface Plan {
   macros: Record<Sex, Macros>;
 }
 
-const PRAZNO: Macros = { kcal: null, proteini: null, uh: null, masti: null };
-
 export const PLANS: Plan[] = [
   {
     id: "nutrislim",
@@ -32,8 +28,8 @@ export const PLANS: Plan[] = [
     tagline: "Paket visoko proteinskih obroka za mršavljenje",
     icon: iconFatLoss,
     macros: {
-      Muški: { ...PRAZNO },
-      Ženski: { ...PRAZNO },
+      Muški: { kcal: 1600, proteini: 140, uh: 140, masti: 53 },
+      Ženski: { kcal: 1300, proteini: 114, uh: 114, masti: 43 },
     },
   },
   {
@@ -42,8 +38,8 @@ export const PLANS: Plan[] = [
     tagline: "Paket pravilno izbalansiranih obroka za tvoj dan",
     icon: iconLeanGains,
     macros: {
-      Muški: { ...PRAZNO },
-      Ženski: { ...PRAZNO },
+      Muški: { kcal: 2000, proteini: 150, uh: 225, masti: 56 },
+      Ženski: { kcal: 1600, proteini: 120, uh: 180, masti: 44 },
     },
   },
   {
@@ -52,18 +48,18 @@ export const PLANS: Plan[] = [
     tagline: "Paket visoko proteinskih obroka za dobijanje mišićne mase",
     icon: iconMuscleGain,
     macros: {
-      Muški: { ...PRAZNO },
-      Ženski: { ...PRAZNO },
+      Muški: { kcal: 2600, proteini: 163, uh: 325, masti: 72 },
+      Ženski: { kcal: 2000, proteini: 125, uh: 250, masti: 56 },
     },
   },
   {
-    id: "highprotein",
-    name: "High Protein",
-    tagline: "Paket sa najvišim udelom proteina",
-    icon: iconHighProtein,
+    id: "nutrimax",
+    name: "NutriMax",
+    tagline: "Paket sa najvišim energetskim unosom",
+    icon: iconNutriMax,
     macros: {
-      Muški: { ...PRAZNO },
-      Ženski: { ...PRAZNO },
+      Muški: { kcal: 3000, proteini: 263, uh: 300, masti: 83 },
+      Ženski: { kcal: 2600, proteini: 228, uh: 260, masti: 72 },
     },
   },
 ];
@@ -73,5 +69,11 @@ export function getPlan(id: PlanId): Plan | undefined {
 }
 
 export function getMacros(id: PlanId, sex: Sex): Macros {
-  return getPlan(id)?.macros[sex] ?? { ...PRAZNO };
+  const fallback: Macros = { kcal: null, proteini: null, uh: null, masti: null };
+  return getPlan(id)?.macros[sex] ?? fallback;
+}
+
+/** NutriMax ima poseban (viši) cenovni nivo — koristi se u pricing.ts. */
+export function isMaxPlan(id: PlanId | null): boolean {
+  return id === "nutrimax";
 }

@@ -26,6 +26,7 @@ export function buildPayload(): Record<string, unknown> {
     Email: state.email,
     "Broj-telefona": getPhoneNumber() || state.telefon,
 
+    cilj: state.cilj,
     nutriPlan: plan?.name ?? "",
     pol: state.pol ?? "",
     tipIshrane: diet?.name ?? "",

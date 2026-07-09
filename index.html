@@ -26,10 +26,10 @@
       <div class="progress" data-progress aria-hidden="true"></div>
 
       <form id="nutribox-form" novalidate>
-        <!-- ============ STEP 1: Plan (cilj) ============ -->
-        <section class="step" data-step="plan">
-          <h2 class="step__title">Izaberi svoj cilj</h2>
-          <div class="card-grid card-grid--4" data-grid="plan"></div>
+        <!-- ============ STEP 1: Cilj (uvodno pitanje — NE bira plan) ============ -->
+        <section class="step" data-step="motivacija">
+          <h2 class="step__title">Izaberi cilj koji želiš da ostvariš?</h2>
+          <div class="card-grid card-grid--3" data-grid="motivacija"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav step__nav--single">
             <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
@@ -47,7 +47,18 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 3: Makro vrednosti ============ -->
+        <!-- ============ STEP 3: Plan (NutriSlim/Balance/Pump/Max) ============ -->
+        <section class="step" data-step="plan">
+          <h2 class="step__title">Izaberi svoj plan</h2>
+          <div class="card-grid card-grid--4" data-grid="plan"></div>
+          <div class="error-message"><span class="error-message__text"></span></div>
+          <footer class="step__nav">
+            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
+            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
+          </footer>
+        </section>
+
+        <!-- ============ STEP 4: Makro vrednosti (read-only) ============ -->
         <section class="step" data-step="macros">
           <h2 class="step__title">Tvoje dnevne vrednosti</h2>
           <p class="step__subtitle" data-macros-subtitle></p>
@@ -75,7 +86,7 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 4: Tip ishrane ============ -->
+        <!-- ============ STEP 5: Tip ishrane ============ -->
         <section class="step" data-step="diet">
           <h2 class="step__title">Izaberi svoj tip ishrane</h2>
           <div class="card-grid card-grid--4" data-grid="diet"></div>
@@ -86,7 +97,7 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 5: Izbacivanje namirnica ============ -->
+        <!-- ============ STEP 6: Izbacivanje namirnica ============ -->
         <section class="step" data-step="namirnice">
           <h2 class="step__title">Izbaci ono što ne jedeš</h2>
           <p class="step__subtitle">Opciono — izaberi kategorije koje želiš da izostaviš.</p>
@@ -103,7 +114,7 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 6: Paket ============ -->
+        <!-- ============ STEP 7: Paket ============ -->
         <section class="step" data-step="paket">
           <h2 class="step__title">Izaberi paket koji ti najviše odgovara</h2>
           <p class="step__subtitle">
@@ -117,7 +128,7 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 7: Lične informacije ============ -->
+        <!-- ============ STEP 8: Lične informacije ============ -->
         <section class="step" data-step="licneInformacije">
           <h2 class="step__title">Tvoje informacije</h2>
           <div class="fields fields--3">
@@ -172,7 +183,7 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 8: Početni datum dostave ============ -->
+        <!-- ============ STEP 9: Početni datum dostave ============ -->
         <section class="step" data-step="datum">
           <h2 class="step__title">Početni datum dostave</h2>
           <p class="step__subtitle">Izaberi kada želiš da krene dostava.</p>
@@ -206,7 +217,7 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 9: Podaci za dostavu ============ -->
+        <!-- ============ STEP 10: Podaci za dostavu ============ -->
         <section class="step" data-step="adresa">
           <h2 class="step__title">Unesite podatke za dostavu</h2>
           <div class="fields fields--2">
@@ -260,7 +271,7 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 10: Plaćanje ============ -->
+        <!-- ============ STEP 11: Plaćanje ============ -->
         <section class="step" data-step="placanje">
           <h2 class="step__title">Način plaćanja</h2>
           <div class="card-grid card-grid--3" data-grid="placanje"></div>

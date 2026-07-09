@@ -53,6 +53,9 @@ export interface FormState {
   email: string;
   telefon: string; // E.164 (iz intl-tel-input)
 
+  /** Odgovor na uvodno pitanje "Izaberi cilj koji želiš da ostvariš?"
+   *  (zasebno pitanje — NE određuje plan; čuva se za segmentaciju). */
+  cilj: string;
   plan: PlanId | null;
   pol: Sex | null;
   tipIshrane: DietId | null;
@@ -73,6 +76,7 @@ export function createInitialState(): FormState {
     datumRodjenja: "",
     email: "",
     telefon: "",
+    cilj: "",
     plan: null,
     pol: null,
     tipIshrane: null,

@@ -4,6 +4,7 @@ import { urlContext } from "../lib/urlParams";
 import { isPhoneValid } from "../lib/phone";
 import { initDatepicker, initBirthDatepicker } from "../lib/datepicker";
 import { showError, hideError, EMAIL_REGEX } from "../lib/validation";
+import { GOALS } from "../config/goals";
 import { PLANS, getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { DIET_TYPES, getDiet } from "../config/dietTypes";
 import { getAllergensFor } from "../config/allergens";
@@ -114,6 +115,15 @@ function renderPlanCards(container: HTMLElement): void {
   ).join("");
 }
 
+function renderGoalCards(container: HTMLElement): void {
+  container.innerHTML = GOALS.map(
+    (g) => `
+    <button type="button" class="card card--choice card--goal" data-choice="${escapeHtml(g)}">
+      <span class="card__title">${escapeHtml(g)}</span>
+    </button>`,
+  ).join("");
+}
+
 function renderPolCards(container: HTMLElement): void {
   const opcije: Sex[] = ["Muški", "Ženski"];
   container.innerHTML = opcije
@@ -199,7 +209,13 @@ function renderPaymentCards(container: HTMLElement): void {
 // ---------------------------------------------------------------------
 
 export function buildSteps(form: HTMLFormElement): StepConfig[] {
-  // ----- STEP: Plan (cilj) -----
+  // ----- STEP: Cilj (uvodno pitanje — ne bira plan) -----
+  const stepMotivacija = reqEl<HTMLElement>(form, '[data-step="motivacija"]');
+  const motivacijaGrid = reqEl<HTMLElement>(stepMotivacija, '[data-grid="motivacija"]');
+  renderGoalCards(motivacijaGrid);
+  wireChoiceGrid(motivacijaGrid, (v) => (state.cilj = v), true);
+
+  // ----- STEP: Plan (NutriSlim/Balance/Pump/Max) -----
   const stepPlan = reqEl<HTMLElement>(form, '[data-step="plan"]');
   const planGrid = reqEl<HTMLElement>(stepPlan, '[data-grid="plan"]');
   renderPlanCards(planGrid);
@@ -466,6 +482,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
 
   // Generičko skrivanje errora na promenu unutar koraka.
   [
+    stepMotivacija,
     stepPlan,
     stepPol,
     stepDiet,
@@ -482,11 +499,11 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
 
   return [
     {
-      id: "plan",
-      el: stepPlan,
+      id: "motivacija",
+      el: stepMotivacija,
       validate: () => {
-        if (!state.plan) {
-          showError(stepPlan, "Molimo izaberite plan.");
+        if (!state.cilj) {
+          showError(stepMotivacija, "Molimo izaberite cilj.");
           return false;
         }
         return true;
@@ -498,6 +515,17 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       validate: () => {
         if (!state.pol) {
           showError(stepPol, "Molimo izaberite pol.");
+          return false;
+        }
+        return true;
+      },
+    },
+    {
+      id: "plan",
+      el: stepPlan,
+      validate: () => {
+        if (!state.plan) {
+          showError(stepPlan, "Molimo izaberite plan.");
           return false;
         }
         return true;

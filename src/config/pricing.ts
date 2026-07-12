@@ -30,22 +30,22 @@ const PRICES_STANDARD: Record<PackageId, PriceSet> = {
   },
   "7-dnevni": {
     default: 21000,
-    discounts: { NUTRI20: 16800 },
+    discounts: { NUTRI20: 16800, onboarding10: 18900 },
     affiliates: { thundertopteam: 18900, NUTRI10: 18900, mimavelickovic: 18900 },
   },
   "20-dnevni": {
     default: 60000,
-    discounts: {},
+    discounts: { onboarding10: 54000 }, // 10% off
     affiliates: {},
   },
   "5-dnevni": {
     default: 15000,
-    discounts: {},
+    discounts: { onboarding10: 13500 }, // 10% off
     affiliates: {},
   },
   probni: {
     default: 3500,
-    discounts: {},
+    discounts: { onboarding10: 3150 }, // 10% off
     affiliates: {},
   },
 };

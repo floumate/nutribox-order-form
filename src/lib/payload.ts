@@ -20,42 +20,47 @@ export function buildPayload(): Record<string, unknown> {
     ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
     : null;
 
+  // Imena polja USKLAĐENA sa starom 28-dnevnom formom (da Make/GHL mapiranje
+  // radi bez remapiranja). Nova polja (motivacija/Kucni-broj/nutriChef) su
+  // označena dole — za njih se prave novi GHL Custom Field-ovi.
   const payload: Record<string, unknown> = {
     Ime: state.ime,
     Prezime: state.prezime,
-    datumRodjenja: state.datumRodjenja,
+    "datum-rodjenja": state.datumRodjenja,
     Email: state.email,
     "Broj-telefona": getPhoneNumber() || state.telefon,
 
-    cilj: state.cilj,
-    nutriPlan: plan?.name ?? "",
-    pol: state.pol ?? "",
-    tipIshrane: diet?.name ?? "",
-    izuzeteNamirnice: state.izuzeteNamirnice.join(", "),
-    // NutriChef lead: 3+ izbačenih namirnica (Vegan 2+) → custom plan, bez cene.
-    nutriChef: qualifiesForNutriChef(),
+    Cilj: plan?.name ?? "", // stara forma: PLAN se šalje kao "Cilj"
+    Pol: state.pol ?? "",
+    "Tip-ishrane": diet?.name ?? "",
+    NamirniceZalzbacivanje: state.izuzeteNamirnice.join(", "),
     paket: state.paket ?? "",
-    datumDostave: state.datumDostave,
+    "datum-dostave": state.datumDostave,
 
-    naselje: state.dostava.naselje,
-    adresa: state.dostava.adresa,
-    kucniBroj: state.dostava.kucniBroj,
-    brojStana: state.dostava.brojStana,
-    brojSprata: state.dostava.brojSprata,
-    sifraUlaznihVrata: state.dostava.sifraUlaznihVrata,
-    instrukcije: state.dostava.instrukcije,
+    Naselje: state.dostava.naselje,
+    Adresa: state.dostava.adresa,
+    "Broj-stana": state.dostava.brojStana,
+    "Broj-sprata": state.dostava.brojSprata,
+    "Sifra-ulaznih-vrata": state.dostava.sifraUlaznihVrata,
+    "Instrukcije-za-vozaca": state.dostava.instrukcije,
 
-    kcal: macros?.kcal ?? "",
-    proteini: macros?.proteini ?? "",
-    uh: macros?.uh ?? "",
-    masti: macros?.masti ?? "",
+    UkupneKalorije: macros?.kcal ?? "",
+    Proteini: macros?.proteini ?? "",
+    Hidrati: macros?.uh ?? "",
+    Masti: macros?.masti ?? "",
 
     nacinPlacanja: state.nacinPlacanja ?? "",
     cenaPaketa: price != null ? String(price) : "",
+    checkbox: true, // consent (stara forma šalje "checkbox: true")
 
     affiliate: urlContext.affiliate,
     discountCode: urlContext.discountCode,
     setter: urlContext.setter,
+
+    // ---- NOVA polja (nema ih u staroj formi → novi GHL Custom Fields) ----
+    motivacija: state.cilj, // "Izaberi cilj koji želiš da ostvariš"
+    "Kucni-broj": state.dostava.kucniBroj,
+    nutriChef: qualifiesForNutriChef(), // true = NutriChef lead (bez paketa/cene)
   };
 
   if (state.nacinPlacanja === "Firma") {

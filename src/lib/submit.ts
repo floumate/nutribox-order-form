@@ -4,6 +4,8 @@ import { buildPayload } from "./payload";
 import { bulletproofSubmit } from "./bulletproof";
 import { cancelAbandoned } from "./abandoned";
 import { getPackage } from "../config/packages";
+import { computePrice, formatPrice } from "../config/pricing";
+import { isMaxPlan } from "../config/plans";
 import { ENDPOINTS } from "../config/endpoints";
 import { getPhoneNumber } from "./phone";
 import { EMAIL_REGEX, showError, hideError } from "./validation";
@@ -141,6 +143,11 @@ export function attachSubmit(form: HTMLFormElement): void {
         tyParams.set("plan", "custom");
         tyParams.set("customPlanName", urlContext.customPlanName);
       }
+      // Konačna cena (uključuje NutriMax + paket + popust) → TY samo prikaže.
+      const tyCena = state.paket
+        ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
+        : null;
+      if (tyCena != null) tyParams.set("cena", formatPrice(tyCena));
       tyParams.set("order_id", orderId);
 
       const base = tyPath ? ENDPOINTS.thankYouBase + tyPath : ENDPOINTS.thankYouBase;

@@ -126,14 +126,10 @@ export function attachSubmit(form: HTMLFormElement): void {
     if (nacin !== "Kartica") {
       const orderId = bulletproofSubmit(payload);
 
-      // Pouzeće → jedinstvena TY stranica (cena stiže kao ?cena=). Firma → po paketu.
-      const tyPath = nacin === "Pouzeće" ? "/hvala-order" : pkg?.tyFirma;
-      if (!tyPath) {
-        // Thank-you stranica nije podešena za ovaj paket (TODO u config-u).
-        console.warn(
-          `[nutribox] Nedostaje thank-you stranica za paket "${state.paket}" / ${nacin}.`,
-        );
-      }
+      // Relativni slug → ostaje na trenutnom domenu (staging ili prod).
+      // Pouzeće → jedinstvena /hvala-order (cena stiže kao ?cena=). Firma → po paketu.
+      const tyPath =
+        nacin === "Pouzeće" ? "/hvala-order" : (pkg?.tyFirma ?? "/hvala-order");
 
       const tyParams = new URLSearchParams();
       if (urlContext.affiliate) tyParams.set("affiliate", urlContext.affiliate);
@@ -151,8 +147,7 @@ export function attachSubmit(form: HTMLFormElement): void {
       if (tyCena != null) tyParams.set("cena", formatPrice(tyCena));
       tyParams.set("order_id", orderId);
 
-      const base = tyPath ? ENDPOINTS.thankYouBase + tyPath : ENDPOINTS.thankYouBase;
-      navigateTop(base + "?" + tyParams.toString());
+      navigateTop(tyPath + "?" + tyParams.toString());
       return;
     }
 

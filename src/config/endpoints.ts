@@ -9,8 +9,10 @@ export const ENDPOINTS = {
   /** Make webhook - abandoned cart. */
   abandoned: "https://hook.eu2.make.com/gnawubotwvk1tb8wyiqz31q2ncmoryd2",
 
-  /** Raiffeisen checkout (kartično plaćanje). */
-  raiffeisenCheckout: "https://raifpay-prod.nutribox.dev/checkout",
+  /** Raiffeisen checkout (kartično plaćanje).
+   *  ⚠️ TESTIRANJE: staging. Za go-live vrati na prod:
+   *  prod → "https://raifpay-prod.nutribox.dev/checkout" */
+  raiffeisenCheckout: "https://raifpay-staging.nutribox.dev/checkout",
 
   /** Bazni URL za thank-you stranice. */
   thankYouBase: "https://www.nutribox.rs",

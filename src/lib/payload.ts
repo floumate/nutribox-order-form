@@ -4,6 +4,7 @@ import { getPhoneNumber } from "./phone";
 import { getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { getDiet } from "../config/dietTypes";
 import { computePrice } from "../config/pricing";
+import { qualifiesForNutriChef } from "./nutrichef";
 
 // =====================================================================
 // Gradi payload za Make / abandoned iz trenutnog stanja forme.
@@ -31,6 +32,8 @@ export function buildPayload(): Record<string, unknown> {
     pol: state.pol ?? "",
     tipIshrane: diet?.name ?? "",
     izuzeteNamirnice: state.izuzeteNamirnice.join(", "),
+    // NutriChef lead: 3+ izbačenih namirnica (Vegan 2+) → custom plan, bez cene.
+    nutriChef: qualifiesForNutriChef(),
     paket: state.paket ?? "",
     datumDostave: state.datumDostave,
 

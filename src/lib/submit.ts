@@ -7,6 +7,8 @@ import { getPackage } from "../config/packages";
 import { ENDPOINTS } from "../config/endpoints";
 import { getPhoneNumber } from "./phone";
 import { EMAIL_REGEX, showError, hideError } from "./validation";
+import { runtime } from "./runtime";
+import { NUTRICHEF_URL } from "./nutrichef";
 
 // =====================================================================
 // Glavni submit handler.
@@ -29,12 +31,48 @@ function setButtonLoading(btn: HTMLButtonElement, loading: boolean, original: st
   btn.textContent = loading ? "Učitavanje..." : original;
 }
 
+/**
+ * NutriChef grana: nema plaćanja. Šalje payload (sa nutriChef flagom) na Make
+ * i vodi korisnika na personal-chef stranicu (zakazivanje poziva).
+ */
+function submitNutriChef(step: HTMLElement): void {
+  const checkboxes = step.querySelectorAll<HTMLInputElement>(
+    'input[type="checkbox"].consent',
+  );
+  const allChecked = Array.from(checkboxes).every((c) => c.checked);
+  if (!allChecked) {
+    showError(step, "Morate prihvatiti uslove da biste nastavili.");
+    return;
+  }
+  if (!state.email) {
+    showError(step, "Email je obavezan.");
+    return;
+  }
+  hideError(step);
+  cancelAbandoned();
+
+  const orderId = bulletproofSubmit(buildPayload());
+
+  const params = new URLSearchParams();
+  params.set("order_id", orderId);
+  if (state.email) params.set("email", state.email);
+  navigateTop(NUTRICHEF_URL + "?" + params.toString());
+}
+
 export function attachSubmit(form: HTMLFormElement): void {
   const paymentStep = form.querySelector<HTMLElement>('[data-step="placanje"]');
+  const nutriChefStep = form.querySelector<HTMLElement>('[data-step="nutrichef"]');
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // NutriChef grana ima svoj submit (webhook + redirect na personal-chef).
+    if (runtime.currentStepId === "nutrichef") {
+      if (nutriChefStep) submitNutriChef(nutriChefStep);
+      return;
+    }
+
     if (!paymentStep) return;
 
     // --- VALIDACIJA ---

@@ -8,6 +8,7 @@ import { GOALS } from "../config/goals";
 import { PLANS, getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { DIET_TYPES, getDiet } from "../config/dietTypes";
 import { getAllergensFor } from "../config/allergens";
+import { qualifiesForNutriChef } from "../lib/nutrichef";
 import { PACKAGES, PACKAGE_GROUPS, getPackage } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
 import { NASELJA } from "../config/delivery";
@@ -257,18 +258,30 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   // ----- STEP: Izbacivanje namirnica -----
   const stepNamirnice = reqEl<HTMLElement>(form, '[data-step="namirnice"]');
   const namirniceGrid = reqEl<HTMLElement>(stepNamirnice, '[data-grid="namirnice"]');
+  const ncBanner = stepNamirnice.querySelector<HTMLElement>("[data-nutrichef-banner]");
+  const ncDefault = stepNamirnice.querySelector<HTMLElement>("[data-nutrichef-default]");
+  const ncActive = stepNamirnice.querySelector<HTMLElement>("[data-nutrichef-active]");
+  // Rana najava: kad se pređe prag (3+, Vegan 2+) → jača poruka o NutriChef-u.
+  const updateNutriChefBanner = () => {
+    const on = qualifiesForNutriChef();
+    if (ncDefault) ncDefault.hidden = on;
+    if (ncActive) ncActive.hidden = !on;
+    if (ncBanner) ncBanner.classList.toggle("nutrichef-banner--active", on);
+  };
   wireMultiToggle(namirniceGrid, (value, selected) => {
     if (selected) {
       if (!state.izuzeteNamirnice.includes(value)) state.izuzeteNamirnice.push(value);
     } else {
       state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => v !== value);
     }
+    updateNutriChefBanner();
   });
   const renderNamirnice = () => {
     const options = getAllergensFor(state.tipIshrane);
     // zadrži samo selekcije koje su i dalje validne za trenutni tip ishrane
     state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => options.includes(v));
     renderAllergenCards(namirniceGrid, options, state.izuzeteNamirnice);
+    updateNutriChefBanner();
   };
 
   // ----- STEP: Paket -----
@@ -481,6 +494,9 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   });
 
   // Generičko skrivanje errora na promenu unutar koraka.
+  // ----- STEP (grana): NutriChef lead -----
+  const stepNutriChef = reqEl<HTMLElement>(form, '[data-step="nutrichef"]');
+
   [
     stepMotivacija,
     stepPlan,
@@ -492,6 +508,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     stepDatum,
     stepAdresa,
     stepPay,
+    stepNutriChef,
   ].forEach((s) => {
     s.addEventListener("input", () => hideError(s));
     s.addEventListener("change", () => hideError(s));
@@ -556,6 +573,8 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       id: "paket",
       el: stepPaket,
       onEnter: renderPaket,
+      // NutriChef grana preskače cenu — custom plan se dogovara na pozivu.
+      skip: () => qualifiesForNutriChef(),
       validate: () => {
         if (!state.paket) {
           showError(stepPaket, "Molimo izaberite paket.");
@@ -619,6 +638,14 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       id: "placanje",
       el: stepPay,
       onEnter: renderSummary,
+      // NutriChef grana ne ide na plaćanje (nema cene) — vidi "nutrichef" korak.
+      skip: () => qualifiesForNutriChef(),
+    },
+    {
+      id: "nutrichef",
+      el: stepNutriChef,
+      // Prikazuje se samo za NutriChef granu (3+ izbačeno, Vegan 2+).
+      skip: () => !qualifiesForNutriChef(),
     },
   ];
 }

@@ -1,32 +1,23 @@
 import { state } from "./state";
 
 // =====================================================================
-// NutriChef (personal chef) preusmeravanje.
+// NutriChef (personal chef) grana.
 //
-// Pravilo: ako korisnik izbaci 2+ namirnice, standardni paketi mu ne
-// odgovaraju → šaljemo ga na NutriChef stranicu (booking poziva + custom
-// plan).
-//
-// ⚠️ TRIGGER (kada/gde se okida redirect) još NIJE određen — klijent javlja
-//    naknadno. Kad kaže, samo pozovi maybeRedirectToNutriChef() na tom mestu
-//    (npr. na "Dalje" iz namirnice koraka ili pre submita).
+// Pravilo: ako korisnik izbaci 3+ namirnice (za Vegan 2+, jer Vegan ima
+// samo 2 opcije), standardni paketi mu ne odgovaraju → ide na NutriChef
+// granu: preskače se korak sa cenom (paket) i plaćanje, a na kraju submit
+// vodi na NutriChef stranicu (zakazivanje poziva + custom plan).
 // =====================================================================
 
 export const NUTRICHEF_URL = "https://www.nutribox.rs/personal-chef";
 
-/** Da li korisnik ispunjava uslov za NutriChef (2+ izuzete namirnice). */
+/**
+ * Da li izbor spada u NutriChef (custom plan).
+ * Prag: 3+ izuzete namirnice; za Vegan 2+ (Vegan ima samo 2 opcije).
+ * Čita se dinamički iz stanja → grana se menja ako korisnik promeni izbor.
+ */
 export function qualifiesForNutriChef(): boolean {
-  return state.izuzeteNamirnice.length >= 2;
-}
-
-/** Preusmeri na NutriChef stranicu (probija iframe do top prozora). */
-export function redirectToNutriChef(): void {
-  window.top!.location.href = NUTRICHEF_URL;
-}
-
-/** Ako je uslov ispunjen → redirect. Vrati true ako je preusmerio. */
-export function maybeRedirectToNutriChef(): boolean {
-  if (!qualifiesForNutriChef()) return false;
-  redirectToNutriChef();
-  return true;
+  const n = state.izuzeteNamirnice.length;
+  if (state.tipIshrane === "vegan") return n >= 2;
+  return n >= 3;
 }

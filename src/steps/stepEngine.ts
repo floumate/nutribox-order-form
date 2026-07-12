@@ -11,6 +11,8 @@ export interface StepConfig {
   validate?: () => boolean;
   /** Poziva se svaki put kad korak postane vidljiv. */
   onEnter?: () => void;
+  /** Vrati true da se korak preskoči u navigaciji (npr. NutriChef grana). */
+  skip?: () => boolean;
 }
 
 export class StepEngine {
@@ -24,8 +26,6 @@ export class StepEngine {
   }
 
   init(): void {
-    this.buildSegments();
-
     // Delegacija next/prev klikova.
     document.addEventListener("click", (e) => {
       const target = e.target as HTMLElement;
@@ -41,6 +41,10 @@ export class StepEngine {
     });
 
     this.show(0);
+  }
+
+  private isSkipped(i: number): boolean {
+    return this.steps[i]?.skip?.() ?? false;
   }
 
   private show(i: number): void {
@@ -62,25 +66,29 @@ export class StepEngine {
   next(): void {
     const step = this.steps[this.index];
     if (step?.validate && !step.validate()) return;
-    if (this.index < this.steps.length - 1) this.show(this.index + 1);
+    let i = this.index + 1;
+    while (i < this.steps.length && this.isSkipped(i)) i++;
+    if (i < this.steps.length) this.show(i);
   }
 
   prev(): void {
-    if (this.index > 0) this.show(this.index - 1);
+    let i = this.index - 1;
+    while (i >= 0 && this.isSkipped(i)) i--;
+    if (i >= 0) this.show(i);
   }
 
-  private buildSegments(): void {
+  /** Progress: broji samo NEpreskočene korake i poziciju trenutnog među njima. */
+  private updateProgress(): void {
     if (!this.progressEl) return;
+    const visible = this.steps
+      .map((_, i) => i)
+      .filter((i) => !this.isSkipped(i));
+    const pos = visible.indexOf(this.index); // 0-based među vidljivima
     this.progressEl.innerHTML = "";
-    this.steps.forEach(() => {
+    visible.forEach((_, k) => {
       const seg = document.createElement("span");
-      seg.className = "progress__seg";
+      seg.className = "progress__seg" + (k <= pos ? " filled" : "");
       this.progressEl!.appendChild(seg);
     });
-  }
-
-  private updateProgress(): void {
-    const segs = this.progressEl?.querySelectorAll(".progress__seg");
-    segs?.forEach((s, i) => s.classList.toggle("filled", i <= this.index));
   }
 }

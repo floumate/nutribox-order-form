@@ -102,10 +102,17 @@
           <h2 class="step__title">Izbaci ono što ne jedeš</h2>
           <p class="step__subtitle">Opciono — izaberi kategorije koje želiš da izostaviš.</p>
           <div class="card-grid card-grid--4" data-grid="namirnice"></div>
-          <div class="nutrichef-banner">
-            Ako ti ove opcije nisu dovoljne, ili se hraniš po planu koji ti je
-            prepisao trener ili nutricionista, imamo rešenje <strong>Nutri Chef
-            plan</strong> — hrana pripremljena samo za tebe.
+          <div class="nutrichef-banner" data-nutrichef-banner>
+            <span data-nutrichef-default>
+              Ako ti ove opcije nisu dovoljne, ili se hraniš po planu koji ti je
+              prepisao trener ili nutricionista, imamo rešenje <strong>Nutri Chef
+              plan</strong> — hrana pripremljena samo za tebe.
+            </span>
+            <span data-nutrichef-active hidden>
+              Na osnovu tvojih izbora pravimo ti <strong>custom NutriChef plan</strong>
+              — hrana pripremljena samo za tebe. Nastavi kroz formu, javićemo ti se
+              za detalje, cenu i početak dostave.
+            </span>
           </div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
@@ -326,6 +333,37 @@
           <footer class="step__nav">
             <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
             <button type="submit" class="btn btn--primary" data-nav="submit">Poruči</button>
+          </footer>
+        </section>
+
+        <!-- ============ STEP (grana): NutriChef lead ============ -->
+        <section class="step" data-step="nutrichef">
+          <h2 class="step__title">Tvoj plan je NutriChef</h2>
+          <p class="step__subtitle">
+            Na osnovu tvojih izbora, standardni paketi ti ne odgovaraju — pravimo
+            ti <strong>custom NutriChef plan</strong>.
+          </p>
+          <div class="nutrichef-final">
+            Klikom na „Potvrdi" vodimo te na stranicu gde zakazuješ poziv sa našim
+            timom. Na pozivu dogovaramo tvoj jelovnik, cenu i početak dostave.
+          </div>
+
+          <label class="consent-row">
+            <input type="checkbox" class="consent" />
+            <span>Pročitao/la sam i prihvatam Opšte uslove korišćenja</span>
+          </label>
+          <label class="consent-row">
+            <input type="checkbox" class="consent" />
+            <span
+              >Pročitao/la sam Politiku privatnosti i slažem se sa obradom mojih
+              ličnih podataka u skladu sa njom</span
+            >
+          </label>
+
+          <div class="error-message"><span class="error-message__text"></span></div>
+          <footer class="step__nav">
+            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
+            <button type="submit" class="btn btn--primary" data-nav="submit">Potvrdi</button>
           </footer>
         </section>
       </form>

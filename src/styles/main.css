@@ -256,6 +256,24 @@ body {
 .nutrichef-banner strong {
   color: #6b3fa0;
 }
+/* Kad se pređe prag (3+, Vegan 2+) — jača, istaknutija poruka. */
+.nutrichef-banner--active {
+  background: #ece0fb;
+  border-color: #b98fe6;
+  border-width: 2px;
+}
+
+/* NutriChef grana — završni info blok pre "Potvrdi". */
+.nutrichef-final {
+  margin: 8px 0 20px;
+  padding: 18px 20px;
+  background: #f2ecfb;
+  border: 1px solid #ddc9f5;
+  border-radius: var(--radius-lg);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.5;
+}
 
 /* ---------- Stats (makro vrednosti) ---------- */
 .stats {

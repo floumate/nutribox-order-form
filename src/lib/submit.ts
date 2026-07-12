@@ -126,10 +126,9 @@ export function attachSubmit(form: HTMLFormElement): void {
     if (nacin !== "Kartica") {
       const orderId = bulletproofSubmit(payload);
 
-      // Relativni slug → ostaje na trenutnom domenu (staging ili prod).
-      // Pouzeće → jedinstvena /hvala-order (cena stiže kao ?cena=). Firma → po paketu.
+      // Pouzeće → jedinstvena /hvala-pouzece (cena stiže kao ?cena=). Firma → po paketu.
       const tyPath =
-        nacin === "Pouzeće" ? "/hvala-order" : (pkg?.tyFirma ?? "/hvala-order");
+        nacin === "Pouzeće" ? "/hvala-pouzece" : (pkg?.tyFirma ?? "/hvala-pouzece");
 
       const tyParams = new URLSearchParams();
       if (urlContext.affiliate) tyParams.set("affiliate", urlContext.affiliate);

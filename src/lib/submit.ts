@@ -147,7 +147,7 @@ export function attachSubmit(form: HTMLFormElement): void {
       if (tyCena != null) tyParams.set("cena", formatPrice(tyCena));
       tyParams.set("order_id", orderId);
 
-      navigateTop(tyPath + "?" + tyParams.toString());
+      navigateTop(ENDPOINTS.thankYouBase + tyPath + "?" + tyParams.toString());
       return;
     }
 

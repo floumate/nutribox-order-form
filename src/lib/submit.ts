@@ -198,9 +198,12 @@ export function attachSubmit(form: HTMLFormElement): void {
       }
     } catch (err) {
       if (btn) setButtonLoading(btn, false, originalText);
+      const msg = err instanceof Error ? err.message : String(err);
+      // DEBUG (privremeno) — pokaži tačan uzrok + koji endpoint/origin.
       showError(
         paymentStep,
-        "Došlo je do greške pri plaćanju. Pokušajte ponovo.",
+        "DEBUG: " + msg + " | endpoint:" + ENDPOINTS.raiffeisenCheckout +
+          " | origin:" + location.origin + " | plan:" + finalPlan,
       );
       console.error("[nutribox] checkout error:", err);
     }

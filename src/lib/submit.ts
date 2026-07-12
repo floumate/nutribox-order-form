@@ -126,7 +126,8 @@ export function attachSubmit(form: HTMLFormElement): void {
     if (nacin !== "Kartica") {
       const orderId = bulletproofSubmit(payload);
 
-      const tyPath = nacin === "Pouzeće" ? pkg?.tyPouzece : pkg?.tyFirma;
+      // Pouzeće → jedinstvena TY stranica (cena stiže kao ?cena=). Firma → po paketu.
+      const tyPath = nacin === "Pouzeće" ? "/hvala-order" : pkg?.tyFirma;
       if (!tyPath) {
         // Thank-you stranica nije podešena za ovaj paket (TODO u config-u).
         console.warn(

@@ -1,12 +1,14 @@
 // =====================================================================
-// URL parametri (affiliate, discountCode, setter, custom plan, test).
-// Čitaju se jednom - URL se ne menja tokom popunjavanja.
+// URL parametri (affiliate, discountCode, setter, referred_by, custom
+// plan, test). Čitaju se jednom - URL se ne menja tokom popunjavanja.
 // =====================================================================
 
 export interface UrlContext {
   affiliate: string;
   discountCode: string;
   setter: string;
+  /** Refer-a-friend: email preporučioca (?referred_by=). "" ako nema. */
+  referredBy: string;
   plan: string; // "custom" ili ""
   customPlanName: string; // npr. "standard"
   isCustomPlan: boolean;
@@ -21,6 +23,7 @@ function read(): UrlContext {
     affiliate: p.get("affiliate") ?? "",
     discountCode: p.get("discountCode") ?? "",
     setter: p.get("setter") ?? "",
+    referredBy: p.get("referred_by") ?? "",
     plan,
     customPlanName,
     isCustomPlan: plan === "custom" && customPlanName === "standard",

@@ -34,12 +34,12 @@ const PRICES_STANDARD: Record<PackageId, PriceSet> = {
     affiliates: { thundertopteam: 18900, NUTRI10: 18900, mimavelickovic: 18900 },
   },
   "20-dnevni": {
-    default: 58000,
+    default: 60000,
     discounts: {},
     affiliates: {},
   },
   "5-dnevni": {
-    default: 16000,
+    default: 15000,
     discounts: {},
     affiliates: {},
   },

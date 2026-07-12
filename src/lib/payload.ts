@@ -71,5 +71,11 @@ export function buildPayload(): Record<string, unknown> {
     payload.customPlanName = urlContext.customPlanName;
   }
 
+  // Refer-a-friend: šalje se SAMO kad postoji referral (izbegava prazna polja).
+  if (urlContext.referredBy) {
+    payload.preporucenOd = urlContext.referredBy;
+    payload.promoKod = "onboarding";
+  }
+
   return payload;
 }

@@ -31,7 +31,7 @@ function boot(): void {
     if (t.tagName === "INPUT") e.preventDefault();
   });
 
-  // Auto-visina kad je forma u iframe-u (Webflow embed) — javlja parent-u visinu.
+  // Auto-visina kad je forma u iframe-u (Webflow embed) - javlja parent-u visinu.
   setupHeightReporter();
 }
 

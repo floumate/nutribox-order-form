@@ -158,18 +158,20 @@ export function attachSubmit(form: HTMLFormElement): void {
     // Bulletproof na Make ODMAH (ne čeka Raiffeisen).
     bulletproofSubmit(payload);
 
-    try {
-      let finalPlan: string;
-      if (urlContext.isCustomPlan) finalPlan = "custom";
-      else if (urlContext.isTest) finalPlan = "probni";
-      else finalPlan = pkg?.raiffeisenPlan ?? "";
+    let finalPlan: string;
+    if (urlContext.isCustomPlan) finalPlan = "custom";
+    else if (urlContext.isTest) finalPlan = "probni";
+    else finalPlan = pkg?.raiffeisenPlan ?? "";
 
+    const phoneNumber = getPhoneNumber() || state.telefon;
+
+    try {
       const checkoutPayload: Record<string, unknown> = {
         plan: finalPlan,
         email: state.email,
         name: state.ime,
         lastname: state.prezime,
-        phoneNumber: getPhoneNumber() || state.telefon,
+        phoneNumber,
         locale: "sr",
         affiliate: urlContext.affiliate,
         discountCode: urlContext.discountCode,
@@ -184,18 +186,25 @@ export function attachSubmit(form: HTMLFormElement): void {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(checkoutPayload),
       });
-      if (!response.ok) throw new Error("Problem sa serverom pri inicijalizaciji");
+      if (!response.ok) {
+        const t = await response.text().catch(() => "");
+        throw new Error("HTTP " + response.status + " - " + t);
+      }
       const data = (await response.json()) as { redirectUrl?: string };
       if (data.redirectUrl) {
         navigateTop(data.redirectUrl);
       } else {
-        throw new Error("URL za plaćanje nije generisan.");
+        throw new Error("Nema redirectUrl u odgovoru");
       }
     } catch (err) {
       if (btn) setButtonLoading(btn, false, originalText);
+      const msg = err instanceof Error ? err.message : String(err);
+      // DEBUG (privremeno): prikaži pravi uzrok na ekranu.
       showError(
         paymentStep,
-        "Došlo je do greške pri plaćanju. Pokušajte ponovo.",
+        "DEBUG: " + msg + " | plan:" + finalPlan + " mail:" +
+          (state.email || "PRAZNO") + " tel:" + (phoneNumber || "PRAZNO") +
+          " origin:" + location.origin,
       );
       console.error("[nutribox] checkout error:", err);
     }

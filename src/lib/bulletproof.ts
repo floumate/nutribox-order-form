@@ -128,7 +128,7 @@ function sendWithRetry(data: OrderData, attempt = 0): Promise<Response> {
   });
 }
 
-/** Glavni submit — beacon odmah + fetch retry u pozadini. Vraća order_id. */
+/** Glavni submit - beacon odmah + fetch retry u pozadini. Vraća order_id. */
 export function bulletproofSubmit(formData: OrderData): string {
   if (!formData.order_id) formData.order_id = generateOrderId();
   formData.submitted_at = new Date().toISOString();
@@ -148,7 +148,7 @@ export function bulletproofSubmit(formData: OrderData): string {
   return formData.order_id as string;
 }
 
-/** Recovery — pokreće se na svakom page loadu. */
+/** Recovery - pokreće se na svakom page loadu. */
 export function processRecoveryQueue(): void {
   const queue = readQueue();
   const now = Date.now();

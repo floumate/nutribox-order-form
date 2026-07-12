@@ -68,7 +68,7 @@ function remainingTime(): number {
 
 function collect(): void {
   // buildPayload() uvek vraća ključeve (i prazne), pa snimamo session SAMO
-  // ako je korisnik stvarno interagovao — inače bi se abandoned okidao i za
+  // ako je korisnik stvarno interagovao - inače bi se abandoned okidao i za
   // praznu formu na sledećem load-u.
   if (!interacted) return;
   formData = buildPayload();
@@ -120,7 +120,7 @@ function listenEmailField(): void {
   emailInput.addEventListener("change", onInteract);
 }
 
-/** Pozvati iz submit-a TEK kad validacija prođe — gasi abandoned tracking. */
+/** Pozvati iz submit-a TEK kad validacija prođe - gasi abandoned tracking. */
 export function cancelAbandoned(): void {
   runtime.submitted = true;
   if (abandonedTimer !== null) clearTimeout(abandonedTimer);
@@ -128,7 +128,7 @@ export function cancelAbandoned(): void {
 }
 
 export function initAbandoned(): void {
-  // Restore iz prethodne sesije — pošalji abandoned i očisti.
+  // Restore iz prethodne sesije - pošalji abandoned i očisti.
   loadSession();
   if (Object.keys(formData).length > 0) {
     formData.form_status = "abandoned";

@@ -2,7 +2,7 @@ import intlTelInput from "intl-tel-input/intlTelInputWithUtils";
 import "intl-tel-input/styles";
 
 // =====================================================================
-// Telefon — intl-tel-input (međunarodni broj, zastavica, pozivni broj,
+// Telefon - intl-tel-input (međunarodni broj, zastavica, pozivni broj,
 // auto-detekcija zemlje preko geoIP, validacija). "WithUtils" build da
 // validacija radi odmah, bez async učitavanja utils-a.
 // =====================================================================
@@ -16,7 +16,7 @@ export function initPhone(input: HTMLInputElement): void {
     geoIpLookup: (cb) => {
       // cb je tipovan kao union ISO kodova; tretiramo ga kao string.
       const setCountry = cb as (countryCode: string) => void;
-      // Timeout — ipapi.co je free API i ume da visi; fallback na "rs".
+      // Timeout - ipapi.co je free API i ume da visi; fallback na "rs".
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 3000);
       fetch("https://ipapi.co/json/", { signal: controller.signal })
@@ -31,10 +31,10 @@ export function initPhone(input: HTMLInputElement): void {
     },
   });
 
-  // Izloži globalno (kao stara forma — kompatibilnost + debug).
+  // Izloži globalno (kao stara forma - kompatibilnost + debug).
   (window as unknown as { iti?: typeof iti }).iti = iti;
 
-  // v25 ne zatvori dropdown kad se izabere država — zatvori ga Escape-om.
+  // v25 ne zatvori dropdown kad se izabere država - zatvori ga Escape-om.
   // Odloženo (setTimeout 0) da se izvrši POSLE interne selekcije lib-a.
   input.addEventListener("countrychange", () => {
     setTimeout(() => {

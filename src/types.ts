@@ -45,7 +45,7 @@ export interface DostavaData {
   instrukcije: string;
 }
 
-/** Glavno stanje forme — popunjava se kroz korake. */
+/** Glavno stanje forme - popunjava se kroz korake. */
 export interface FormState {
   ime: string;
   prezime: string;
@@ -54,7 +54,7 @@ export interface FormState {
   telefon: string; // E.164 (iz intl-tel-input)
 
   /** Odgovor na uvodno pitanje "Izaberi cilj koji želiš da ostvariš?"
-   *  (zasebno pitanje — NE određuje plan; čuva se za segmentaciju). */
+   *  (zasebno pitanje - NE određuje plan; čuva se za segmentaciju). */
   cilj: string;
   plan: PlanId | null;
   pol: Sex | null;

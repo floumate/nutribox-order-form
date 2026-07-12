@@ -58,7 +58,7 @@ export function initDatepicker(
   });
 }
 
-/** Datum rođenja — bez min-datuma buducnosti, max = danas, bez isključenih praznika. */
+/** Datum rođenja - bez min-datuma buducnosti, max = danas, bez isključenih praznika. */
 export function initBirthDatepicker(
   input: HTMLInputElement,
   onChange: (value: string) => void,

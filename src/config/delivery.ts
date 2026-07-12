@@ -1,5 +1,5 @@
 // =====================================================================
-// Naselja (zone dostave) — isto kao live forma. Klijent dopunjava po potrebi.
+// Naselja (zone dostave) - isto kao live forma. Klijent dopunjava po potrebi.
 // =====================================================================
 
 export const NASELJA: string[] = [

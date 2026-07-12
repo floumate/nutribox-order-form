@@ -42,7 +42,7 @@ export const PACKAGES: PackageDef[] = [
   {
     id: "28-dnevni",
     name: "28-dnevni paket",
-    subtitle: "Ceo mesec — svaki dan",
+    subtitle: "Ceo mesec - svaki dan",
     badge: "Najpopularniji",
     tier: "hero",
     group: "mesecni",
@@ -63,7 +63,7 @@ export const PACKAGES: PackageDef[] = [
   {
     id: "20-dnevni",
     name: "20-dnevni paket",
-    subtitle: "Radni dani — bez vikenda",
+    subtitle: "Radni dani - bez vikenda",
     tier: "muted",
     group: "mesecni",
     raiffeisenPlan: "20_day", // TODO: potvrdi kod sa Raiffeisen strane
@@ -73,7 +73,7 @@ export const PACKAGES: PackageDef[] = [
   {
     id: "5-dnevni",
     name: "5-dnevni paket",
-    subtitle: "Radna nedelja — bez vikenda",
+    subtitle: "Radna nedelja - bez vikenda",
     tier: "muted",
     group: "nedeljni",
     raiffeisenPlan: "5_day", // TODO: potvrdi kod sa Raiffeisen strane
@@ -83,7 +83,7 @@ export const PACKAGES: PackageDef[] = [
   {
     id: "probni",
     name: "Probni paket",
-    subtitle: "1 dan — probaj pre nego što se odlučiš",
+    subtitle: "1 dan - probaj pre nego što se odlučiš",
     tier: "trial",
     group: "probni",
     raiffeisenPlan: "probni",

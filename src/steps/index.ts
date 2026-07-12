@@ -59,7 +59,7 @@ function wireChoiceGrid(
   });
 }
 
-/** Multi-select toggle (za izbacivanje namirnica) — svaka kartica se toggluje nezavisno. */
+/** Multi-select toggle (za izbacivanje namirnica) - svaka kartica se toggluje nezavisno. */
 function wireMultiToggle(
   container: HTMLElement,
   onToggle: (value: string, selected: boolean) => void,
@@ -210,7 +210,7 @@ function renderPaymentCards(container: HTMLElement): void {
 // ---------------------------------------------------------------------
 
 export function buildSteps(form: HTMLFormElement): StepConfig[] {
-  // ----- STEP: Cilj (uvodno pitanje — ne bira plan) -----
+  // ----- STEP: Cilj (uvodno pitanje - ne bira plan) -----
   const stepMotivacija = reqEl<HTMLElement>(form, '[data-step="motivacija"]');
   const motivacijaGrid = reqEl<HTMLElement>(stepMotivacija, '[data-grid="motivacija"]');
   renderGoalCards(motivacijaGrid);
@@ -241,7 +241,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       const el = stepMacros.querySelector<HTMLElement>(`[data-macro="${key}"]`);
       if (!el) return;
       const val = m?.[key];
-      el.textContent = val != null ? `${val}${suffix}` : "—";
+      el.textContent = val != null ? `${val}${suffix}` : "-";
     };
     set("kcal", "");
     set("proteini", " g");
@@ -444,7 +444,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
         (f, i) => `
         <div class="summary__row" data-srow="${i}">
           <span class="summary__label">${f.label}</span>
-          <span class="summary__value">${escapeHtml(f.display() || "—")}</span>
+          <span class="summary__value">${escapeHtml(f.display() || "-")}</span>
           <button type="button" class="summary__edit" data-sedit="${i}">Izmeni</button>
         </div>`,
       ).join("") +
@@ -573,7 +573,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       id: "paket",
       el: stepPaket,
       onEnter: renderPaket,
-      // NutriChef grana preskače cenu — custom plan se dogovara na pozivu.
+      // NutriChef grana preskače cenu - custom plan se dogovara na pozivu.
       skip: () => qualifiesForNutriChef(),
       validate: () => {
         if (!state.paket) {
@@ -638,7 +638,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       id: "placanje",
       el: stepPay,
       onEnter: renderSummary,
-      // NutriChef grana ne ide na plaćanje (nema cene) — vidi "nutrichef" korak.
+      // NutriChef grana ne ide na plaćanje (nema cene) - vidi "nutrichef" korak.
       skip: () => qualifiesForNutriChef(),
     },
     {

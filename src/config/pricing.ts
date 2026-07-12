@@ -50,7 +50,7 @@ const PRICES_STANDARD: Record<PackageId, PriceSet> = {
   },
 };
 
-/** NutriMax nivo — bez discount/affiliate popusta (nisu definisani). */
+/** NutriMax nivo - bez discount/affiliate popusta (nisu definisani). */
 const PRICES_MAX: Record<PackageId, PriceSet> = {
   "28-dnevni": { default: 98400, discounts: {}, affiliates: {} },
   "20-dnevni": { default: 79000, discounts: {}, affiliates: {} },
@@ -108,6 +108,6 @@ const RSD_FORMAT = new Intl.NumberFormat("sr-RS", {
 
 /** "78.400,00" (bez oznake valute). */
 export function formatPrice(machine: number | null): string {
-  if (machine == null) return "—";
+  if (machine == null) return "-";
   return RSD_FORMAT.format(machine);
 }

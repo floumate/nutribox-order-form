@@ -1,5 +1,5 @@
 /* =====================================================================
-   Nutribox order form — stilovi
+   Nutribox order form - stilovi
    Boje/dimenzije su preko CSS varijabli (lako retheme kad stignu tačne).
    ===================================================================== */
 
@@ -232,7 +232,7 @@ body {
   color: var(--text);
   line-height: 1.45;
 }
-/* Pol — visina 80px (desktop); od dugmadi se razlikuju visinom i radiusom. */
+/* Pol - visina 80px (desktop); od dugmadi se razlikuju visinom i radiusom. */
 .card--pol {
   min-height: 80px;
   justify-content: center;
@@ -256,14 +256,14 @@ body {
 .nutrichef-banner strong {
   color: #6b3fa0;
 }
-/* Kad se pređe prag (3+, Vegan 2+) — jača, istaknutija poruka. */
+/* Kad se pređe prag (3+, Vegan 2+) - jača, istaknutija poruka. */
 .nutrichef-banner--active {
   background: #ece0fb;
   border-color: #b98fe6;
   border-width: 2px;
 }
 
-/* NutriChef grana — završni info blok pre "Potvrdi". */
+/* NutriChef grana - završni info blok pre "Potvrdi". */
 .nutrichef-final {
   margin: 8px 0 20px;
   padding: 18px 20px;
@@ -600,7 +600,7 @@ body {
 .iti__selected-country:hover {
   background: rgba(0, 0, 0, 0.06);
 }
-/* Veće zastave (2x sprite — bez gubitka kvaliteta). */
+/* Veće zastave (2x sprite - bez gubitka kvaliteta). */
 .iti__flag {
   transform: scale(1.2);
 }

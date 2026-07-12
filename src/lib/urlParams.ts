@@ -1,6 +1,6 @@
 // =====================================================================
 // URL parametri (affiliate, discountCode, setter, custom plan, test).
-// Čitaju se jednom — URL se ne menja tokom popunjavanja.
+// Čitaju se jednom - URL se ne menja tokom popunjavanja.
 // =====================================================================
 
 export interface UrlContext {

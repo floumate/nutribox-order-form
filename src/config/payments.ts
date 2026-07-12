@@ -4,8 +4,8 @@ import iconCash from "../assets/icons/pay-cash.svg";
 import iconBuilding from "../assets/icons/pay-building.svg";
 
 // =====================================================================
-// Načini plaćanja — tekstovi i ikonice kao live forma.
-// (value ostaje Kartica/Pouzeće/Firma — submit logika zavisi od toga.)
+// Načini plaćanja - tekstovi i ikonice kao live forma.
+// (value ostaje Kartica/Pouzeće/Firma - submit logika zavisi od toga.)
 // =====================================================================
 
 export interface PaymentOption {

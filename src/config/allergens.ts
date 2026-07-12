@@ -1,7 +1,7 @@
 import type { DietId } from "../types";
 
 // =====================================================================
-// Kategorije za izbacivanje ("izbaci ono što ne jedeš") — zavise od
+// Kategorije za izbacivanje ("izbaci ono što ne jedeš") - zavise od
 // izabranog tipa ishrane. Fiksne kategorije, ne pretraga namirnica.
 // =====================================================================
 

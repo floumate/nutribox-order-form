@@ -198,13 +198,9 @@ export function attachSubmit(form: HTMLFormElement): void {
       }
     } catch (err) {
       if (btn) setButtonLoading(btn, false, originalText);
-      const msg = err instanceof Error ? err.message : String(err);
-      // DEBUG (privremeno): prikaži pravi uzrok na ekranu.
       showError(
         paymentStep,
-        "DEBUG: " + msg + " | plan:" + finalPlan + " mail:" +
-          (state.email || "PRAZNO") + " tel:" + (phoneNumber || "PRAZNO") +
-          " origin:" + location.origin,
+        "Došlo je do greške pri plaćanju. Pokušajte ponovo.",
       );
       console.error("[nutribox] checkout error:", err);
     }

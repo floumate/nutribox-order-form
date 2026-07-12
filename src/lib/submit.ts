@@ -19,13 +19,26 @@ import { NUTRICHEF_URL } from "./nutrichef";
 // Sve uz bulletproof slanje na Make.
 // =====================================================================
 
-/** Navigacija na TOP prozor (da Raiffeisen/thank-you izađu iz iframe-a na Webflow-u). */
+/**
+ * Navigacija na TOP prozor (Raiffeisen/thank-you izlaze iz iframe-a).
+ * U iframe-u: parent navigira (preko postMessage) da se sačuvaju query
+ * parametri — cross-origin `window.top.location` iz iframe-a ih gubi.
+ * Fallback (direktno) ako parent ne sluša.
+ */
 function navigateTop(url: string): void {
-  try {
-    (window.top ?? window).location.href = url;
-  } catch {
-    window.location.href = url;
+  const inIframe = window.parent && window.parent !== window;
+  if (inIframe) {
+    window.parent.postMessage({ type: "nutribox-redirect", url }, "*");
+    window.setTimeout(() => {
+      try {
+        (window.top ?? window).location.href = url;
+      } catch {
+        window.location.href = url;
+      }
+    }, 500);
+    return;
   }
+  window.location.href = url;
 }
 
 function setButtonLoading(btn: HTMLButtonElement, loading: boolean, original: string) {

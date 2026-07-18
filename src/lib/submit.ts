@@ -176,6 +176,7 @@ export function attachSubmit(form: HTMLFormElement): void {
     let finalPlan: string;
     if (urlContext.isCustomPlan) finalPlan = "custom";
     else if (urlContext.isTest) finalPlan = "probni";
+    else if (isMaxPlan(state.plan)) finalPlan = pkg?.raiffeisenPlanMax ?? "";
     else finalPlan = pkg?.raiffeisenPlan ?? "";
 
     const phoneNumber = getPhoneNumber() || state.telefon;

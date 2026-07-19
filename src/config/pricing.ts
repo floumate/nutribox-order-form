@@ -50,13 +50,35 @@ const PRICES_STANDARD: Record<PackageId, PriceSet> = {
   },
 };
 
-/** NutriMax nivo - bez discount/affiliate popusta (nisu definisani). */
+/** NutriMax nivo. Popusti = isti PROCENAT kao standard (onboarding10 -10%,
+ *  NUTRI20 -20%, affiliate -10%). 2828 (specijalna cena) NIJE definisan za
+ *  NutriMax. ⚠️ Prikaz — proveriti da raifpay naplaćuje iste iznose na karticu. */
 const PRICES_MAX: Record<PackageId, PriceSet> = {
-  "28-dnevni": { default: 98400, discounts: {}, affiliates: {} },
-  "20-dnevni": { default: 79000, discounts: {}, affiliates: {} },
-  "7-dnevni": { default: 28000, discounts: {}, affiliates: {} },
-  "5-dnevni": { default: 20000, discounts: {}, affiliates: {} },
-  probni: { default: 4500, discounts: {}, affiliates: {} },
+  "28-dnevni": {
+    default: 98400,
+    discounts: { NUTRI20: 78720, onboarding10: 88560 }, // -20% / -10%
+    affiliates: { thundertopteam: 88560, NUTRI10: 88560, mimavelickovic: 88560 }, // -10%
+  },
+  "20-dnevni": {
+    default: 79000,
+    discounts: { onboarding10: 71100 }, // -10%
+    affiliates: {},
+  },
+  "7-dnevni": {
+    default: 28000,
+    discounts: { NUTRI20: 22400, onboarding10: 25200 }, // -20% / -10%
+    affiliates: { thundertopteam: 25200, NUTRI10: 25200, mimavelickovic: 25200 }, // -10%
+  },
+  "5-dnevni": {
+    default: 20000,
+    discounts: { onboarding10: 18000 }, // -10%
+    affiliates: {},
+  },
+  probni: {
+    default: 4500,
+    discounts: { onboarding10: 4050 }, // -10%
+    affiliates: {},
+  },
 };
 
 /** Custom plan ("plan=custom&customPlanName=standard") nadjačava sve. */

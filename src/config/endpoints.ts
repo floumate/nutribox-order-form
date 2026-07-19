@@ -14,7 +14,6 @@ export const ENDPOINTS = {
    *  ZA GO-LIVE VRATITI → "https://raifpay-prod.nutribox.dev/checkout" */
   raiffeisenCheckout: "https://raifpay-staging.nutribox.dev/checkout",
 
-  /** Bazni URL za thank-you stranice.
-   *  ⚠️ TESTIRANJE: staging Webflow domen. Za go-live → "https://www.nutribox.rs" */
-  thankYouBase: "https://vuksanvasic.webflow.io",
+  /** Bazni URL za thank-you stranice (hvala-*). Live Webflow domen. */
+  thankYouBase: "https://www.nutribox.rs",
 } as const;

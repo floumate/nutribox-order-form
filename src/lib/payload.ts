@@ -60,7 +60,7 @@ export function buildPayload(): Record<string, unknown> {
     // ---- NOVA polja (nema ih u staroj formi → novi GHL Custom Fields) ----
     motivacija: state.cilj, // "Izaberi cilj koji želiš da ostvariš"
     "Kucni-broj": state.dostava.kucniBroj,
-    nutriChef: qualifiesForNutriChef(), // true = NutriChef lead (bez paketa/cene)
+    nutriChef: qualifiesForNutriChef() ? "Da" : "Ne", // NutriChef lead? (čitljivo u tabelama)
   };
 
   if (state.nacinPlacanja === "Firma") {

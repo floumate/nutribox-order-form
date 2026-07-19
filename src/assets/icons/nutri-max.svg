@@ -54,13 +54,13 @@
 <path d="M186 652C186.66 652.33 187.32 652.66 188 653C185.69 655.31 183.38 657.62 181 660C181 657 181 657 183.5 654.312C184.325 653.549 185.15 652.786 186 652Z" fill="#002516"/>
 <path d="M659 179C659.66 179.33 660.32 179.66 661 180C658.69 182.31 656.38 184.62 654 187C654 184 654 184 656.5 181.312C657.325 180.549 658.15 179.786 659 179Z" fill="#002515"/>
 <g>
-<rect x="261" y="836" width="520" height="188" rx="94" fill="#00371D"/>
-<g fill="none" stroke="#ffffff" stroke-width="38" stroke-linecap="round" stroke-linejoin="round">
-<path d="M306 986L306 874L365 946L424 874L424 986"/>
-<path d="M464 986L521 874L578 986"/>
-<path d="M488 942L554 942"/>
-<path d="M618 874L736 986"/>
-<path d="M736 874L618 986"/>
+<rect x="311" y="700" width="420" height="150" rx="75" fill="#00371D"/>
+<g fill="none" stroke="#ffffff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+<path d="M361 820L361 730L404 775L447 730L447 820"/>
+<path d="M479 820L522 730L565 820"/>
+<path d="M498 793L546 793"/>
+<path d="M597 730L683 820"/>
+<path d="M683 730L597 820"/>
 </g>
 </g>
 </svg>

@@ -2,9 +2,7 @@ import type { Macros, PlanId, Sex } from "../types";
 import iconFatLoss from "../assets/icons/fat-loss.svg";
 import iconLeanGains from "../assets/icons/lean-gains.svg";
 import iconMuscleGain from "../assets/icons/muscle-gain.svg";
-// NutriMax nema svoju ikonicu na CDN-u - placeholder (deli sa NutriPump).
-// TODO: zameni pravom NutriMax ikonicom kad stigne.
-const iconNutriMax = iconMuscleGain;
+import iconNutriMax from "../assets/icons/nutri-max.svg";
 
 // =====================================================================
 // PLANOVI (ciljevi) + makro tabela.

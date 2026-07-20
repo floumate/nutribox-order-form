@@ -6,7 +6,8 @@ import iconVegan from "../assets/icons/vegan.svg";
 
 // =====================================================================
 // TIPOVI ISHRANE. Tekst ispod = šta tip uključuje/isključuje (samo opis).
-// Redosled/nazivi po klijentovoj šemi: Balance, Fish, Vegan, Vegeterian.
+// Redosled/nazivi po klijentovoj šemi: Balance, Pescatarian, Vegan, Vegeterian.
+// (display naziv "Pescatarian"; diet id ostaje "fish" → Nikola dobija "fish")
 // =====================================================================
 
 export interface DietType {
@@ -25,7 +26,7 @@ export const DIET_TYPES: DietType[] = [
   },
   {
     id: "fish",
-    name: "Fish",
+    name: "Pescatarian",
     description:
       "Uključuje ribu, morske plodove, jaja, mlečne proizvode, povrće i voće – bez mesa",
     icon: iconFish,

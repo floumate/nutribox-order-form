@@ -36,17 +36,17 @@ const PRICES_STANDARD: Record<PackageId, PriceSet> = {
   "20-dnevni": {
     default: 60000,
     discounts: { onboarding10: 54000 }, // 10% off
-    affiliates: {},
+    affiliates: { thundertopteam: 54000, NUTRI10: 54000, mimavelickovic: 54000 }, // -10%
   },
   "5-dnevni": {
     default: 15000,
     discounts: { onboarding10: 13500 }, // 10% off
-    affiliates: {},
+    affiliates: { thundertopteam: 13500, NUTRI10: 13500, mimavelickovic: 13500 }, // -10%
   },
   probni: {
     default: 3500,
     discounts: { onboarding10: 3150 }, // 10% off
-    affiliates: {},
+    affiliates: { thundertopteam: 3150, NUTRI10: 3150, mimavelickovic: 3150 }, // -10%
   },
 };
 
@@ -62,7 +62,7 @@ const PRICES_MAX: Record<PackageId, PriceSet> = {
   "20-dnevni": {
     default: 79000,
     discounts: { onboarding10: 71100 }, // -10%
-    affiliates: {},
+    affiliates: { thundertopteam: 71100, NUTRI10: 71100, mimavelickovic: 71100 }, // -10%
   },
   "7-dnevni": {
     default: 28000,
@@ -72,12 +72,12 @@ const PRICES_MAX: Record<PackageId, PriceSet> = {
   "5-dnevni": {
     default: 20000,
     discounts: { onboarding10: 18000 }, // -10%
-    affiliates: {},
+    affiliates: { thundertopteam: 18000, NUTRI10: 18000, mimavelickovic: 18000 }, // -10%
   },
   probni: {
     default: 4500,
     discounts: { onboarding10: 4050 }, // -10%
-    affiliates: {},
+    affiliates: { thundertopteam: 4050, NUTRI10: 4050, mimavelickovic: 4050 }, // -10%
   },
 };
 

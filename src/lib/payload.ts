@@ -5,6 +5,7 @@ import { getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { getDiet } from "../config/dietTypes";
 import { computePrice } from "../config/pricing";
 import { qualifiesForNutriChef } from "./nutrichef";
+import { buildRegistration } from "./registration";
 
 // =====================================================================
 // Gradi payload za Make / abandoned iz trenutnog stanja forme.
@@ -62,6 +63,11 @@ export function buildPayload(): Record<string, unknown> {
     "Kucni-broj": state.dostava.kucniBroj,
     nutriChef: qualifiesForNutriChef() ? "Da" : "Ne", // NutriChef lead? (čitljivo u tabelama)
   };
+
+  // Gotov Nikolin registration payload (string) — Make HTTP modul ga prosleđuje
+  // kao raw body + doda X-API-Key. Prazno kad se ne registruje (NutriChef/custom).
+  const reg = buildRegistration();
+  payload.registrationJson = reg ? JSON.stringify(reg) : "";
 
   if (state.nacinPlacanja === "Firma") {
     payload.nazivFirme = state.firma.nazivFirme;

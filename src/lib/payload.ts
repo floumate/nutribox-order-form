@@ -63,7 +63,7 @@ export function buildPayload(): Record<string, unknown> {
   };
 
   // Gotov Nikolin registration payload (string) — Make HTTP modul ga prosleđuje
-  // kao raw body + doda X-API-Key. Prazno kad se ne registruje (NutriChef/custom).
+  // kao raw body + doda X-API-Key. Prazno kad se ne registruje (custom plan).
   const reg = buildRegistration();
   payload.registrationJson = reg ? JSON.stringify(reg) : "";
 

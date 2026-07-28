@@ -570,7 +570,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       onEnter: renderPlan,
       validate: () => {
         if (!state.plan) {
-          showError(stepPlan, "Molimo izaberite plan.");
+          showError(stepPlan, "Molimo izaberite paket.");
           return false;
         }
         return true;
@@ -594,7 +594,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       onEnter: renderPaket,
       validate: () => {
         if (!state.paket) {
-          showError(stepPaket, "Molimo izaberite paket.");
+          showError(stepPaket, "Molimo izaberite plan.");
           return false;
         }
         return true;

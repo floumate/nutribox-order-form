@@ -20,9 +20,9 @@ export type PackageTier = "hero" | "secondary" | "muted" | "trial";
 export type PackageGroup = "mesecni" | "nedeljni" | "probni";
 
 export const PACKAGE_GROUPS: { id: PackageGroup; label: string }[] = [
-  { id: "mesecni", label: "Mesečni paket" },
-  { id: "nedeljni", label: "Nedeljni paket" },
-  { id: "probni", label: "Probni paket" },
+  { id: "mesecni", label: "Mesečni" },
+  { id: "nedeljni", label: "Nedeljni" },
+  { id: "probni", label: "Dnevni" },
 ];
 
 export interface PackageDef {
@@ -46,7 +46,6 @@ export const PACKAGES: PackageDef[] = [
     id: "28-dnevni",
     name: "28-dnevni paket",
     subtitle: "Ceo mesec - svaki dan",
-    badge: "Najpopularniji",
     tier: "hero",
     group: "mesecni",
     raiffeisenPlan: "28_day",
@@ -89,7 +88,7 @@ export const PACKAGES: PackageDef[] = [
   },
   {
     id: "probni",
-    name: "Probni paket",
+    name: "1-dnevni",
     subtitle: "1 dan - probaj pre nego što se odlučiš",
     tier: "trial",
     group: "probni",

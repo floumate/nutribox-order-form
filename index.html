@@ -28,7 +28,7 @@
       <form id="nutribox-form" novalidate>
         <!-- ============ STEP 1: Cilj (uvodno pitanje - NE bira plan) ============ -->
         <section class="step" data-step="motivacija">
-          <h2 class="step__title">Izaberi cilj koji želiš da ostvariš?</h2>
+          <h2 class="step__title">Izaberi cilj koji želiš da ostvariš</h2>
           <div class="card-grid card-grid--3" data-grid="motivacija"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav step__nav--single">
@@ -38,7 +38,7 @@
 
         <!-- ============ STEP 2: Pol ============ -->
         <section class="step" data-step="pol">
-          <h2 class="step__title">Izaberi svoj pol</h2>
+          <h2 class="step__title">Želiš da poručiš paket za</h2>
           <div class="card-grid card-grid--2" data-grid="pol"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
@@ -47,9 +47,9 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 3: Plan (NutriSlim/Balance/Pump/Max) ============ -->
+        <!-- ============ STEP 3: Paket (NutriSlim/Balance/Pump/Max) — sa makroima ============ -->
         <section class="step" data-step="plan">
-          <h2 class="step__title">Izaberi svoj plan</h2>
+          <h2 class="step__title">Izaberi svoj paket</h2>
           <div class="card-grid card-grid--4" data-grid="plan"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
@@ -58,61 +58,13 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 4: Makro vrednosti (read-only) ============ -->
-        <section class="step" data-step="macros">
-          <h2 class="step__title">Tvoje dnevne vrednosti</h2>
-          <p class="step__subtitle" data-macros-subtitle></p>
-          <div class="stats">
-            <div class="stat">
-              <span class="stat__value" data-macro="kcal">-</span>
-              <span class="stat__label">kcal</span>
-            </div>
-            <div class="stat">
-              <span class="stat__value" data-macro="proteini">-</span>
-              <span class="stat__label">Proteini</span>
-            </div>
-            <div class="stat">
-              <span class="stat__value" data-macro="uh">-</span>
-              <span class="stat__label">Ugljeni hidrati</span>
-            </div>
-            <div class="stat">
-              <span class="stat__value" data-macro="masti">-</span>
-              <span class="stat__label">Masti</span>
-            </div>
-          </div>
-          <footer class="step__nav">
-            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
-            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
-          </footer>
-        </section>
-
-        <!-- ============ STEP 5: Tip ishrane ============ -->
+        <!-- ============ STEP 4: Tip jelovnika (+ isključivanje namirnica) ============ -->
         <section class="step" data-step="diet">
-          <h2 class="step__title">Izaberi svoj tip ishrane</h2>
+          <h2 class="step__title">Izaberi svoj tip jelovnika</h2>
           <div class="card-grid card-grid--4" data-grid="diet"></div>
-          <div class="error-message"><span class="error-message__text"></span></div>
-          <footer class="step__nav">
-            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
-            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
-          </footer>
-        </section>
-
-        <!-- ============ STEP 6: Izbacivanje namirnica ============ -->
-        <section class="step" data-step="namirnice">
-          <h2 class="step__title">Izbaci ono što ne jedeš</h2>
-          <p class="step__subtitle">Opciono - izaberi kategorije koje želiš da izostaviš.</p>
-          <div class="card-grid card-grid--4" data-grid="namirnice"></div>
-          <div class="nutrichef-banner" data-nutrichef-banner>
-            <span data-nutrichef-default>
-              Ako ti ove opcije nisu dovoljne, ili se hraniš po planu koji ti je
-              prepisao trener ili nutricionista, imamo rešenje <strong>Nutri Chef
-              plan</strong> - hrana pripremljena samo za tebe.
-            </span>
-            <span data-nutrichef-active hidden>
-              Na osnovu tvojih izbora pravimo ti <strong>custom NutriChef plan</strong>
-              - hrana pripremljena samo za tebe. Nastavi kroz formu, javićemo ti se
-              za detalje, cenu i početak dostave.
-            </span>
+          <div class="allergen-block" data-allergen-block>
+            <h3 class="allergen-block__title">Iz svakog od naših jelovnika možete izbaciti:</h3>
+            <div class="card-grid card-grid--3" data-grid="namirnice"></div>
           </div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
@@ -121,12 +73,9 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 7: Paket ============ -->
+        <!-- ============ STEP 5: Plan trajanja (grupisani accordion) ============ -->
         <section class="step" data-step="paket">
-          <h2 class="step__title">Izaberi paket koji ti najviše odgovara</h2>
-          <p class="step__subtitle">
-            28-dnevni paket nudi najbolju vrednost. 20 i 5 dana su bez vikenda.
-          </p>
+          <h2 class="step__title">Izaberi plan koji ti najviše odgovara</h2>
           <div class="pkg-groups" data-grid="paket"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
@@ -229,7 +178,7 @@
           <h2 class="step__title">Unesite podatke za dostavu</h2>
           <div class="fields fields--2">
             <label class="field">
-              <span class="field__label">Naselje</span>
+              <span class="field__label">Zona dostave</span>
               <select class="field-select" data-dostava="naselje"></select>
             </label>
             <label class="field">

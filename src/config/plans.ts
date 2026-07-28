@@ -53,7 +53,7 @@ export const PLANS: Plan[] = [
   {
     id: "nutrimax",
     name: "NutriMax",
-    tagline: "Paket sa najvišim energetskim unosom",
+    tagline: "Paket sa maksimalnim energetskim unosom",
     icon: iconNutriMax,
     macros: {
       Muški: { kcal: 3000, proteini: 263, uh: 300, masti: 83 },

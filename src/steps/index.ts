@@ -106,14 +106,21 @@ function escapeHtml(s: string): string {
 // ---------------------------------------------------------------------
 
 function renderPlanCards(container: HTMLElement): void {
-  container.innerHTML = PLANS.map(
-    (p) => `
-    <button type="button" class="card card--choice" data-choice="${p.id}">
+  const sex = state.pol;
+  container.innerHTML = PLANS.map((p) => {
+    const m = sex ? getMacros(p.id, sex) : null;
+    const macroHtml =
+      m && m.kcal != null
+        ? `<span class="card__macros">${m.kcal} kcal · ${m.proteini}g P · ${m.uh}g UH · ${m.masti}g M</span>`
+        : "";
+    return `
+    <button type="button" class="card card--choice card--plan" data-choice="${p.id}">
       <span class="card__icon"><img src="${p.icon}" alt="" /></span>
       <span class="card__title">${p.name}</span>
       <span class="card__desc">${p.tagline}</span>
-    </button>`,
-  ).join("");
+      ${macroHtml}
+    </button>`;
+  }).join("");
 }
 
 function renderGoalCards(container: HTMLElement): void {
@@ -125,13 +132,19 @@ function renderGoalCards(container: HTMLElement): void {
   ).join("");
 }
 
+/** Display labele za pol (vrednost ostaje "Muški"/"Ženski" za makroe/Airtable/Nikolu). */
+const POL_LABELS: Record<Sex, string> = {
+  Muški: "Muškarca",
+  Ženski: "Ženu",
+};
+
 function renderPolCards(container: HTMLElement): void {
   const opcije: Sex[] = ["Muški", "Ženski"];
   container.innerHTML = opcije
     .map(
       (s) => `
     <button type="button" class="card card--choice card--pol" data-choice="${s}">
-      <span class="card__title">${s}</span>
+      <span class="card__title">${POL_LABELS[s]}</span>
     </button>`,
     )
     .join("");
@@ -142,7 +155,7 @@ function renderDietCards(container: HTMLElement): void {
     (d) => `
     <button type="button" class="card card--choice" data-choice="${d.id}">
       <span class="card__icon"><img src="${d.icon}" alt="" /></span>
-      <span class="card__title">${d.name}</span>
+      <span class="card__title">${d.label}</span>
       <span class="card__desc">${d.description}</span>
     </button>`,
   ).join("");
@@ -184,11 +197,15 @@ function renderPackageCards(container: HTMLElement, isMax: boolean): void {
     </button>`;
   };
 
-  container.innerHTML = PACKAGE_GROUPS.map((g) => {
+  container.innerHTML = PACKAGE_GROUPS.map((g, gi) => {
     const cards = PACKAGES.filter((p) => p.group === g.id).map(cardHtml).join("");
+    const open = gi === 0 ? " pkg-group--open" : "";
     return `
-    <div class="pkg-group">
-      <span class="pkg-group__label">${g.label}</span>
+    <div class="pkg-group${open}" data-pkg-group="${g.id}">
+      <button type="button" class="pkg-group__header" data-pkg-toggle>
+        <span class="pkg-group__label">${g.label}</span>
+        <span class="pkg-group__chevron" aria-hidden="true">▾</span>
+      </button>
       <div class="pkg-group__cards">${cards}</div>
     </div>`;
   }).join("");
@@ -216,10 +233,14 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   renderGoalCards(motivacijaGrid);
   wireChoiceGrid(motivacijaGrid, (v) => (state.cilj = v), true);
 
-  // ----- STEP: Plan (NutriSlim/Balance/Pump/Max) -----
+  // ----- STEP: Paket (NutriSlim/Balance/Pump/Max) — sa makroima -----
   const stepPlan = reqEl<HTMLElement>(form, '[data-step="plan"]');
   const planGrid = reqEl<HTMLElement>(stepPlan, '[data-grid="plan"]');
-  renderPlanCards(planGrid);
+  const renderPlan = () => {
+    renderPlanCards(planGrid); // makroi zavise od izabranog pola
+    if (state.plan) selectCardInGrid(planGrid, state.plan);
+  };
+  renderPlan();
   wireChoiceGrid(planGrid, (v) => (state.plan = v as PlanId), true);
 
   // ----- STEP: Pol -----
@@ -228,68 +249,68 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   renderPolCards(polGrid);
   wireChoiceGrid(polGrid, (v) => (state.pol = v as Sex), true);
 
-  // ----- STEP: Makro vrednosti (read-only) -----
-  const stepMacros = reqEl<HTMLElement>(form, '[data-step="macros"]');
-  const updateMacros = () => {
-    const m =
-      state.plan && state.pol ? getMacros(state.plan, state.pol) : null;
-    const plan = state.plan ? getPlan(state.plan) : undefined;
-    const subtitle = reqEl<HTMLElement>(stepMacros, "[data-macros-subtitle]");
-    subtitle.textContent =
-      plan && state.pol ? `${plan.name} · ${state.pol}` : "";
-    const set = (key: keyof NonNullable<typeof m>, suffix: string) => {
-      const el = stepMacros.querySelector<HTMLElement>(`[data-macro="${key}"]`);
-      if (!el) return;
-      const val = m?.[key];
-      el.textContent = val != null ? `${val}${suffix}` : "-";
-    };
-    set("kcal", "");
-    set("proteini", " g");
-    set("uh", " g");
-    set("masti", " g");
-  };
-
-  // ----- STEP: Tip ishrane -----
+  // ----- STEP: Tip jelovnika (+ isključivanje namirnica ispod) -----
   const stepDiet = reqEl<HTMLElement>(form, '[data-step="diet"]');
   const dietGrid = reqEl<HTMLElement>(stepDiet, '[data-grid="diet"]');
+  const namirniceGrid = reqEl<HTMLElement>(stepDiet, '[data-grid="namirnice"]');
   renderDietCards(dietGrid);
-  wireChoiceGrid(dietGrid, (v) => (state.tipIshrane = v as DietId), true);
 
-  // ----- STEP: Izbacivanje namirnica -----
-  const stepNamirnice = reqEl<HTMLElement>(form, '[data-step="namirnice"]');
-  const namirniceGrid = reqEl<HTMLElement>(stepNamirnice, '[data-grid="namirnice"]');
-  const ncBanner = stepNamirnice.querySelector<HTMLElement>("[data-nutrichef-banner]");
-  const ncDefault = stepNamirnice.querySelector<HTMLElement>("[data-nutrichef-default]");
-  const ncActive = stepNamirnice.querySelector<HTMLElement>("[data-nutrichef-active]");
-  // Rana najava: kad se pređe prag (3+, Vegan 2+) → jača poruka o NutriChef-u.
-  const updateNutriChefBanner = () => {
-    const on = qualifiesForNutriChef();
-    if (ncDefault) ncDefault.hidden = on;
-    if (ncActive) ncActive.hidden = !on;
-    if (ncBanner) ncBanner.classList.toggle("nutrichef-banner--active", on);
+  // Prikaži namirnice za trenutni jelovnik; odbaci selekcije koje mu ne pripadaju.
+  const renderNamirnice = () => {
+    const options = getAllergensFor(state.tipIshrane);
+    state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => options.includes(v));
+    renderAllergenCards(namirniceGrid, options, state.izuzeteNamirnice);
   };
+
+  // Izbor jelovnika: postavi tip + osveži namirnice ISPOD (bez auto-next).
+  wireChoiceGrid(dietGrid, (v) => {
+    state.tipIshrane = v as DietId;
+    renderNamirnice();
+  });
+
   wireMultiToggle(namirniceGrid, (value, selected) => {
     if (selected) {
       if (!state.izuzeteNamirnice.includes(value)) state.izuzeteNamirnice.push(value);
     } else {
       state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => v !== value);
     }
-    updateNutriChefBanner();
   });
-  const renderNamirnice = () => {
-    const options = getAllergensFor(state.tipIshrane);
-    // zadrži samo selekcije koje su i dalje validne za trenutni tip ishrane
-    state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => options.includes(v));
-    renderAllergenCards(namirniceGrid, options, state.izuzeteNamirnice);
-    updateNutriChefBanner();
+
+  // Na ulazak: prvi jelovnik unapred izabran → odmah se vide namirnice za izbacivanje.
+  const renderDiet = () => {
+    if (!state.tipIshrane) state.tipIshrane = DIET_TYPES[0]?.id ?? null;
+    if (state.tipIshrane) selectCardInGrid(dietGrid, state.tipIshrane);
+    renderNamirnice();
   };
 
-  // ----- STEP: Paket -----
+  // ----- STEP: Plan trajanja (grupisani accordion) -----
   const stepPaket = reqEl<HTMLElement>(form, '[data-step="paket"]');
   const paketGrid = reqEl<HTMLElement>(stepPaket, '[data-grid="paket"]');
-  const renderPaket = () => renderPackageCards(paketGrid, isMaxPlan(state.plan));
+  const renderPaket = () => {
+    renderPackageCards(paketGrid, isMaxPlan(state.plan));
+    if (state.paket) {
+      selectCardInGrid(paketGrid, state.paket);
+      const pkg = getPackage(state.paket);
+      if (pkg) {
+        paketGrid
+          .querySelectorAll<HTMLElement>("[data-pkg-group]")
+          .forEach((grp) =>
+            grp.classList.toggle(
+              "pkg-group--open",
+              grp.dataset.pkgGroup === pkg.group,
+            ),
+          );
+      }
+    }
+  };
   renderPaket();
   wireChoiceGrid(paketGrid, (v) => (state.paket = v as PackageId));
+  // Accordion: klik na header grupe otvara/zatvara njene kartice.
+  paketGrid.addEventListener("click", (e) => {
+    const toggle = (e.target as HTMLElement).closest<HTMLElement>("[data-pkg-toggle]");
+    if (!toggle || !paketGrid.contains(toggle)) return;
+    toggle.closest<HTMLElement>("[data-pkg-group]")?.classList.toggle("pkg-group--open");
+  });
 
   // ----- STEP: Lične informacije -----
   const stepLicneInfo = reqEl<HTMLElement>(form, '[data-step="licneInformacije"]');
@@ -310,7 +331,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   const naseljeSelect = reqEl<HTMLSelectElement>(stepAdresa, "[data-dostava='naselje']");
   const adresaInput = reqEl<HTMLInputElement>(stepAdresa, "[data-dostava='adresa']");
   naseljeSelect.innerHTML =
-    `<option value="">Izaberite naselje</option>` +
+    `<option value="">Izaberite zonu</option>` +
     NASELJA.map((n) => `<option value="${n}">${n}</option>`).join("");
   stepAdresa
     .querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
@@ -367,23 +388,23 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       label: "Pol",
       kind: "select",
       options: [
-        { value: "Muški", label: "Muški" },
-        { value: "Ženski", label: "Ženski" },
+        { value: "Muški", label: POL_LABELS["Muški"] },
+        { value: "Ženski", label: POL_LABELS["Ženski"] },
       ],
       stored: () => state.pol ?? "",
-      display: () => state.pol ?? "",
+      display: () => (state.pol ? POL_LABELS[state.pol] : ""),
       apply: (v) => {
         state.pol = v as Sex;
         selectCardInGrid(polGrid, v);
       },
     },
     {
-      label: "Tip ishrane",
+      label: "Tip jelovnika",
       kind: "select",
-      options: DIET_TYPES.map((d) => ({ value: d.id, label: d.name })),
+      options: DIET_TYPES.map((d) => ({ value: d.id, label: d.label })),
       stored: () => state.tipIshrane ?? "",
       display: () =>
-        state.tipIshrane ? (getDiet(state.tipIshrane)?.name ?? "") : "",
+        state.tipIshrane ? (getDiet(state.tipIshrane)?.label ?? "") : "",
       apply: (v) => {
         state.tipIshrane = v as DietId;
         selectCardInGrid(dietGrid, v);
@@ -413,7 +434,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       },
     },
     {
-      label: "Naselje",
+      label: "Zona dostave",
       kind: "select",
       options: NASELJA.map((n) => ({ value: n, label: n })),
       stored: () => state.dostava.naselje,
@@ -502,7 +523,6 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     stepPlan,
     stepPol,
     stepDiet,
-    stepNamirnice,
     stepPaket,
     stepLicneInfo,
     stepDatum,
@@ -540,6 +560,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     {
       id: "plan",
       el: stepPlan,
+      onEnter: renderPlan,
       validate: () => {
         if (!state.plan) {
           showError(stepPlan, "Molimo izaberite plan.");
@@ -549,25 +570,16 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       },
     },
     {
-      id: "macros",
-      el: stepMacros,
-      onEnter: updateMacros,
-    },
-    {
       id: "diet",
       el: stepDiet,
+      onEnter: renderDiet,
       validate: () => {
         if (!state.tipIshrane) {
-          showError(stepDiet, "Molimo izaberite tip ishrane.");
+          showError(stepDiet, "Molimo izaberite tip jelovnika.");
           return false;
         }
         return true;
       },
-    },
-    {
-      id: "namirnice",
-      el: stepNamirnice,
-      onEnter: renderNamirnice,
     },
     {
       id: "paket",

@@ -314,25 +314,67 @@ body {
 .pkg-groups {
   display: flex;
   flex-direction: column;
-  gap: 26px;
+  gap: 12px;
   margin-bottom: 8px;
 }
 .pkg-group {
+  border: 1px solid var(--green-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.pkg-group__header {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 18px 20px;
+  background: var(--green-tint);
+  border: none;
+  cursor: pointer;
+  font: inherit;
 }
 .pkg-group__label {
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
   color: var(--green-dark);
 }
+.pkg-group__chevron {
+  color: var(--green-dark);
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+.pkg-group--open .pkg-group__chevron {
+  transform: rotate(180deg);
+}
 .pkg-group__cards {
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 12px;
+  padding: 12px;
+}
+.pkg-group--open .pkg-group__cards {
+  display: flex;
+}
+
+/* ---------- Isključivanje namirnica (ispod jelovnika) ---------- */
+.allergen-block {
+  margin-top: 22px;
+}
+.allergen-block__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+/* ---------- Makroi na plan karticama ---------- */
+.card__macros {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green-dark);
 }
 .card--pkg {
   position: relative;

@@ -110,7 +110,14 @@ function renderPlanCards(container: HTMLElement): void {
     const m = sex ? getMacros(p.id, sex) : null;
     const macroHtml =
       m && m.kcal != null
-        ? `<span class="card__macros">${m.kcal} kcal · ${m.proteini}g P · ${m.uh}g UH · ${m.masti}g M</span>`
+        ? `<span class="macros">
+             <span class="macros__kcal">${m.kcal}<small>kcal</small></span>
+             <span class="macros__grid">
+               <span class="macro"><b>${m.proteini}g</b><i>Proteini</i></span>
+               <span class="macro"><b>${m.uh}g</b><i>UH</i></span>
+               <span class="macro"><b>${m.masti}g</b><i>Masti</i></span>
+             </span>
+           </span>`
         : "";
     return `
     <button type="button" class="card card--choice card--plan" data-choice="${p.id}">

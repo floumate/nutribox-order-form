@@ -391,15 +391,62 @@ body {
   cursor: not-allowed;
 }
 
-/* ---------- Makroi na plan karticama (veći, velikim slovima) ---------- */
-.card__macros {
-  display: block;
-  margin-top: 10px;
-  font-size: 15px;
+/* ---------- Plan kartice: opis + makro blok ---------- */
+/* Opis je sekundaran (manji/svetliji) - makroi nose vizuelnu težinu. */
+.card--plan .card__desc {
+  font-size: 13.5px;
+  color: var(--muted);
+}
+/* Makroi se "lepe" za dno kartice → poravnati preko svih kartica
+   bez obzira na dužinu opisa. */
+.macros {
+  margin-top: auto;
+  width: 100%;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.macros__kcal {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--green-dark);
+}
+.macros__kcal small {
+  margin-left: 5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.macros__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  gap: 4px;
+}
+.macro {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.macro b {
+  font-size: 15px;
+  font-weight: 700;
   color: var(--green-dark);
+  line-height: 1.1;
+}
+.macro i {
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
 }
 .card--pkg {
   position: relative;

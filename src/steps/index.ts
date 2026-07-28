@@ -266,7 +266,9 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   };
 
   // Izbor jelovnika: postavi tip + osveži namirnice ISPOD (bez auto-next).
+  // Promena jelovnika RESETUJE izbačene namirnice (čistije).
   wireChoiceGrid(dietGrid, (v) => {
+    if (v !== state.tipIshrane) state.izuzeteNamirnice = [];
     state.tipIshrane = v as DietId;
     renderNamirnice();
   });

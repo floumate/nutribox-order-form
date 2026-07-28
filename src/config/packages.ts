@@ -44,7 +44,7 @@ export interface PackageDef {
 export const PACKAGES: PackageDef[] = [
   {
     id: "28-dnevni",
-    name: "28-dnevni paket",
+    name: "28-dnevni plan",
     subtitle: "Ceo mesec - svaki dan",
     tier: "hero",
     group: "mesecni",
@@ -55,7 +55,7 @@ export const PACKAGES: PackageDef[] = [
   },
   {
     id: "7-dnevni",
-    name: "7-dnevni paket",
+    name: "7-dnevni plan",
     subtitle: "Cela nedelja",
     tier: "secondary",
     group: "nedeljni",
@@ -66,7 +66,7 @@ export const PACKAGES: PackageDef[] = [
   },
   {
     id: "20-dnevni",
-    name: "20-dnevni paket",
+    name: "20-dnevni plan",
     subtitle: "Radni dani - bez vikenda",
     tier: "muted",
     group: "mesecni",
@@ -77,7 +77,7 @@ export const PACKAGES: PackageDef[] = [
   },
   {
     id: "5-dnevni",
-    name: "5-dnevni paket",
+    name: "5-dnevni plan",
     subtitle: "Radna nedelja - bez vikenda",
     tier: "muted",
     group: "nedeljni",
@@ -88,7 +88,7 @@ export const PACKAGES: PackageDef[] = [
   },
   {
     id: "probni",
-    name: "1-dnevni",
+    name: "1-dnevni plan",
     subtitle: "1 dan - probaj pre nego što se odlučiš",
     tier: "trial",
     group: "probni",

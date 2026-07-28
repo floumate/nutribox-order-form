@@ -4,7 +4,6 @@ import { getPhoneNumber } from "./phone";
 import { getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { getDiet } from "../config/dietTypes";
 import { computePrice } from "../config/pricing";
-import { qualifiesForNutriChef } from "./nutrichef";
 import { buildRegistration } from "./registration";
 
 // =====================================================================
@@ -61,7 +60,6 @@ export function buildPayload(): Record<string, unknown> {
     // ---- NOVA polja (nema ih u staroj formi → novi GHL Custom Fields) ----
     motivacija: state.cilj, // "Izaberi cilj koji želiš da ostvariš"
     "Kucni-broj": state.dostava.kucniBroj,
-    nutriChef: qualifiesForNutriChef() ? "Da" : "Ne", // NutriChef lead? (čitljivo u tabelama)
   };
 
   // Gotov Nikolin registration payload (string) — Make HTTP modul ga prosleđuje

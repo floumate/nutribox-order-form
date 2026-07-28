@@ -3,7 +3,6 @@ import { urlContext } from "./urlParams";
 import { getPhoneNumber } from "./phone";
 import { getPackage } from "../config/packages";
 import { isMaxPlan } from "../config/plans";
-import { qualifiesForNutriChef } from "./nutrichef";
 import type { PlanId } from "../types";
 
 // =====================================================================
@@ -43,12 +42,10 @@ const NAMIRNICE_MAP: Record<string, string> = {
 
 /**
  * Vrati Nikolin registration objekat, ili null kad se NE registruje:
- *   - NutriChef lead (ide na personal-chef, bez paketa)
  *   - custom plan (nije u Nikolinom enum-u)
  *   - nepotpuni podaci (npr. abandoned)
  */
 export function buildRegistration(): Record<string, unknown> | null {
-  if (qualifiesForNutriChef()) return null;
   if (urlContext.isCustomPlan) return null;
 
   const plan = state.plan;

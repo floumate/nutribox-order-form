@@ -8,7 +8,6 @@ import { GOALS } from "../config/goals";
 import { PLANS, getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { DIET_TYPES, getDiet } from "../config/dietTypes";
 import { getAllergensFor } from "../config/allergens";
-import { qualifiesForNutriChef } from "../lib/nutrichef";
 import { PACKAGES, PACKAGE_GROUPS, getPackage } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
 import { NASELJA } from "../config/delivery";
@@ -172,6 +171,7 @@ function renderAllergenCards(
     <button type="button" class="card card--choice card--allergen${
       selected.includes(label) ? " card--selected" : ""
     }" data-choice="${escapeHtml(label)}">
+      <span class="allergen-check" aria-hidden="true"></span>
       <span class="card__title">${escapeHtml(label)}</span>
     </button>`,
     )
@@ -197,15 +197,11 @@ function renderPackageCards(container: HTMLElement, isMax: boolean): void {
     </button>`;
   };
 
-  container.innerHTML = PACKAGE_GROUPS.map((g, gi) => {
+  container.innerHTML = PACKAGE_GROUPS.map((g) => {
     const cards = PACKAGES.filter((p) => p.group === g.id).map(cardHtml).join("");
-    const open = gi === 0 ? " pkg-group--open" : "";
     return `
-    <div class="pkg-group${open}" data-pkg-group="${g.id}">
-      <button type="button" class="pkg-group__header" data-pkg-toggle>
-        <span class="pkg-group__label">${g.label}</span>
-        <span class="pkg-group__chevron" aria-hidden="true">▾</span>
-      </button>
+    <div class="pkg-group">
+      <span class="pkg-group__label">${g.label}</span>
       <div class="pkg-group__cards">${cards}</div>
     </div>`;
   }).join("");
@@ -283,34 +279,15 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     renderNamirnice();
   };
 
-  // ----- STEP: Plan trajanja (grupisani accordion) -----
+  // ----- STEP: Plan trajanja -----
   const stepPaket = reqEl<HTMLElement>(form, '[data-step="paket"]');
   const paketGrid = reqEl<HTMLElement>(stepPaket, '[data-grid="paket"]');
   const renderPaket = () => {
     renderPackageCards(paketGrid, isMaxPlan(state.plan));
-    if (state.paket) {
-      selectCardInGrid(paketGrid, state.paket);
-      const pkg = getPackage(state.paket);
-      if (pkg) {
-        paketGrid
-          .querySelectorAll<HTMLElement>("[data-pkg-group]")
-          .forEach((grp) =>
-            grp.classList.toggle(
-              "pkg-group--open",
-              grp.dataset.pkgGroup === pkg.group,
-            ),
-          );
-      }
-    }
+    if (state.paket) selectCardInGrid(paketGrid, state.paket);
   };
   renderPaket();
   wireChoiceGrid(paketGrid, (v) => (state.paket = v as PackageId));
-  // Accordion: klik na header grupe otvara/zatvara njene kartice.
-  paketGrid.addEventListener("click", (e) => {
-    const toggle = (e.target as HTMLElement).closest<HTMLElement>("[data-pkg-toggle]");
-    if (!toggle || !paketGrid.contains(toggle)) return;
-    toggle.closest<HTMLElement>("[data-pkg-group]")?.classList.toggle("pkg-group--open");
-  });
 
   // ----- STEP: Lične informacije -----
   const stepLicneInfo = reqEl<HTMLElement>(form, '[data-step="licneInformacije"]');
@@ -472,6 +449,15 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       `<div class="summary__row summary__total"><span class="summary__label">Ukupno</span><strong>${formatPrice(price)} RSD</strong></div>`;
   };
 
+  // Osveži samo "Ukupno" (bez re-rendera celog summary-ja, da ne zatvori druge editore).
+  const updateTotal = () => {
+    const price = state.paket
+      ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
+      : null;
+    const totalEl = summaryEl.querySelector<HTMLElement>(".summary__total strong");
+    if (totalEl) totalEl.textContent = `${formatPrice(price)} RSD`;
+  };
+
   summaryEl.addEventListener("click", (e) => {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-sedit]");
     if (!btn) return;
@@ -508,16 +494,20 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       if (field.kind === "date") initDatepicker(editor as HTMLInputElement, () => {});
       btn.textContent = "Sačuvaj";
     } else {
-      // sačuvaj
+      // sačuvaj SAMO ovaj red — ostali otvoreni editori ostaju netaknuti
       field.apply((existing as HTMLInputElement | HTMLSelectElement).value);
-      renderSummary();
+      existing.remove();
+      const valueSpan = row.querySelector<HTMLElement>(".summary__value");
+      if (valueSpan) {
+        valueSpan.textContent = field.display() || "-";
+        valueSpan.style.display = "";
+      }
+      btn.textContent = "Izmeni";
+      updateTotal();
     }
   });
 
   // Generičko skrivanje errora na promenu unutar koraka.
-  // ----- STEP (grana): NutriChef lead -----
-  const stepNutriChef = reqEl<HTMLElement>(form, '[data-step="nutrichef"]');
-
   [
     stepMotivacija,
     stepPlan,
@@ -528,7 +518,6 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     stepDatum,
     stepAdresa,
     stepPay,
-    stepNutriChef,
   ].forEach((s) => {
     s.addEventListener("input", () => hideError(s));
     s.addEventListener("change", () => hideError(s));
@@ -585,8 +574,6 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       id: "paket",
       el: stepPaket,
       onEnter: renderPaket,
-      // NutriChef grana preskače cenu - custom plan se dogovara na pozivu.
-      skip: () => qualifiesForNutriChef(),
       validate: () => {
         if (!state.paket) {
           showError(stepPaket, "Molimo izaberite paket.");
@@ -650,14 +637,6 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       id: "placanje",
       el: stepPay,
       onEnter: renderSummary,
-      // NutriChef grana ne ide na plaćanje (nema cene) - vidi "nutrichef" korak.
-      skip: () => qualifiesForNutriChef(),
-    },
-    {
-      id: "nutrichef",
-      el: stepNutriChef,
-      // Prikazuje se samo za NutriChef granu (3+ izbačeno, Vegan 2+).
-      skip: () => !qualifiesForNutriChef(),
     },
   ];
 }

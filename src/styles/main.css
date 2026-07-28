@@ -314,47 +314,25 @@ body {
 .pkg-groups {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 26px;
   margin-bottom: 8px;
 }
 .pkg-group {
-  border: 1px solid var(--green-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-.pkg-group__header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 18px 20px;
-  background: var(--green-tint);
-  border: none;
-  cursor: pointer;
-  font: inherit;
-}
-.pkg-group__label {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--green-dark);
-}
-.pkg-group__chevron {
-  color: var(--green-dark);
-  font-size: 18px;
-  line-height: 1;
-  transition: transform 0.2s ease;
-}
-.pkg-group--open .pkg-group__chevron {
-  transform: rotate(180deg);
-}
-.pkg-group__cards {
-  display: none;
   flex-direction: column;
   gap: 12px;
-  padding: 12px;
 }
-.pkg-group--open .pkg-group__cards {
+.pkg-group__label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--green-dark);
+}
+.pkg-group__cards {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /* ---------- Isključivanje namirnica (ispod jelovnika) ---------- */
@@ -367,13 +345,56 @@ body {
   color: var(--ink);
   margin-bottom: 12px;
 }
+/* Namirnice = multi-select toggle: manje istaknute od jelovnika (radio),
+   checkbox indikator + slabiji zeleni kad su izabrane (da se ne pretapa sa jelovnikom). */
+.card--allergen {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 0;
+  padding: 14px 18px;
+  text-align: left;
+}
+.card--allergen .card__title {
+  font-size: 15px;
+}
+.allergen-check {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--green-border);
+  border-radius: 6px;
+  position: relative;
+}
+.card--allergen.card--selected {
+  border-color: var(--green);
+  background: rgba(49, 112, 57, 0.08);
+}
+.card--allergen.card--selected .allergen-check {
+  background: var(--green);
+  border-color: var(--green);
+}
+.card--allergen.card--selected .allergen-check::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
 
-/* ---------- Makroi na plan karticama ---------- */
+/* ---------- Makroi na plan karticama (veći, velikim slovima) ---------- */
 .card__macros {
   display: block;
-  margin-top: 8px;
-  font-size: 12px;
-  font-weight: 600;
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--green-dark);
 }
 .card--pkg {
@@ -641,6 +662,10 @@ body {
 }
 .iti__selected-country:hover {
   background: rgba(0, 0, 0, 0.06);
+}
+/* Sivi hover SAMO na deo sa zastavom/pozivnim brojem — ne kad se hoveruje broj. */
+.iti:has(#telefon:hover) .iti__selected-country:not(:hover) {
+  background: transparent;
 }
 /* Veće zastave (2x sprite - bez gubitka kvaliteta). */
 .iti__flag {

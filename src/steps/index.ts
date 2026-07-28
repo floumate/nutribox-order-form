@@ -164,17 +164,20 @@ function renderAllergenCards(
   container: HTMLElement,
   options: string[],
   selected: string[],
+  atLimit: boolean,
 ): void {
   container.innerHTML = options
-    .map(
-      (label) => `
-    <button type="button" class="card card--choice card--allergen${
-      selected.includes(label) ? " card--selected" : ""
-    }" data-choice="${escapeHtml(label)}">
+    .map((label) => {
+      const isSel = selected.includes(label);
+      const disabled = atLimit && !isSel; // dostignut limit → ostale zaključaj
+      return `
+    <button type="button"${disabled ? " disabled" : ""} class="card card--choice card--allergen${
+      isSel ? " card--selected" : ""
+    }${disabled ? " card--disabled" : ""}" data-choice="${escapeHtml(label)}">
       <span class="allergen-check" aria-hidden="true"></span>
       <span class="card__title">${escapeHtml(label)}</span>
-    </button>`,
-    )
+    </button>`;
+    })
     .join("");
 }
 
@@ -251,11 +254,15 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   const namirniceGrid = reqEl<HTMLElement>(stepDiet, '[data-grid="namirnice"]');
   renderDietCards(dietGrid);
 
+  // Ograničenje: najviše 2 izbačene namirnice.
+  const MAX_EXCLUDE = 2;
+
   // Prikaži namirnice za trenutni jelovnik; odbaci selekcije koje mu ne pripadaju.
   const renderNamirnice = () => {
     const options = getAllergensFor(state.tipIshrane);
     state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => options.includes(v));
-    renderAllergenCards(namirniceGrid, options, state.izuzeteNamirnice);
+    const atLimit = state.izuzeteNamirnice.length >= MAX_EXCLUDE;
+    renderAllergenCards(namirniceGrid, options, state.izuzeteNamirnice, atLimit);
   };
 
   // Izbor jelovnika: postavi tip + osveži namirnice ISPOD (bez auto-next).
@@ -266,10 +273,12 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
 
   wireMultiToggle(namirniceGrid, (value, selected) => {
     if (selected) {
+      if (state.izuzeteNamirnice.length >= MAX_EXCLUDE) return; // preko limita (kartice su i disabled)
       if (!state.izuzeteNamirnice.includes(value)) state.izuzeteNamirnice.push(value);
     } else {
       state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => v !== value);
     }
+    renderNamirnice(); // osveži disabled stanje ostalih
   });
 
   // Na ulazak: prvi jelovnik unapred izabran → odmah se vide namirnice za izbacivanje.

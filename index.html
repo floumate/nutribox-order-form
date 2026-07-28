@@ -127,10 +127,14 @@
               <span class="field__label">Email</span>
               <input id="email" type="email" placeholder="petar@email.com" autocomplete="email" />
             </label>
-            <label class="field">
-              <span class="field__label">Broj telefona</span>
+            <!-- NIJE <label> wrapper: intl-tel-input ubaci <button> pre inputa,
+                 pa bi label (implicitna asocijacija) vezao PRVI labelable
+                 element = to dugme → hover bilo gde u polju sivi zastavu.
+                 Zato div + eksplicitni <label for>. -->
+            <div class="field">
+              <label class="field__label" for="telefon">Broj telefona</label>
               <input id="telefon" type="tel" autocomplete="tel" />
-            </label>
+            </div>
           </div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">

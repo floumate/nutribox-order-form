@@ -712,12 +712,9 @@ body {
 .iti__selected-country-primary {
   background-color: transparent !important;
 }
+/* Sivi hover samo na deo sa zastavom/pozivnim brojem (dugme za izbor države). */
 .iti__selected-country:hover {
   background: rgba(0, 0, 0, 0.06);
-}
-/* Sivi hover SAMO na deo sa zastavom/pozivnim brojem — ne kad se hoveruje broj. */
-.iti:has(#telefon:hover) .iti__selected-country:not(:hover) {
-  background: transparent;
 }
 /* Veće zastave (2x sprite - bez gubitka kvaliteta). */
 .iti__flag {

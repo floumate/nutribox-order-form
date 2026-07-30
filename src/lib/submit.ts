@@ -138,7 +138,9 @@ export function attachSubmit(form: HTMLFormElement): void {
 
     let finalPlan: string;
     if (urlContext.isCustomPlan) finalPlan = "custom";
-    else if (urlContext.isTest) finalPlan = "probni";
+    // ?testiranje-placanja=true → poseban raifpay kod "test" (100 RSD).
+    // NE "probni" - to je pravi probni paket (3.500).
+    else if (urlContext.isTest) finalPlan = "test";
     else if (isMaxPlan(state.plan)) finalPlan = pkg?.raiffeisenPlanMax ?? "";
     else finalPlan = pkg?.raiffeisenPlan ?? "";
 
@@ -177,14 +179,17 @@ export function attachSubmit(form: HTMLFormElement): void {
       }
     } catch (err) {
       if (btn) setButtonLoading(btn, false, originalText);
-      const msg = err instanceof Error ? err.message : String(err);
-      // DEBUG (privremeno) — pokaži tačan uzrok + koji endpoint/origin.
       showError(
         paymentStep,
-        "DEBUG: " + msg + " | endpoint:" + ENDPOINTS.raiffeisenCheckout +
-          " | origin:" + location.origin + " | plan:" + finalPlan,
+        "Trenutno ne možemo da pokrenemo plaćanje karticom. Pokušajte ponovo " +
+          "ili izaberite plaćanje pouzećem.",
       );
-      console.error("[nutribox] checkout error:", err);
+      // Detalji (endpoint/origin/plan) ostaju u konzoli za dijagnostiku.
+      console.error("[nutribox] checkout error:", err, {
+        endpoint: ENDPOINTS.raiffeisenCheckout,
+        origin: location.origin,
+        plan: finalPlan,
+      });
     }
   });
 }

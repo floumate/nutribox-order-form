@@ -37,11 +37,27 @@ function boot(): void {
 
 function setupHeightReporter(): void {
   if (window.parent === window) return; // nismo u iframe-u
-  const report = () => {
+
+  let last = 0;
+  let queued = false;
+  const send = () => {
+    queued = false;
     const h = document.documentElement.scrollHeight;
+    if (h === last) return; // ne spamuj parent istom vrednošću
+    last = h;
     window.parent.postMessage({ type: "nutribox-height", height: h }, "*");
   };
+  // Skupi više promena u jedan frame (fontovi/ikonice okidaju rafal resize-a).
+  const report = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(send);
+  };
+
   report();
+  // Font swap i učitavanje ikonica menjaju visinu - bez ovoga parent nakratko
+  // dobije premalu visinu i forma izgleda "presečena".
+  document.fonts?.ready.then(report).catch(() => {});
   window.addEventListener("load", report);
   if ("ResizeObserver" in window) {
     new ResizeObserver(report).observe(document.body);

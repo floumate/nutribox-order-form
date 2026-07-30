@@ -80,6 +80,10 @@ body {
 .step--active {
   display: block;
 }
+/* Prvi korak na mount-u - bez fade-a (inače treperi dok se forma učitava). */
+.step--noanim {
+  animation: none;
+}
 @keyframes fade {
   from {
     opacity: 0;

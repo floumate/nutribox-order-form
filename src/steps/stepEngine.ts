@@ -19,6 +19,8 @@ export class StepEngine {
   private steps: StepConfig[];
   private progressEl: HTMLElement | null;
   private index = 0;
+  /** Prvi prikaz (mount) - bez scroll-a i bez fade animacije, da nema "flash"-a. */
+  private booted = false;
 
   constructor(steps: StepConfig[], progressEl: HTMLElement | null) {
     this.steps = steps;
@@ -49,8 +51,12 @@ export class StepEngine {
 
   private show(i: number): void {
     this.index = i;
+    const first = !this.booted;
     this.steps.forEach((s, idx) => {
       s.el.classList.toggle("step--active", idx === i);
+      // Fade animacija samo pri navigaciji - na prvom renderu bi izgledala
+      // kao treperenje dok se forma tek učitava.
+      s.el.classList.toggle("step--noanim", first && idx === i);
     });
     const step = this.steps[i];
     if (step) {
@@ -58,9 +64,13 @@ export class StepEngine {
       step.onEnter?.();
     }
     this.updateProgress();
-    document
-      .querySelector(".form-shell")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Ne skroluj na mount - samo kad korisnik pređe na drugi korak.
+    if (!first) {
+      document
+        .querySelector(".form-shell")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    this.booted = true;
   }
 
   next(): void {

@@ -9,10 +9,11 @@ export const ENDPOINTS = {
   /** Make webhook - abandoned cart. */
   abandoned: "https://hook.eu2.make.com/gnawubotwvk1tb8wyiqz31q2ncmoryd2",
 
-  /** Raiffeisen checkout (kartično plaćanje).
-   *  ⚠️ TRENUTNO STAGING — testiranje _max kodova (prod ih još nema).
-   *  ZA GO-LIVE VRATITI → "https://raifpay-prod.nutribox.dev/checkout" */
-  raiffeisenCheckout: "https://raifpay-staging.nutribox.dev/checkout",
+  /** Raiffeisen checkout (kartično plaćanje). PRODUKCIJA.
+   *  ⚠️ Prod još NEMA `_max` kodove (NutriMax puca INVALID_PLAN), a `probni`
+   *  je tamo test režim (500 RSD umesto 3.500). Standardni paketi rade.
+   *  Staging (ima sve kodove): "https://raifpay-staging.nutribox.dev/checkout" */
+  raiffeisenCheckout: "https://raifpay-prod.nutribox.dev/checkout",
 
   /** Bazni URL za thank-you stranice (hvala-*). Live Webflow domen. */
   thankYouBase: "https://www.nutribox.rs",

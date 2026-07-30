@@ -305,7 +305,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     if (state.paket) selectCardInGrid(paketGrid, state.paket);
   };
   renderPaket();
-  wireChoiceGrid(paketGrid, (v) => (state.paket = v as PackageId));
+  wireChoiceGrid(paketGrid, (v) => (state.paket = v as PackageId), true);
 
   // ----- STEP: Lične informacije -----
   const stepLicneInfo = reqEl<HTMLElement>(form, '[data-step="licneInformacije"]');

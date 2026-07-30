@@ -195,13 +195,15 @@
               <span class="field__label">Kućni broj</span>
               <input type="text" data-dostava="kucniBroj" placeholder="npr. 14" />
             </label>
+            <!-- Sprat/stan su numerički (Airtable i GHL polja su Number tipa).
+                 Kućni broj OSTAJE tekst - tamo su "14b", "bb" uobičajeni. -->
             <label class="field">
               <span class="field__label">Broj sprata</span>
-              <input type="text" data-dostava="brojSprata" placeholder="npr. 3" />
+              <input type="number" inputmode="numeric" step="1" data-dostava="brojSprata" placeholder="npr. 3" />
             </label>
             <label class="field">
               <span class="field__label">Broj stana</span>
-              <input type="text" data-dostava="brojStana" placeholder="npr. 12" />
+              <input type="number" inputmode="numeric" step="1" data-dostava="brojStana" placeholder="npr. 12" />
             </label>
           </div>
           <div class="fields fields--2">

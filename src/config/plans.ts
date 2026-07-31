@@ -33,7 +33,7 @@ export const PLANS: Plan[] = [
   {
     id: "nutribalance",
     name: "NutriBalance",
-    tagline: "Paket pravilno izbalansiranih obroka za tvoj dan",
+    tagline: "Paket idealno izbalansiranih obroka za tvoj dan",
     icon: iconLeanGains,
     macros: {
       Muški: { kcal: 2000, proteini: 150, uh: 225, masti: 56 },
@@ -43,7 +43,7 @@ export const PLANS: Plan[] = [
   {
     id: "nutripump",
     name: "NutriPump",
-    tagline: "Paket visoko proteinskih obroka za dobijanje mišićne mase",
+    tagline: "Paket visoko proteinskih obroka za izgradnju mišićne mase",
     icon: iconMuscleGain,
     macros: {
       Muški: { kcal: 2600, proteini: 163, uh: 325, masti: 72 },

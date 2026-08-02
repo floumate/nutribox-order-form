@@ -1,0 +1,61 @@
+<!--
+  ============================================================
+  Order forma  —  Webflow embed
+  ============================================================
+  Nalepiti u Embed element na stranici /order-form.
+
+  Forma živi u iframe-u na github.io, pa tri stvari mora da uradi
+  roditeljska (Webflow) stranica:
+
+    nutribox-height    → visina iframe-a prati sadržaj koraka
+    nutribox-scroll    → vrati na vrh forme pri prelasku na sledeći korak
+                         (iz iframe-a se ne može skrolovati roditelj)
+    nutribox-redirect  → navigacija na Raiffeisen / thank-you stranicu
+                         (roditelj navigira da query params ostanu)
+
+  height:600px na iframe-u je POČETNA visina, dok se JS ne učiti - bez nje
+  browser koristi default 150px i forma se prvih ~150ms vidi presečena.
+-->
+
+<iframe id="nutribox-form"
+        src="https://floumate.github.io/nutribox-order-form/"
+        style="width:100%;height:600px;border:0;display:block;"
+        scrolling="no"></iframe>
+
+<script>
+(function () {
+  var BASE = "https://floumate.github.io/nutribox-order-form/";
+  var iframe = document.getElementById("nutribox-form");
+
+  // Prosledi URL params (affiliate, discountCode, setter, referred_by...) u iframe.
+  if (window.location.search) {
+    iframe.src = BASE + window.location.search;
+  }
+
+  window.addEventListener("message", function (e) {
+    // Sigurnost: primaj SAMO od forme.
+    if (e.origin !== "https://floumate.github.io") return;
+    var data = e.data || {};
+
+    // Auto-visina (nema skrolovanja unutar iframe-a).
+    if (data.type === "nutribox-height" && typeof data.height === "number") {
+      iframe.style.height = data.height + "px";
+    }
+
+    // Vrati korisnika na vrh forme kad pređe na sledeći korak.
+    // Bez ovoga iOS Safari ostavlja korisnika na staroj visini i ne vidi
+    // naslov novog koraka. Namerno bez "smooth" - ignoriše se kad je
+    // uključeno smanjenje animacija, pa se tada ne bi skrolovalo uopšte.
+    if (data.type === "nutribox-scroll") {
+      var top = iframe.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo(0, top - 20);
+    }
+
+    // Redirect (kartica → uputstva za uplatu / pouzeće → thank-you).
+    // Parent navigira da bi query params ostali sačuvani.
+    if (data.type === "nutribox-redirect" && data.url) {
+      window.location.href = data.url;
+    }
+  });
+})();
+</script>

@@ -9,75 +9,80 @@
 
     kod     → koji QR / uplatnicu prikazati (28_day, 28_day_max, probni ...)
     cena    → iznos za uplatu (već formatiran)
-    popust  → "1" kad cena nije puna (tada QR sa punim iznosom NE valja)
+    popust  → "1" kad cena nije puna (QR sa punim iznosom tada NE valja)
 
-  QR i uplatnice se serviraju iz repo-a (GitHub Pages), pa se ništa
-  ne uploaduje u Webflow. Nove verzije = zameniti fajl u repo-u.
+  QR i uplatnice se serviraju iz repo-a (GitHub Pages) - ništa se ne
+  uploaduje u Webflow. Nova verzija fajla = zameniti u repo-u, ovde ništa.
 -->
 
 <style>
-  .up-wrap { max-width: 720px; margin: 0 auto; padding: 8px 0 40px;
+  .up-wrap { max-width: 760px; margin: 0 auto; padding: 8px 0 40px;
              font-family: 'Poppins', system-ui, sans-serif; color: #101A24; }
-  .up-lead { font-size: 16px; line-height: 1.6; margin: 0 0 14px; }
-  .up-h2 { font-size: 22px; font-weight: 600; margin: 34px 0 14px; }
-  .up-row { font-size: 16px; line-height: 1.7; margin: 0 0 4px; }
+  .up-h2 { font-size: 24px; font-weight: 600; margin: 34px 0 14px; }
+  .up-h2:first-child { margin-top: 0; }
+  .up-row { font-size: 16px; line-height: 1.7; margin: 0 0 6px; }
   .up-row b { font-weight: 600; }
-  .up-amount { font-size: 20px; font-weight: 700; color: #317039; }
-  .up-note { color: #c0392b; font-size: 15px; line-height: 1.6; margin: 14px 0 0; }
+  .up-note { color: #c0392b; font-size: 16px; line-height: 1.6; margin: 14px 0 0; }
   .up-note b { font-weight: 700; }
   .up-note a { color: #317039; font-weight: 600; text-decoration: none; }
-  .up-qr { display: block; width: 220px; height: auto; margin: 16px 0 6px; }
-  .up-qr-cap { font-size: 13px; color: #5d6c7b; margin: 0 0 4px; }
-  .up-btn { display: inline-block; margin-top: 10px; padding: 12px 24px;
-            background: #317039; color: #fff; border-radius: 28px 6px;
-            font-size: 15px; font-weight: 500; text-decoration: none; }
+  .up-qr { display: block; width: 230px; height: auto; margin: 16px 0 4px; }
+  .up-qr-cap { font-size: 13px; color: #5d6c7b; margin: 0 0 4px; padding-left: 60px; }
+  .up-nalog { display: block; width: 100%; max-width: 620px; height: auto;
+              margin: 16px 0 12px; border: 1px solid #e6e6e6; border-radius: 8px; }
+  .up-btn { display: inline-block; padding: 12px 24px; background: #317039;
+            color: #fff; border-radius: 28px 6px; font-size: 15px;
+            font-weight: 500; text-decoration: none; }
   .up-btn:hover { background: #388041; }
   .up-warn { background: #fff8e6; border: 1px solid #f0d999; border-radius: 12px 4px;
-             padding: 16px 18px; font-size: 15px; line-height: 1.6; margin: 16px 0 0; }
-  .up-sign { font-size: 15px; line-height: 1.7; margin-top: 36px; }
+             padding: 16px 18px; font-size: 16px; line-height: 1.6; margin: 16px 0 0; }
+  .up-sign { font-size: 16px; line-height: 1.8; margin-top: 40px; }
+  .up-sign b { font-weight: 600; }
   .up-hidden { display: none; }
 </style>
 
 <div class="up-wrap">
-  <p class="up-lead">
-    Hvala na poverenju! Tvoja porudžbina je zabeležena.
-    Ispod se nalaze uputstva za uplatu.
-  </p>
 
-  <h2 class="up-h2">Podaci za uplatu</h2>
-  <p class="up-row"><b>Naziv primaoca:</b> Nutribox DOO</p>
-  <p class="up-row"><b>Broj računa:</b> 265-1660310005712-95</p>
+  <h2 class="up-h2">Uputstvo za uplatu preko bankovne aplikacije</h2>
+  <p class="up-row"><b>Naziv primaoca:</b> Nutribox doo ketering</p>
+  <p class="up-row"><b>Adresa:</b> Cara Dušana 158, Zemun</p>
+  <p class="up-row"><b>Broj računa:</b> 265-1660310005884-64</p>
   <p class="up-row"><b>Svrha uplate:</b> <span data-up="svrha">Nutribox paket</span></p>
-  <p class="up-row"><b>Iznos za uplatu:</b>
-    <span class="up-amount" data-up="cena">-</span>
-  </p>
+  <p class="up-row"><b>Iznos za uplatu:</b> <span data-up="cena">-</span></p>
   <p class="up-note">
-    Nakon uplate <b>obavezno</b> pošaljite dokaz na
+    Nakon uplate <b>obavezno</b> poslati dokaz na email
     <a href="mailto:office@nutribox.rs">office@nutribox.rs</a>
   </p>
 
-  <!-- IPS QR + uplatnica: prikazuju se samo kad imamo tačan iznos u kodu -->
+  <!-- IPS QR + uplatnica: samo kad postoji verzija sa tačnim iznosom -->
   <div data-up="qr-blok" class="up-hidden">
-    <h2 class="up-h2">Uplata preko IPS QR koda</h2>
-    <p class="up-row">U bankovnoj aplikaciji izaberite IPS plaćanje i skenirajte kod ispod.</p>
+    <h2 class="up-h2">Uputstvo za uplatu preko IPS QR koda</h2>
+    <p class="up-row">Unutar bankovne aplikacije odaberite IPS plaćanje i skenirajte QR kod ispod</p>
     <img class="up-qr" data-up="qr" src="" alt="NBS IPS QR kod" />
     <p class="up-qr-cap">NBS IPS QR</p>
+    <p class="up-note">
+      Nakon uplate <b>obavezno</b> poslati dokaz na email
+      <a href="mailto:office@nutribox.rs">office@nutribox.rs</a>
+    </p>
 
-    <h2 class="up-h2">Uplata preko uplatnice</h2>
-    <p class="up-row">Preuzmite popunjen nalog za prenos i uplatite u banci ili pošti.</p>
-    <a class="up-btn" data-up="nalog" href="" target="_blank" rel="noopener">
+    <h2 class="up-h2">Uputstvo za uplatu preko uplatnice</h2>
+    <img class="up-nalog" data-up="nalog-img" src="" alt="Nalog za prenos" />
+    <a class="up-btn" data-up="nalog-pdf" href="" target="_blank" rel="noopener">
       Preuzmi uplatnicu (PDF)
     </a>
+    <p class="up-note">
+      Nakon uplate <b>obavezno</b> poslati dokaz na email
+      <a href="mailto:office@nutribox.rs">office@nutribox.rs</a>
+    </p>
   </div>
 
-  <!-- Kad je cena umanjena, a nemamo QR za taj popust -->
+  <!-- Popust za koji nemamo QR/uplatnicu sa tim iznosom -->
   <div data-up="popust-note" class="up-warn up-hidden">
-    Na tvoju porudžbinu je primenjen popust, pa uplati <b>tačan iznos naveden iznad</b>
-    preko bankovne aplikacije ili u banci — na broj računa <b>265-1660310005712-95</b>.
+    Na Vašu porudžbinu je primenjen popust, pa uplatite <b>tačan iznos naveden iznad</b>
+    preko bankovne aplikacije ili u banci — na broj računa <b>265-1660310005884-64</b>.
   </div>
 
   <p class="up-sign">
-    Hvala na poverenju!<br />
+    <b>Hvala na poverenju!</b><br />
     – Osnivač i šef kuhinje Nutribox-a<br />
     &nbsp;&nbsp;Vuksan Vasić
   </p>
@@ -87,40 +92,41 @@
 (function () {
   var BASE = "https://floumate.github.io/nutribox-order-form/uplatnica/";
 
-  // Paketi za koje POSTOJI QR sa umanjenim (-10%) iznosom.
-  var POPUST_QR = { "28_day": "28_day-p10" };
+  // Paketi za koje POSTOJI verzija sa umanjenim (-10%) iznosom.
+  var POPUST = { "28_day": "28_day-p10" };
 
   var p = new URLSearchParams(window.location.search);
   var kod = p.get("kod") || "";
   var cena = p.get("cena") || "";
   var paket = p.get("paket") || "";
-  var popust = p.get("popust") === "1";
+  var imaPopust = p.get("popust") === "1";
 
-  var el = function (name) { return document.querySelector('[data-up="' + name + '"]'); };
+  var el = function (n) { return document.querySelector('[data-up="' + n + '"]'); };
 
-  // Iznos i svrha uplate
-  if (cena) el("cena").textContent = cena + " RSD";
-  if (paket) {
-    var naziv = paket.replace("-dnevni", "-dnevni plan").replace("probni", "1-dnevni plan");
-    el("svrha").textContent = "Nutribox - " + naziv;
-  }
+  if (cena) el("cena").textContent = cena + " rsd";
 
-  // Koji fajlovi: pun iznos ili popust varijanta
-  var slug = kod;
-  if (popust) slug = POPUST_QR[kod] || null;
+  var NAZIV = {
+    "28-dnevni": "28-dnevni paket", "20-dnevni": "20-dnevni paket",
+    "7-dnevni": "7-dnevni paket", "5-dnevni": "5-dnevni paket",
+    "probni": "1-dnevni paket"
+  };
+  if (paket) el("svrha").textContent = "Nutribox - " + (NAZIV[paket] || paket);
+
+  // Koji set fajlova: pun iznos ili -10% varijanta
+  var slug = imaPopust ? (POPUST[kod] || null) : (kod || null);
 
   if (slug) {
     var qr = el("qr");
-    // popust QR je .jpg, ostali .png
     qr.src = BASE + slug + "-qr" + (slug.indexOf("-p10") > -1 ? ".jpg" : ".png");
+    el("nalog-img").src = BASE + slug + "-nalog.png";
+    el("nalog-pdf").href = BASE + slug + "-nalog.pdf";
+    // Ako fajl fali, ne prikazuj polomljen blok - padni na tekstualno uputstvo.
     qr.onerror = function () {
       el("qr-blok").classList.add("up-hidden");
       el("popust-note").classList.remove("up-hidden");
     };
-    el("nalog").href = BASE + slug + "-nalog.pdf";
     el("qr-blok").classList.remove("up-hidden");
   } else {
-    // Popust bez odgovarajućeg QR-a → samo račun + tačan iznos.
     el("popust-note").classList.remove("up-hidden");
   }
 })();

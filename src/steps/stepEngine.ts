@@ -15,6 +15,27 @@ export interface StepConfig {
   skip?: () => boolean;
 }
 
+/**
+ * Vrati korisnika na vrh forme pri prelasku na sledeći korak.
+ *
+ * U iframe-u (Webflow embed) `scrollIntoView` skroluje SAM iframe - a on
+ * nema svoj scroll (visina mu prati sadržaj), pa se ništa ne pomeri.
+ * Chrome na Androidu to prosledi roditelju, iOS Safari NE - zato je korisnik
+ * na iPhone-u ostajao na istoj visini i nije video naslov novog koraka.
+ * Cross-origin ne smemo da skrolujemo roditelja direktno, pa mu šaljemo
+ * poruku (embed sluša `nutribox-scroll`).
+ */
+function scrollToTop(): void {
+  const inIframe = window.parent && window.parent !== window;
+  if (inIframe) {
+    window.parent.postMessage({ type: "nutribox-scroll" }, "*");
+    return;
+  }
+  // Bez `behavior: "smooth"` - ignoriše se kad korisnik ima uključeno
+  // smanjenje animacija, pa se tada ne bi skrolovalo uopšte.
+  document.querySelector(".form-shell")?.scrollIntoView({ block: "start" });
+}
+
 export class StepEngine {
   private steps: StepConfig[];
   private progressEl: HTMLElement | null;
@@ -65,11 +86,7 @@ export class StepEngine {
     }
     this.updateProgress();
     // Ne skroluj na mount - samo kad korisnik pređe na drugi korak.
-    if (!first) {
-      document
-        .querySelector(".form-shell")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    if (!first) scrollToTop();
     this.booted = true;
   }
 

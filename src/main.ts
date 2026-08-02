@@ -47,11 +47,13 @@ function setupHeightReporter(): void {
     last = h;
     window.parent.postMessage({ type: "nutribox-height", height: h }, "*");
   };
-  // Skupi više promena u jedan frame (fontovi/ikonice okidaju rafal resize-a).
+  // Skupi rafal promena (fontovi/ikonice) u jedan poziv.
+  // NE requestAnimationFrame - on se ne pokreće dok iframe nije iscrtan
+  // (pozadinski tab, iframe van ekrana), pa visina nikad ne bi ni stigla.
   const report = () => {
     if (queued) return;
     queued = true;
-    requestAnimationFrame(send);
+    window.setTimeout(send, 50);
   };
 
   report();

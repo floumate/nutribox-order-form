@@ -883,12 +883,13 @@ body {
   .pkg-grid {
     grid-template-columns: 1fr;
   }
-  /* Nav: Dalje IZNAD Nazad-a. */
+  /* Nav: glavno dugme (Dalje / Poruči) IZNAD Nazad-a. */
   .step__nav {
     display: flex;
     flex-direction: column;
   }
-  .step__nav [data-nav="next"] {
+  .step__nav [data-nav="next"],
+  .step__nav [data-nav="submit"] {
     order: -1;
   }
   /* Paketi: kompaktnije da stanu u container. */

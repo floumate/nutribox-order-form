@@ -1,0 +1,218 @@
+<!--
+  ============================================================
+  Retention forma  —  sekcija 2: GLAVNI ENGINE
+  ============================================================
+  Zamenjuje postojeći <script> blok "2. GLAVNI ENGINE" u body-ju
+  stranice /retention-form. Sekcije 1, 3, 4 i 5 ostaju netaknute.
+
+  Izmena u odnosu na prethodnu verziju:
+    - CARD_PAYMENT_ENABLED = false → "Kartica" ne ide na raifpay nego
+      na /hvala sa uputstvima za uplatu (firma na koju su stizale
+      kartične uplate je zatvorena). Raifpay kod je NETAKNUT, samo se
+      ne poziva - povratak je vraćanje te konstante na true.
+    - testiranje-placanja=true šalje raifpay kod "test" (100 RSD),
+      ne više "probni" (to je sad pravi probni paket, 3.500).
+    - Kartica greška više ne prikazuje DEBUG tekst mušteriji.
+-->
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const RETENTION_WEBHOOK = 'https://hook.eu2.make.com/7rw5uk9v8yg1fff9f66yhek0dmbuz5s9';
+  const TY_BASE = 'https://www.nutribox.rs';
+
+  // PRIVREMENO: firma zatvorena → kartica vodi na uputstva za uplatu.
+  // Vrati na true kad se otvori nova firma i raifpay ponovo radi.
+  const CARD_PAYMENT_ENABLED = false;
+  const UPLATNICA_PATH = '/hvala';
+
+  const PAKETI = {
+    '28-dnevni': { naziv:'28-dnevni', dani:'28', plan:'28_day', cena:78400, cenaText:'78.400,00' },
+    '20-dnevni': { naziv:'20-dnevni', dani:'20', plan:'20_day', cena:60000, cenaText:'60.000,00' },
+    '7-dnevni':  { naziv:'7-dnevni',  dani:'7',  plan:'7_day',  cena:21000, cenaText:'21.000,00' },
+    '5-dnevni':  { naziv:'5-dnevni',  dani:'5',  plan:'5_day',  cena:15000, cenaText:'15.000,00' }
+  };
+
+  const root  = document.querySelector("form");
+  if (!root) return;
+  const steps = Array.from(root.querySelectorAll(".form-step"));
+  if (!steps.length) return;
+  const segs    = Array.from(root.querySelectorAll(".progress-bar-step"));
+  const emailRe = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  let current   = 0;
+
+  function showError(s,m){ const e=s.querySelector(".error-message"); if(!e)return; const t=e.querySelector(".error-message_text"); if(t)t.textContent=m; else e.textContent=m; e.classList.add("is-visible"); }
+  function hideError(s){ const e=s.querySelector(".error-message"); if(e)e.classList.remove("is-visible"); }
+
+  function trenutniPaket(){ const v=(root.querySelector("#paketValue")||{}).value||""; return PAKETI[v]||null; }
+  function izabranNacin(){ const r=root.querySelector('input[name="nacinPlacanja"]:checked'); return r?r.value:""; }
+
+  function osveziRecap(){
+    const p=trenutniPaket(); if(!p)return;
+    const setId=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
+    const setCls=(cls,v)=>{ document.querySelectorAll("."+cls).forEach(el=>el.textContent=v); };
+    setId("recap-paket", p.naziv);
+    setCls("ime-paketa", p.naziv);
+    setId("recap-cena",  p.cenaText+" RSD");
+    setId("cena-ukupno", p.cenaText);
+    const hc=document.getElementById("cenaPaketa"); if(hc)hc.value=String(p.cena);
+  }
+
+  function isPaymentStep(s){ return !!s.querySelector('input[name="nacinPlacanja"]'); }
+
+  function validateStep(stepEl){
+    if (isPaymentStep(stepEl)) return validatePayment(stepEl);
+    const idx=steps.indexOf(stepEl);
+    const MESSAGES=["Molimo Vas popunite sva polja.","Molimo Vas odaberite paket.","Molimo Vas odaberite datum."];
+    const msg=MESSAGES[idx]||"Molimo unesite odgovor.";
+    const fields=stepEl.querySelectorAll("input:not([type='hidden']):not([type='submit']):not([type='button']):not([type='radio']):not([type='checkbox']), select, textarea");
+    for (const el of fields){
+      if((el.value||"").trim()===""){ showError(stepEl,msg); return false; }
+      if((el.type==="email"||el.name==="Email")&&!emailRe.test(el.value.trim())){ showError(stepEl,"Email adresa nije ispravna."); return false; }
+    }
+    const phone=stepEl.querySelector("#Broj-telefona");
+    if(phone&&window.iti&&phone.value.trim()!==""&&!window.iti.isValidNumber()){ showError(stepEl,"Broj telefona nije ispravan."); return false; }
+    const pk=stepEl.querySelector("#paketValue"); if(pk&&pk.value.trim()===""){ showError(stepEl,msg); return false; }
+    const fd=stepEl.querySelector("#futureDate"); if(fd&&fd.value.trim()===""){ showError(stepEl,msg); return false; }
+    hideError(stepEl); return true;
+  }
+
+  function validatePayment(stepEl){
+    const eMethod   = stepEl.querySelector(".error-message");
+    const eCheckbox = stepEl.querySelector(".checkbox_error-message");
+    const eFirma    = stepEl.querySelector(".error-message_text.mt-16");
+    const clr=(el)=>{ if(el)el.classList.remove("is-visible"); };
+    const showMethod=(msg)=>{ if(!eMethod)return; const t=eMethod.querySelector(".error-message_text"); if(t)t.textContent=msg; else eMethod.textContent=msg; eMethod.classList.add("is-visible"); };
+    clr(eMethod); clr(eCheckbox); clr(eFirma);
+
+    const nacin=izabranNacin();
+    if(!nacin){ showMethod("Molimo izaberite način plaćanja."); return false; }
+    if(!trenutniPaket()){ showMethod("Molimo izaberite paket."); return false; }
+
+    if(nacin==="Firma"){
+      const req=["nazivFirme","adresaFirme","emailFirme","pibFirme","maticniBrojFirme"];
+      let firmaMsg=null;
+      for(const n of req){ const el=stepEl.querySelector('[name="'+n+'"]'); if(!el||el.value.trim()===""){ firmaMsg="Molimo popunite sva polja firme."; break; } }
+      const fe=stepEl.querySelector('[name="emailFirme"]');
+      if(!firmaMsg && fe && !emailRe.test(fe.value.trim())) firmaMsg="Email firme nije ispravan.";
+      if(firmaMsg){ if(eFirma){ eFirma.textContent=firmaMsg; eFirma.classList.add("is-visible"); } return false; }
+    }
+
+    const consents=stepEl.querySelectorAll('input[type="checkbox"]');
+    if(consents.length && !Array.from(consents).every(c=>c.checked)){ if(eCheckbox)eCheckbox.classList.add("is-visible"); return false; }
+
+    return true;
+  }
+
+  function render(){
+    steps.forEach((s,i)=>s.classList.toggle("is-active", i===current));
+
+    const bar = steps[current].querySelector(".progress-bar-wrapper") || root.querySelector(".progress-bar-wrapper");
+    if (bar){
+      bar.querySelectorAll(".progress-bar-step").forEach((s,i)=> s.classList.toggle("pb-filled", i <= current));
+    }
+
+    const prev = steps[current].querySelector(".prev-step");
+    if (prev) prev.style.visibility = (current===0) ? "hidden" : "visible";
+    osveziRecap();
+  }
+  function goNext(){ if(validateStep(steps[current])&&current<steps.length-1){ current++; render(); } }
+  function goBack(){ if(current>0){ current--; render(); } }
+
+  function orderId(){ return (window.crypto&&crypto.randomUUID)?"nutribox_"+crypto.randomUUID():"nutribox_"+Date.now()+"_"+Math.random().toString(16).slice(2); }
+  function collectData(){
+    const data={};
+    root.querySelectorAll("input, select, textarea").forEach(i=>{
+      if(!i.name)return;
+      let v;
+      if(i.type==="checkbox")v=i.checked;
+      else if(i.type==="radio"){ if(!i.checked)return; v=i.value; }
+      else v=i.value;
+      if((v===""||v===false)&&data[i.name]!==undefined&&data[i.name]!==""&&data[i.name]!==false)return;
+      data[i.name]=v;
+    });
+    if(window.iti&&data["Broj-telefona"]!==undefined)data["Broj-telefona"]=window.iti.getNumber();
+    return data;
+  }
+  function sendMake(data){
+    if(window.__nutriboxBulletproof)return window.__nutriboxBulletproof.submit(data);
+    if(!data.order_id)data.order_id=orderId();
+    data.submitted_at=new Date().toISOString();
+    fetch(RETENTION_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data),keepalive:true}).catch(()=>{});
+    return data.order_id;
+  }
+
+  function doSubmit(){
+    const stepEl=steps[current];
+    if(!validateStep(stepEl))return;
+    const p=trenutniPaket(), nacin=izabranNacin();
+    const data=collectData();
+    data.cenaPaketa=String(p.cena);
+    data.form_type="retention";
+    window.__vipSubmitted=true;
+    const oid=sendMake(data);
+
+    if(nacin==="Kartica"){
+      // PRIVREMENO: bez raifpay-a → uputstva za uplatu na /hvala.
+      if(!CARD_PAYMENT_ENABLED){
+        const up=new URLSearchParams();
+        up.set("paket",(root.querySelector("#paketValue")||{}).value||"");
+        up.set("kod", p.plan);        // 28_day / 20_day / 7_day / 5_day
+        up.set("cena", p.cenaText);   // npr. "78.400,00"
+        up.set("order_id", oid);
+        window.location.href = TY_BASE + UPLATNICA_PATH + "?" + up.toString();
+        return;
+      }
+      return doCardCheckout(data,p,stepEl);
+    }
+
+    const metoda=(nacin==="Firma")?"firma":"pouzece";
+    const tp=new URLSearchParams();
+    tp.set("paket",(root.querySelector("#paketValue")||{}).value||"");
+    tp.set("order_id",oid);
+    window.location.href=TY_BASE+"/hvala-"+p.dani+"-"+metoda+"?"+tp.toString();
+  }
+
+  // ——— RAIFPAY (netaknuto, poziva se tek kad CARD_PAYMENT_ENABLED = true) ———
+  function doCardCheckout(data,p,stepEl){
+    const btn=stepEl.querySelector(".submit_button")||stepEl.querySelector('button[type="submit"], input[type="submit"]');
+    const orig=btn?(btn.textContent||btn.value):"Poruči";
+    if(btn){ btn.disabled=true; if(btn.tagName==="INPUT")btn.value="Učitavanje..."; else btn.textContent="Učitavanje..."; }
+    const isTest=new URLSearchParams(location.search).get("testiranje-placanja")==="true";
+    // "test" = poseban kod za testiranje plaćanja (100 RSD). NE "probni" -
+    // to je pravi probni paket (3.500).
+    const finalPlan=isTest?"test":p.plan;
+    const phone=window.iti?window.iti.getNumber():(data["Broj-telefona"]||"");
+    const affiliate=new URLSearchParams(location.search).get("affiliate")||"";
+    const payload={ plan:finalPlan, email:data.Email||"", name:data.Ime||"", lastname:data.Prezime||"", phoneNumber:phone, locale:"sr", affiliate:affiliate, order_id:data.order_id };
+    fetch("https://raifpay-prod.nutribox.dev/checkout",{
+      method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)
+    })
+    .then(async r=>{ const txt=await r.text().catch(()=> ""); if(!r.ok) throw new Error("HTTP "+r.status+" — "+txt); try{ return JSON.parse(txt); }catch(e){ throw new Error("Nije JSON: "+txt); } })
+    .then(d=>{ if(d&&d.redirectUrl){ location.href=d.redirectUrl; } else { throw new Error("Nema redirectUrl"); } })
+    .catch(err=>{
+      if(btn){ btn.disabled=false; if(btn.tagName==="INPUT")btn.value=orig; else btn.textContent=orig; }
+      showError(stepEl, "Trenutno ne možemo da pokrenemo plaćanje karticom. Pokušajte ponovo ili izaberite plaćanje pouzećem.");
+      console.error("[nutribox] Kartica:", err, payload);
+    });
+  }
+
+  root.querySelectorAll('input[name="nacinPlacanja"]').forEach(radio=>{
+    radio.addEventListener("change",function(){
+      const firma=document.getElementById("firmaPolja")||root.querySelector(".firma-wrapper");
+      if(firma)firma.style.display=(this.value==="Firma")?"block":"none";
+      const s=this.closest(".form-step"); if(s)hideError(s);
+    });
+  });
+
+  root.addEventListener("click",e=>{
+    if(e.target.closest(".next-step")){ e.preventDefault(); goNext(); }
+    else if(e.target.closest(".prev-step")){ e.preventDefault(); goBack(); }
+  });
+  root.addEventListener("submit",e=>{ e.preventDefault(); e.stopPropagation(); doSubmit(); },true);
+  root.addEventListener("keydown",e=>{ if(e.key==="Enter")e.preventDefault(); });
+  root.querySelectorAll("input, select").forEach(i=>{ i.addEventListener("change",()=>{ const s=i.closest(".form-step"); if(s)hideError(s); }); });
+  const dd=root.querySelector("#paketValue"); if(dd)dd.addEventListener("change",osveziRecap);
+
+  render();
+});
+</script>

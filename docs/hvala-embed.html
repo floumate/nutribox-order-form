@@ -27,9 +27,7 @@
   .up-note a { color: #317039; font-weight: 600; text-decoration: none; }
   .up-qr { display: block; width: 230px; height: auto; margin: 16px 0 4px; }
   .up-qr-cap { font-size: 13px; color: #5d6c7b; margin: 0 0 4px; padding-left: 60px; }
-  .up-nalog { display: block; width: 100%; max-width: 620px; height: auto;
-              margin: 16px 0 12px; border: 1px solid #e6e6e6; border-radius: 8px; }
-  .up-btn { display: inline-block; padding: 12px 24px; background: #317039;
+  .up-btn { display: inline-block; margin-top: 12px; padding: 12px 24px; background: #317039;
             color: #fff; border-radius: 28px 6px; font-size: 15px;
             font-weight: 500; text-decoration: none; }
   .up-btn:hover { background: #388041; }
@@ -65,7 +63,9 @@
     </p>
 
     <h2 class="up-h2">Uputstvo za uplatu preko uplatnice</h2>
-    <img class="up-nalog" data-up="nalog-img" src="" alt="Nalog za prenos" />
+    <p class="up-row">
+      Preuzmite popunjen nalog za prenos i uplatite u banci ili pošti.
+    </p>
     <a class="up-btn" data-up="nalog-pdf" href="" target="_blank" rel="noopener">
       Preuzmi uplatnicu (PDF)
     </a>
@@ -133,7 +133,6 @@
   if (slug) {
     var qr = el("qr");
     qr.src = BASE + slug + "-qr" + (slug.indexOf("-p10") > -1 ? ".jpg" : ".png");
-    el("nalog-img").src = BASE + slug + "-nalog.png";
     el("nalog-pdf").href = BASE + slug + "-nalog.pdf";
     // Ako fajl fali, ne prikazuj polomljen blok - padni na tekstualno uputstvo.
     qr.onerror = function () {

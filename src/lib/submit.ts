@@ -7,6 +7,7 @@ import { getPackage } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
 import { isMaxPlan } from "../config/plans";
 import { ENDPOINTS } from "../config/endpoints";
+import { CARD_PAYMENT_ENABLED, UPLATNICA_PATH } from "../config/flags";
 import { getPhoneNumber } from "./phone";
 import { EMAIL_REGEX, showError, hideError } from "./validation";
 
@@ -135,6 +136,37 @@ export function attachSubmit(form: HTMLFormElement): void {
 
     // Bulletproof na Make ODMAH (ne čeka Raiffeisen).
     bulletproofSubmit(payload);
+
+    // PRIVREMENO (firma zatvorena): bez raifpay-a → uputstva za uplatu.
+    // Sve ispod ovog bloka je raifpay kod - netaknut, samo nedostižan.
+    if (!CARD_PAYMENT_ENABLED) {
+      const kod = isMaxPlan(state.plan)
+        ? (pkg?.raiffeisenPlanMax ?? "")
+        : (pkg?.raiffeisenPlan ?? "");
+      const cena = state.paket
+        ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
+        : null;
+      const puna = state.paket
+        ? computePrice(
+            state.paket,
+            { affiliate: "", discountCode: "", isCustomPlan: false, customPlanName: "" },
+            isMaxPlan(state.plan),
+          )
+        : null;
+
+      const up = new URLSearchParams();
+      if (state.paket) up.set("paket", state.paket);
+      if (kod) up.set("kod", kod);
+      if (cena != null) up.set("cena", formatPrice(cena));
+      // TY stranica po ovome bira koji QR/uplatnicu da prikaže.
+      if (cena != null && puna != null && cena !== puna) up.set("popust", "1");
+      up.set("order_id", payload.order_id as string);
+
+      navigateTop(
+        ENDPOINTS.thankYouBase + UPLATNICA_PATH + "?" + up.toString(),
+      );
+      return;
+    }
 
     let finalPlan: string;
     if (urlContext.isCustomPlan) finalPlan = "custom";

@@ -1,20 +1,20 @@
 <!--
   ============================================================
-  Retention forma  —  sekcija 2: GLAVNI ENGINE
+  Retention forma — KOMPLETAN "Before </body> tag" kod
   ============================================================
-  Zamenjuje postojeći <script> blok "2. GLAVNI ENGINE" u body-ju
-  stranice /retention-form. Sekcije 1, 3, 4 i 5 ostaju netaknute.
+  Zameni ceo trenutni body kod ovim. HEAD se NE menja.
 
-  Izmena u odnosu na prethodnu verziju:
-    - CARD_PAYMENT_ENABLED = false → "Kartica" ne ide na raifpay nego
-      na /hvala sa uputstvima za uplatu (firma na koju su stizale
-      kartične uplate je zatvorena). Raifpay kod je NETAKNUT, samo se
-      ne poziva - povratak je vraćanje te konstante na true.
-    - testiranje-placanja=true šalje raifpay kod "test" (100 RSD),
-      ne više "probni" (to je sad pravi probni paket, 3.500).
-    - Kartica greška više ne prikazuje DEBUG tekst mušteriji.
+  Jedina izmena je u sekciji 2: kartica više ne zove raifpay nego vodi na
+  /hvala sa uputstvima za uplatu (firma zatvorena). Raifpay kod je netaknut
+  - povratak je CARD_PAYMENT_ENABLED = true.
+  Uz to: test kod je "test" (100 RSD), i nema više DEBUG teksta mušteriji.
 -->
 
+<!-- ============ 1. intl-tel-input (telefon) ============ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+
+
+<!-- ============ 2. GLAVNI ENGINE (nav + validacija + recap + submit) ============ -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const RETENTION_WEBHOOK = 'https://hook.eu2.make.com/7rw5uk9v8yg1fff9f66yhek0dmbuz5s9';
@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if(btn){ btn.disabled=true; if(btn.tagName==="INPUT")btn.value="Učitavanje..."; else btn.textContent="Učitavanje..."; }
     const isTest=new URLSearchParams(location.search).get("testiranje-placanja")==="true";
     // "test" = poseban kod za testiranje plaćanja (100 RSD). NE "probni" -
-    // to je pravi probni paket (3.500).
+    // to je sad pravi probni paket (3.500).
     const finalPlan=isTest?"test":p.plan;
     const phone=window.iti?window.iti.getNumber():(data["Broj-telefona"]||"");
     const affiliate=new URLSearchParams(location.search).get("affiliate")||"";
@@ -215,4 +215,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
   render();
 });
+</script>
+
+
+<!-- ============ 3. EMAIL PREFILL iz URL-a ============ -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var email=new URLSearchParams(window.location.search).get("email");
+  if(!email)return;
+  var input=document.querySelector('input[name="Email"]')||document.querySelector('input[type="email"], input[name*="mail" i]');
+  if(input){ input.value=email; input.readOnly=true; }
+});
+</script>
+
+
+<!-- ============ 4. TELEFON (intl-tel-input init) ============ -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var input=document.querySelector("#Broj-telefona"); if(!input)return;
+  var iti=window.intlTelInput(input,{
+    initialCountry:"auto", separateDialCode:true,
+    geoIpLookup:cb=>{ fetch("https://ipapi.co/json/").then(r=>r.json()).then(d=>cb(d.country_code.toLowerCase())).catch(()=>cb("rs")); },
+    utilsScript:"https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
+  });
+  window.iti=iti;
+});
+</script>
+
+
+<!-- ============ 5. BULLETPROOF SUBMIT ============ -->
+<script>
+(function() {
+  var BULLETPROOF = {
+    WEBHOOK_URL: 'https://hook.eu2.make.com/7rw5uk9v8yg1fff9f66yhek0dmbuz5s9',
+    QUEUE_KEY: 'nutribox_order_queue', MAX_RETRIES: 3, RETRY_DELAYS: [1000, 3000, 8000]
+  };
+  function generateOrderId(){ if(window.crypto&&typeof window.crypto.randomUUID==='function')return 'nutribox_'+window.crypto.randomUUID();
+    return 'nutribox_xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0,v=c==='x'?r:(r&0x3|0x8);return v.toString(16);}); }
+  function saveToQueue(o){ try{ var q=JSON.parse(localStorage.getItem(BULLETPROOF.QUEUE_KEY)||'[]'); q.push({order_id:o.order_id,data:o,attempts:0,last_attempt:null,confirmed:false,created_at:Date.now()}); localStorage.setItem(BULLETPROOF.QUEUE_KEY,JSON.stringify(q)); }catch(e){} }
+  function markConfirmed(id){ try{ var q=JSON.parse(localStorage.getItem(BULLETPROOF.QUEUE_KEY)||'[]'); q=q.map(function(i){ if(i.order_id===id)i.confirmed=true; return i; }); localStorage.setItem(BULLETPROOF.QUEUE_KEY,JSON.stringify(q)); }catch(e){} }
+  function cleanQueue(){ try{ var q=JSON.parse(localStorage.getItem(BULLETPROOF.QUEUE_KEY)||'[]'),now=Date.now(); q=q.filter(function(i){ if(i.confirmed)return false; if((now-i.created_at)>864e5)return false; return true; }); localStorage.setItem(BULLETPROOF.QUEUE_KEY,JSON.stringify(q)); }catch(e){} }
+  function sendViaBeacon(d){ try{ return navigator.sendBeacon(BULLETPROOF.WEBHOOK_URL,new Blob([JSON.stringify(d)],{type:'application/json'})); }catch(e){ return false; } }
+  function sendViaFetch(d,t){ t=t||8000; var c=new AbortController(),id=setTimeout(function(){c.abort();},t);
+    return fetch(BULLETPROOF.WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d),keepalive:true,signal:c.signal})
+      .then(function(r){ clearTimeout(id); if(!r.ok)throw new Error('HTTP '+r.status); return r; }).catch(function(e){ clearTimeout(id); throw e; }); }
+  function sendWithRetry(d,a){ a=a||0; return sendViaFetch(d).catch(function(e){ if(a>=BULLETPROOF.MAX_RETRIES-1)throw e; var dl=BULLETPROOF.RETRY_DELAYS[a]||5000; return new Promise(function(res){ setTimeout(function(){ res(sendWithRetry(d,a+1)); },dl); }); }); }
+  function bulletproofSubmit(fd){ if(!fd.order_id)fd.order_id=generateOrderId(); fd.submitted_at=new Date().toISOString(); fd.user_agent=navigator.userAgent; fd.attempt_source='initial_submit';
+    saveToQueue(fd); sendViaBeacon(fd); sendWithRetry(fd).then(function(){ markConfirmed(fd.order_id); }).catch(function(){}); return fd.order_id; }
+  function processRecoveryQueue(){ try{ var q=JSON.parse(localStorage.getItem(BULLETPROOF.QUEUE_KEY)||'[]');
+    q.filter(function(i){ if(i.confirmed)return false; if(i.last_attempt&&(Date.now()-i.last_attempt)<30000)return false; if(i.attempts>=10)return false; return true; })
+     .forEach(function(item){ var d=Object.assign({},item.data,{attempt_source:'recovery_queue',recovery_attempt:(item.attempts||0)+1});
+       sendWithRetry(d).then(function(){ markConfirmed(item.order_id); }).catch(function(){ try{ var qq=JSON.parse(localStorage.getItem(BULLETPROOF.QUEUE_KEY)||'[]'); qq=qq.map(function(i){ if(i.order_id===item.order_id){ i.attempts=(i.attempts||0)+1; i.last_attempt=Date.now(); } return i; }); localStorage.setItem(BULLETPROOF.QUEUE_KEY,JSON.stringify(qq)); }catch(e){} }); }); }catch(e){} }
+  window.__nutriboxBulletproof={ submit:bulletproofSubmit, processQueue:processRecoveryQueue, cleanQueue:cleanQueue };
+  setTimeout(processRecoveryQueue,2000); setInterval(processRecoveryQueue,60000); cleanQueue();
+})();
 </script>

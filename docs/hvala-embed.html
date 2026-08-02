@@ -81,6 +81,13 @@
     preko bankovne aplikacije ili u banci — na broj računa <b>265-1660310005884-64</b>.
   </div>
 
+  <!-- Direktan dolazak na stranicu, bez podataka o porudžbini -->
+  <div data-up="bez-podataka" class="up-warn up-hidden">
+    Iznos za uplatu zavisi od paketa koji ste poručili — naći ćete ga u potvrdi
+    porudžbine. Ako Vam nešto nije jasno, pišite nam na
+    <b>office@nutribox.rs</b>.
+  </div>
+
   <p class="up-sign">
     <b>Hvala na poverenju!</b><br />
     – Osnivač i šef kuhinje Nutribox-a<br />
@@ -102,6 +109,14 @@
   var imaPopust = p.get("popust") === "1";
 
   var el = function (n) { return document.querySelector('[data-up="' + n + '"]'); };
+
+  // Direktan dolazak (bez parametara) - ne prikazuj prazan iznos ni QR.
+  if (!cena && !kod) {
+    el("cena").parentNode.style.display = "none";
+    el("svrha").parentNode.style.display = "none";
+    el("bez-podataka").classList.remove("up-hidden");
+    return;
+  }
 
   if (cena) el("cena").textContent = cena + " rsd";
 

@@ -175,6 +175,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const metoda=(nacin==="Firma")?"firma":"pouzece";
     const tp=new URLSearchParams();
     tp.set("paket",(root.querySelector("#paketValue")||{}).value||"");
+    // Cena mora u URL: TY stranice imaju hardkodovanu standardnu cenu, pa bi
+    // NutriMax mušterija videla 78.400 umesto 98.400.
+    tp.set("cena", p.cenaText);
     tp.set("order_id",oid);
     window.location.href=TY_BASE+"/hvala-"+p.dani+"-"+metoda+"?"+tp.toString();
   }

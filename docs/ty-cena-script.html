@@ -1,0 +1,59 @@
+<!--
+  ============================================================
+  TY stranice (pouzeće / firma) — prikaz tačne cene
+  ============================================================
+  Nalepiti u Before </body> tag na SVAKOJ TY stranici koja ima
+  span sa id="cena-ty":
+    /hvala-28-pouzece   /hvala-28-firma
+    /hvala-20-pouzece   /hvala-20-firma
+    /hvala-7-pouzece    /hvala-7-firma
+    /hvala-5-pouzece    /hvala-5-firma
+
+  Izmena u odnosu na prethodnu verziju: ako u URL-u stigne ?cena=,
+  ona se koristi direktno. Forma zna tačnu cenu (uključujući NutriMax
+  i popuste), pa je to jedini pouzdan izvor - stranica ima hardkodovanu
+  standardnu cenu, zbog čega je NutriMax mušterija videla 78.400
+  umesto 98.400.
+
+  Mape ispod ostaju kao rezerva za stare linkove koji nemaju ?cena=.
+-->
+
+<script>
+(function() {
+  var params       = new URLSearchParams(window.location.search);
+  var el           = document.getElementById("cena-ty");
+  if (!el) return;
+
+  // 1) Cena iz URL-a ima prioritet - forma je izračunala tačan iznos.
+  var cenaParam = params.get("cena");
+  if (cenaParam) { el.textContent = cenaParam; return; }
+
+  // 2) Rezerva za stare linkove bez ?cena= (stara forma, stari mejlovi).
+  var affiliate    = params.get("affiliate");
+  var discountCode = params.get("discountCode");
+
+  var discountCene = {
+    'NUTRI20':      { '28': '62.720,00', '7': '16.800,00' },
+    '2828':         { '28': '50.400,00' },
+    'onboarding10': { '28': '70.560,00' }
+  };
+
+  var affiliateCene = {
+    'thundertopteam': { '28': '70.560,00', '7': '18.900,00' },
+    'NUTRI10':        { '28': '70.560,00', '7': '18.900,00' },
+    'mimavelickovic': { '28': '70.560,00', '7': '18.900,00' }
+  };
+
+  var paketParam = params.get("paket") || "";
+  var kljuc = paketParam.indexOf("28") !== -1 ? "28" : "7";
+
+  var novaCena = null;
+  if (discountCode && discountCene[discountCode] && discountCene[discountCode][kljuc]) {
+    novaCena = discountCene[discountCode][kljuc];
+  } else if (affiliate && affiliateCene[affiliate]) {
+    novaCena = affiliateCene[affiliate][kljuc];
+  }
+
+  if (novaCena) el.textContent = novaCena;
+})();
+</script>

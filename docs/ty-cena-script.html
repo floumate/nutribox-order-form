@@ -9,48 +9,55 @@
     /hvala-7-pouzece    /hvala-7-firma
     /hvala-5-pouzece    /hvala-5-firma
 
-  Izmena u odnosu na prethodnu verziju: ako u URL-u stigne ?cena=,
-  ona se koristi direktno. Forma zna tačnu cenu (uključujući NutriMax
-  i popuste), pa je to jedini pouzdan izvor - stranica ima hardkodovanu
-  standardnu cenu, zbog čega je NutriMax mušterija videla 78.400
-  umesto 98.400.
+  ISTI kod ide na sve stranice - paket se čita iz ?paket=, pa nema
+  potrebe za posebnom verzijom po stranici. (Ranije su te skripte bile
+  copy-paste jedna od druge sa pogrešnim cenama: na 7-dnevnoj stranici
+  je stajala cena 20-dnevnog paketa.)
 
-  Mape ispod ostaju kao rezerva za stare linkove koji nemaju ?cena=.
+  Redosled:
+    1) ?cena=  → koristi se direktno. Forma zna tačan iznos, uključujući
+       NutriMax i sve popuste. Ovo je jedini pouzdan izvor.
+    2) mape ispod → rezerva za stare linkove koji nemaju ?cena=.
 -->
 
 <script>
 (function() {
-  var params       = new URLSearchParams(window.location.search);
-  var el           = document.getElementById("cena-ty");
+  var params = new URLSearchParams(window.location.search);
+  var el     = document.getElementById("cena-ty");
   if (!el) return;
 
-  // 1) Cena iz URL-a ima prioritet - forma je izračunala tačan iznos.
+  // 1) Cena iz URL-a ima prioritet.
   var cenaParam = params.get("cena");
   if (cenaParam) { el.textContent = cenaParam; return; }
 
-  // 2) Rezerva za stare linkove bez ?cena= (stara forma, stari mejlovi).
-  var affiliate    = params.get("affiliate");
-  var discountCode = params.get("discountCode");
+  // 2) Rezerva za stare linkove bez ?cena=.
+  var paketParam = params.get("paket") || "";
+  // NutriMax uvek stiže sa ?cena= (nova forma) - bez nje ne pogađamo.
+  if (paketParam.indexOf("-max") !== -1) return;
 
+  var kljuc = (paketParam.match(/^(\d+)/) || [])[1];   // "28" | "20" | "7" | "5"
+  if (!kljuc) return;
+
+  // discountCode ima prioritet nad affiliate.
   var discountCene = {
     'NUTRI20':      { '28': '62.720,00', '7': '16.800,00' },
     '2828':         { '28': '50.400,00' },
-    'onboarding10': { '28': '70.560,00' }
+    'onboarding10': { '28': '70.560,00', '20': '54.000,00', '7': '18.900,00', '5': '13.500,00' }
   };
 
   var affiliateCene = {
-    'thundertopteam': { '28': '70.560,00', '7': '18.900,00' },
-    'NUTRI10':        { '28': '70.560,00', '7': '18.900,00' },
-    'mimavelickovic': { '28': '70.560,00', '7': '18.900,00' }
+    'thundertopteam': { '28': '70.560,00', '20': '54.000,00', '7': '18.900,00', '5': '13.500,00' },
+    'NUTRI10':        { '28': '70.560,00', '20': '54.000,00', '7': '18.900,00', '5': '13.500,00' },
+    'mimavelickovic': { '28': '70.560,00', '20': '54.000,00', '7': '18.900,00', '5': '13.500,00' }
   };
 
-  var paketParam = params.get("paket") || "";
-  var kljuc = paketParam.indexOf("28") !== -1 ? "28" : "7";
+  var discountCode = params.get("discountCode");
+  var affiliate    = params.get("affiliate");
 
   var novaCena = null;
   if (discountCode && discountCene[discountCode] && discountCene[discountCode][kljuc]) {
     novaCena = discountCene[discountCode][kljuc];
-  } else if (affiliate && affiliateCene[affiliate]) {
+  } else if (affiliate && affiliateCene[affiliate] && affiliateCene[affiliate][kljuc]) {
     novaCena = affiliateCene[affiliate][kljuc];
   }
 

@@ -1,0 +1,99 @@
+<!--
+  ============================================================
+  Retention forma — dropdown za izbor paketa
+  ============================================================
+  Zameni postojeći embed sa dropdown-om ovim kodom.
+
+  data-value MORA da se poklopi sa ključevima u PAKETI mapi
+  (sekcija 2 body koda): 28-dnevni, 20-dnevni, 7-dnevni, 5-dnevni
+  i *-max varijante.
+
+  Grupni naslovi (.paket-dd__group) nisu klikabilni - JS gleda samo
+  .paket-dd__option.
+-->
+
+<div class="paket-dd" id="paketDropdown">
+  <input type="hidden" name="paket" id="paketValue">
+  <div class="paket-dd__control" tabindex="0">
+    <span class="paket-dd__text is-placeholder">Izaberite paket</span>
+    <svg class="paket-dd__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+  </div>
+  <div class="paket-dd__menu">
+    <div class="paket-dd__group">Standardni paketi</div>
+    <div class="paket-dd__option" data-value="28-dnevni">28-dnevni paket (78.400 RSD)</div>
+    <div class="paket-dd__option" data-value="20-dnevni">20-dnevni paket (60.000 RSD)</div>
+    <div class="paket-dd__option" data-value="7-dnevni">7-dnevni paket (21.000 RSD)</div>
+    <div class="paket-dd__option" data-value="5-dnevni">5-dnevni paket (15.000 RSD)</div>
+
+    <div class="paket-dd__group">NutriMax paketi</div>
+    <div class="paket-dd__option" data-value="28-dnevni-max">28-dnevni NutriMax paket (98.400 RSD)</div>
+    <div class="paket-dd__option" data-value="20-dnevni-max">20-dnevni NutriMax paket (79.000 RSD)</div>
+    <div class="paket-dd__option" data-value="7-dnevni-max">7-dnevni NutriMax paket (28.000 RSD)</div>
+    <div class="paket-dd__option" data-value="5-dnevni-max">5-dnevni NutriMax paket (20.000 RSD)</div>
+  </div>
+</div>
+
+<style>
+  .paket-dd{ position:relative; width:100%; font-family:'Poppins', sans-serif; }
+
+  /* CLOSED STATE — kao namirnice */
+  .paket-dd__control{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    width:100%; min-height:50px; padding:8px 12px;
+    font-size:14px; color:#333; background:#fff;
+    border:2px solid #dedede; border-radius:16px 4px 16px 4px;
+    cursor:pointer; transition:border-color .15s ease;
+  }
+  .paket-dd__control:hover,
+  .paket-dd.is-open .paket-dd__control{ border-color:#317039; }
+  .paket-dd__text.is-placeholder{ color:#757575; }
+  .paket-dd__chevron{ flex:0 0 auto; transition:transform .2s ease; }
+  .paket-dd.is-open .paket-dd__chevron{ transform:rotate(180deg); }
+
+  /* DROPDOWN — kao namirnice suggestions */
+  .paket-dd__menu{
+    position:absolute; top:100%; left:0; right:0; z-index:9999;
+    background:#fff; border:1px solid #dedede;
+    max-height:280px; overflow-y:auto; display:none;
+  }
+  .paket-dd.is-open .paket-dd__menu{ display:block; }
+  .paket-dd__option{ padding:8px 12px; font-size:14px; color:#333; cursor:pointer; }
+  .paket-dd__option:hover{ background:#f2f2f2; }
+  .paket-dd__option.is-selected{ background:#f2f2f2; }
+
+  /* Grupni naslov - nije opcija, samo razdvaja standardne i NutriMax */
+  .paket-dd__group{
+    padding:10px 12px 6px; font-size:11px; font-weight:700;
+    letter-spacing:.06em; text-transform:uppercase; color:#317039;
+    background:#fff; cursor:default;
+  }
+  .paket-dd__group + .paket-dd__option{ border-top:none; }
+</style>
+
+<script>
+(function(){
+  var dd = document.getElementById('paketDropdown');
+  if(!dd) return;
+  var control = dd.querySelector('.paket-dd__control');
+  var text    = dd.querySelector('.paket-dd__text');
+  var hidden  = dd.querySelector('#paketValue');
+  var options = dd.querySelectorAll('.paket-dd__option');
+
+  control.addEventListener('click', function(e){ e.stopPropagation(); dd.classList.toggle('is-open'); });
+
+  options.forEach(function(opt){
+    opt.addEventListener('click', function(e){
+      e.stopPropagation();
+      hidden.value = opt.getAttribute('data-value');
+      text.textContent = opt.textContent;
+      text.classList.remove('is-placeholder');
+      options.forEach(function(o){ o.classList.remove('is-selected'); });
+      opt.classList.add('is-selected');
+      dd.classList.remove('is-open');
+      hidden.dispatchEvent(new Event('change', { bubbles:true }));
+    });
+  });
+
+  document.addEventListener('click', function(e){ if(!dd.contains(e.target)) dd.classList.remove('is-open'); });
+})();
+</script>

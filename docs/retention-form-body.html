@@ -25,11 +25,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const CARD_PAYMENT_ENABLED = false;
   const UPLATNICA_PATH = '/hvala';
 
+  // Ključevi moraju da se poklope sa data-value u dropdown-u paketa.
   const PAKETI = {
     '28-dnevni': { naziv:'28-dnevni', dani:'28', plan:'28_day', cena:78400, cenaText:'78.400,00' },
     '20-dnevni': { naziv:'20-dnevni', dani:'20', plan:'20_day', cena:60000, cenaText:'60.000,00' },
     '7-dnevni':  { naziv:'7-dnevni',  dani:'7',  plan:'7_day',  cena:21000, cenaText:'21.000,00' },
-    '5-dnevni':  { naziv:'5-dnevni',  dani:'5',  plan:'5_day',  cena:15000, cenaText:'15.000,00' }
+    '5-dnevni':  { naziv:'5-dnevni',  dani:'5',  plan:'5_day',  cena:15000, cenaText:'15.000,00' },
+
+    // NutriMax (viši cenovni nivo) - za mušterije koje su na NutriMax planu.
+    '28-dnevni-max': { naziv:'28-dnevni NutriMax', dani:'28', plan:'28_day_max', cena:98400, cenaText:'98.400,00' },
+    '20-dnevni-max': { naziv:'20-dnevni NutriMax', dani:'20', plan:'20_day_max', cena:79000, cenaText:'79.000,00' },
+    '7-dnevni-max':  { naziv:'7-dnevni NutriMax',  dani:'7',  plan:'7_day_max',  cena:28000, cenaText:'28.000,00' },
+    '5-dnevni-max':  { naziv:'5-dnevni NutriMax',  dani:'5',  plan:'5_day_max',  cena:20000, cenaText:'20.000,00' }
   };
 
   const root  = document.querySelector("form");

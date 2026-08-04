@@ -644,8 +644,16 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       id: "adresa",
       el: stepAdresa,
       validate: () => {
-        if (!state.dostava.naselje.trim() || !state.dostava.adresa.trim()) {
-          showError(stepAdresa, "Molimo unesite naselje i adresu.");
+        const d = state.dostava;
+        if (!d.naselje.trim() || !d.adresa.trim()) {
+          showError(stepAdresa, "Molimo izaberite zonu dostave i unesite adresu.");
+          return false;
+        }
+        if (!d.kucniBroj.trim() || !d.brojStana.trim() || !d.brojSprata.trim()) {
+          showError(
+            stepAdresa,
+            "Molimo unesite kućni broj, broj stana i broj sprata.",
+          );
           return false;
         }
         return true;

@@ -2,6 +2,7 @@ import { state } from "./state";
 import { urlContext } from "./urlParams";
 import { getPhoneNumber } from "./phone";
 import { getPackage } from "../config/packages";
+import { computePrice } from "../config/pricing";
 import { isMaxPlan } from "../config/plans";
 import type { PlanId } from "../types";
 
@@ -76,6 +77,11 @@ export function buildRegistration(): Record<string, unknown> | null {
     kucniBroj: state.dostava.kucniBroj,
     nacinPlacanja: PLACANJE_MAP[nacin],
   };
+
+  // Iznos koji mušterija stvarno plaća - sa primenjenim popustom
+  // (promo kod / affiliate) i NutriMax nivoom. Ceo broj RSD, npr. 70560.
+  const cena = computePrice(paketId, urlContext, isMaxPlan(plan));
+  if (cena != null) reg.cena = cena;
 
   // Namirnice → enum niz (bez duplikata), samo ako ih ima.
   const namirnice = [

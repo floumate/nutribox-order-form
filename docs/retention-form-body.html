@@ -4,10 +4,9 @@
   ============================================================
   Zameni ceo trenutni body kod ovim. HEAD se NE menja.
 
-  Jedina izmena je u sekciji 2: kartica više ne zove raifpay nego vodi na
-  /hvala sa uputstvima za uplatu (firma zatvorena). Raifpay kod je netaknut
-  - povratak je CARD_PAYMENT_ENABLED = true.
-  Uz to: test kod je "test" (100 RSD), i nema više DEBUG teksta mušteriji.
+  Kartica ide na raifpay (CARD_PAYMENT_ENABLED = true). Ako zatreba gašenje,
+  vrati zastavu na false - tada kartica vodi na /hvala sa uputstvima za
+  uplatu. Test kod je "test" (100 RSD), ne "probni".
 -->
 
 <!-- ============ 1. intl-tel-input (telefon) ============ -->
@@ -20,9 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const RETENTION_WEBHOOK = 'https://hook.eu2.make.com/7rw5uk9v8yg1fff9f66yhek0dmbuz5s9';
   const TY_BASE = 'https://www.nutribox.rs';
 
-  // PRIVREMENO: firma zatvorena → kartica vodi na uputstva za uplatu.
-  // Vrati na true kad se otvori nova firma i raifpay ponovo radi.
-  const CARD_PAYMENT_ENABLED = false;
+  // Kartica ide na raifpay. Ako ikad zatreba gašenje (npr. promena firme),
+  // vrati na false - tada vodi na /hvala sa uputstvima za uplatu.
+  const CARD_PAYMENT_ENABLED = true;
   const UPLATNICA_PATH = '/hvala';
 
   // Ključevi moraju da se poklope sa data-value u dropdown-u paketa.

@@ -73,7 +73,7 @@ export const PACKAGES: PackageDef[] = [
     raiffeisenPlan: "20_day",
     raiffeisenPlanMax: "20_day_max",
     tyPouzece: null,
-    tyFirma: null,
+    tyFirma: "/hvala-20-firma",
   },
   {
     id: "5-dnevni",
@@ -84,7 +84,7 @@ export const PACKAGES: PackageDef[] = [
     raiffeisenPlan: "5_day",
     raiffeisenPlanMax: "5_day_max",
     tyPouzece: null,
-    tyFirma: null,
+    tyFirma: "/hvala-5-firma",
   },
   {
     id: "probni",
@@ -95,7 +95,9 @@ export const PACKAGES: PackageDef[] = [
     raiffeisenPlan: "probni",
     raiffeisenPlanMax: "probni_max",
     tyPouzece: null,
-    tyFirma: null,
+    // Nema zasebne /hvala-1-firma; sve firma stranice su identične
+    // (generičan tekst o fakturi, bez paketa i cene).
+    tyFirma: "/hvala-5-firma",
   },
 ];
 

@@ -9,3 +9,6 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# AI setter kontekst (drugi projekat, ne deo forme)
+ai-setter/

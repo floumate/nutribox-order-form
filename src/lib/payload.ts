@@ -5,6 +5,7 @@ import { getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { getDiet } from "../config/dietTypes";
 import { computePrice } from "../config/pricing";
 import { buildRegistration } from "./registration";
+import { ENV } from "../config/env";
 
 // =====================================================================
 // Gradi payload za Make / abandoned iz trenutnog stanja forme.
@@ -61,6 +62,10 @@ export function buildPayload(): Record<string, unknown> {
     motivacija: state.cilj, // "Izaberi cilj koji želiš da ostvariš"
     "Kucni-broj": state.dostava.kucniBroj,
   };
+
+  // "prod" | "staging" — da se u Make-u filterom odvoje test porudžbine sa
+  // vuksanvasic.webflow.io od pravih sa nutribox.rs.
+  payload.env = ENV;
 
   // Gotov Nikolin registration payload (string) — Make HTTP modul ga prosleđuje
   // kao raw body + doda X-API-Key. Prazno kad se ne registruje (custom plan).

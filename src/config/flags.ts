@@ -1,32 +1,39 @@
+import { ENV, type Env } from "./env";
+
 // =====================================================================
 // PREKIDAČI (privremena stanja).
 // =====================================================================
 
 /**
- * Kartično plaćanje preko raifpay-a.
+ * Kartično plaćanje.
  *
- *   true  = normalno (checkout → Raiffeisen stranica)
- *   false = "Plaćanje karticom" ne zove raifpay nego vodi na /hvala sa
- *           uputstvima za uplatu (broj računa, IPS QR, uplatnica).
+ *   true  = checkout → Raiffeisen stranica za unos kartice
+ *   false = "Plaćanje karticom" vodi na /hvala sa uputstvima za uplatu
+ *           (broj računa, IPS QR, uplatnica)
  *
- * Bilo je `false` od 2026-08-02 do 2026-08-13, dok je firma na koju su
- * stizale kartične uplate bila zatvorena.
+ * Sada je uključeno SAMO na staging-u:
  *
- * 2026-08-23 opet `false`. Razlog: na Raiffeisen checkout stranici kao
- * merchant i dalje stoji NUTRI BOX D.O.O. ONLINE (stara firma, račun u
- * blokadi) - dve uplate od 22.08. su otišle tamo. Merchant se podešava na
- * raifpay strani (Nikola), ne iz forme: mi šaljemo samo šifru paketa na
- * /checkout i radimo redirect na `redirectUrl` koji dobijemo nazad.
+ *   prod (nutribox.rs)              → false, prenos na račun
+ *   staging (vuksanvasic.webflow.io) → true, testno kartično
  *
- * Vraćamo na `true` tek kad Nikola potvrdi da je merchant NUTRIBOX KETERING
- * D.O.O. - i to POSLE testa sa ?testiranje-placanja=true (100 RSD), gde se
- * na checkout stranici očima proveri koja firma piše.
+ * Zašto: prelazi se sa stare firme (NUTRI BOX D.O.O., račun u blokadi) na
+ * novu (NUTRIBOX KETERING D.O.O.). Raiffeisen prvo mora da odobri testno
+ * okruženje na vuksanvasic.webflow.io; LIVE kredencijali stižu tek posle
+ * toga. Do tada na produkciji NE SME da bude kartice - dve uplate od
+ * 22.08.2026. su otišle na blokiran račun stare firme.
  *
- * Ako ikad opet zatreba gašenje: vrati na `false` (jedan push) - /hvala
- * stranica i uplatnice u public/uplatnica/ su i dalje na svom mestu.
+ * Kad stignu LIVE kredencijali: `prod: true` (jedna linija) - ali TEK POSLE
+ * testa sa ?testiranje-placanja=true, gde se na checkout stranici očima
+ * proveri da piše NUTRIBOX KETERING D.O.O.
+ *
  * Detalji: docs/POVRATAK-NA-RAIFPAY.md
  */
-export const CARD_PAYMENT_ENABLED = false;
+const CARD_ENABLED_BY_ENV: Record<Env, boolean> = {
+  prod: false,
+  staging: true,
+};
+
+export const CARD_PAYMENT_ENABLED = CARD_ENABLED_BY_ENV[ENV];
 
 /** Stranica sa uputstvima za uplatu (koristi se dok je kartica ugašena). */
 export const UPLATNICA_PATH = "/hvala";

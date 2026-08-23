@@ -8,6 +8,39 @@ Kad se otvori nova firma, treba **tri stvari**. Redosled nije bitan.
 
 ---
 
+## ⚠️ PRE SVEGA — dve provere koje su nas već koštale
+
+### a) Koja firma piše na checkout stranici
+
+Zastava je 13.08.2026. vraćena na `true` na osnovu usmene potvrde da su
+uplate prebačene na novu firmu. **Nisu bile.** Na Raiffeisen stranici je i
+dalje stajalo `NUTRI BOX D.O.O. ONLINE` (stara firma, račun u blokadi), pa
+su 22.08. dve uplate otišle na neupotrebljiv račun:
+
+```
+ORD1787406504008y   16.000
+ORD1787406816tisr   16.000
+```
+
+Merchant se podešava na raifpay strani, forma na njega ne utiče — mi samo
+šaljemo šifru paketa i radimo redirect na `redirectUrl`.
+
+**Zato: pre uključivanja obavezno uraditi test uplatu sa
+`?testiranje-placanja=true` (100 RSD) i OČIMA proveriti da na checkout
+stranici piše `NUTRIBOX KETERING D.O.O.`** Nije dovoljno da neko kaže da je
+prebačeno.
+
+### b) Cena za `5_day` — neusklađena
+
+Te dve uplate su naplaćene **16.000**, a forma za 5-dnevni prikazuje
+**15.000** (`src/config/pricing.ts`). Znači cenovnik u raifpay-u i cenovnik
+u formi se razilaze bar na tom paketu (28-dnevni se poklapa: 78.400).
+
+**Pre uključivanja: pitati Nikolu koja je cena tačna i uskladiti obe
+strane**, inače kupac vidi jedan iznos a plaća drugi.
+
+---
+
 ## 1. Order forma (ovaj repo)
 
 `src/config/flags.ts`:

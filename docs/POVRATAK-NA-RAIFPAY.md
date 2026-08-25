@@ -33,11 +33,14 @@ prebačeno.
 ### b) Cena za `5_day` — neusklađena
 
 Te dve uplate su naplaćene **16.000**, a forma za 5-dnevni prikazuje
-**15.000** (`src/config/pricing.ts`). Znači cenovnik u raifpay-u i cenovnik
-u formi se razilaze bar na tom paketu (28-dnevni se poklapa: 78.400).
+**15.000** (`src/config/pricing.ts`).
 
-**Pre uključivanja: pitati Nikolu koja je cena tačna i uskladiti obe
-strane**, inače kupac vidi jedan iznos a plaća drugi.
+**Rešeno 23.08.2026:** tačna cena je **15.000**, i novi sistem je već ima —
+test na staging-u je prikazao `15000.00 RSD` za `5_day`. Onih 16.000 je bilo
+u starom prod raifpay-u.
+
+Svejedno proveriti iznos na prod-u pre uključivanja: `redirectUrl` iz
+odgovora se otvori i uporedi `amount` sa cenom iz `pricing.ts`.
 
 ---
 

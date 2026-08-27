@@ -1,36 +1,58 @@
 <!--
   ============================================================
-  Order forma  —  Webflow embed
+  Order forma — Webflow embed  (JEDINI, za sve stranice)
   ============================================================
   Nalepiti u Embed element na stranici /order-form.
+  Publikovati na OBA domena - nutribox.rs i vuksanvasic.webflow.io.
 
-  Forma živi u iframe-u na github.io, pa tri stvari mora da uradi
-  roditeljska (Webflow) stranica:
+  Ne postoji zasebna verzija za produkciju i za test. Ovo je jedini embed;
+  ponašanje bira sama forma, po domenu roditeljske stranice:
 
+      nutribox.rs            → produkcija (kartica ugašena, prenos na račun)
+      vuksanvasic.webflow.io → staging    (kartica radi, test okruženje)
+
+  Zato `env=staging` stoji u kodu i kad se publikuje na produkciju: tamo se
+  IGNORIŠE. Isto važi kad se roditeljski domen uopšte ne pročita - tada se
+  ide na produkciju. Logika je u src/config/env.ts.
+
+  Zašto uopšte parametar: forma je u iframe-u na floumate.github.io, pa
+  iznutra ne vidi na kom je domenu - location.hostname joj je uvek github.io.
+  Okruženje mora da stigne odavde.
+
+  ⚠️ Ne praviti "verziju bez env-a" za produkciju. Webflow je jedan sajt sa
+  jednim sadržajem: prvi sledeći publish produkcije ionako prenese ono što
+  trenutno stoji na stranici. Ručno vraćanje embeda pre svakog publish-a se
+  zaboravi - zato odluku donosi kod, a ne čovek.
+
+  Tri stvari koje roditeljska stranica mora da radi:
     nutribox-height    → visina iframe-a prati sadržaj koraka
     nutribox-scroll    → vrati na vrh forme pri prelasku na sledeći korak
                          (iz iframe-a se ne može skrolovati roditelj)
-    nutribox-redirect  → navigacija na Raiffeisen / thank-you stranicu
+    nutribox-redirect  → navigacija na checkout / thank-you stranicu
                          (roditelj navigira da query params ostanu)
 
-  height:600px na iframe-u je POČETNA visina, dok se JS ne učiti - bez nje
+  height:600px na iframe-u je POČETNA visina, dok se JS ne učita - bez nje
   browser koristi default 150px i forma se prvih ~150ms vidi presečena.
 -->
 
 <iframe id="nutribox-form"
-        src="https://floumate.github.io/nutribox-order-form/"
+        src="https://floumate.github.io/nutribox-order-form/?env=staging"
         style="width:100%;height:600px;border:0;display:block;"
         scrolling="no"></iframe>
 
 <script>
 (function () {
   var BASE = "https://floumate.github.io/nutribox-order-form/";
+  var ENV_PARAM = "env=staging";
+
   var iframe = document.getElementById("nutribox-form");
 
-  // Prosledi URL params (affiliate, discountCode, setter, referred_by...) u iframe.
-  if (window.location.search) {
-    iframe.src = BASE + window.location.search;
-  }
+  // Prosledi URL params (affiliate, discountCode, setter, referred_by...)
+  // u iframe, zadržavajući env.
+  var parts = [ENV_PARAM];
+  var qs = window.location.search.replace(/^\?/, "");
+  if (qs) parts.push(qs);
+  iframe.src = BASE + "?" + parts.join("&");
 
   window.addEventListener("message", function (e) {
     // Sigurnost: primaj SAMO od forme.
@@ -51,7 +73,7 @@
       window.scrollTo(0, top - 20);
     }
 
-    // Redirect (kartica → uputstva za uplatu / pouzeće → thank-you).
+    // Redirect (kartica → checkout / pouzeće → thank-you).
     // Parent navigira da bi query params ostali sačuvani.
     if (data.type === "nutribox-redirect" && data.url) {
       window.location.href = data.url;

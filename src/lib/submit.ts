@@ -10,6 +10,7 @@ import { ENDPOINTS } from "../config/endpoints";
 import { CARD_PAYMENT_ENABLED, UPLATNICA_PATH } from "../config/flags";
 import { getPhoneNumber } from "./phone";
 import { EMAIL_REGEX, showError, hideError } from "./validation";
+import { trackOrder } from "./setterTracking";
 
 // =====================================================================
 // Glavni submit handler.
@@ -102,6 +103,7 @@ export function attachSubmit(form: HTMLFormElement): void {
     // ---------------- POUZEĆE / FIRMA ----------------
     if (nacin !== "Kartica") {
       const orderId = bulletproofSubmit(payload);
+      trackOrder(orderId);
 
       // Pouzeće → jedinstvena /hvala-pouzece (cena stiže kao ?cena=). Firma → po paketu.
       const tyPath =
@@ -136,6 +138,7 @@ export function attachSubmit(form: HTMLFormElement): void {
 
     // Bulletproof na Make ODMAH (ne čeka Raiffeisen).
     bulletproofSubmit(payload);
+    trackOrder(payload.order_id as string);
 
     // PRIVREMENO (firma zatvorena): bez raifpay-a → uputstva za uplatu.
     // Sve ispod ovog bloka je raifpay kod - netaknut, samo nedostižan.

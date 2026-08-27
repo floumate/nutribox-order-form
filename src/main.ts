@@ -5,6 +5,7 @@ import { initPhone } from "./lib/phone";
 import { attachSubmit } from "./lib/submit";
 import { initAbandoned } from "./lib/abandoned";
 import { startRecovery } from "./lib/bulletproof";
+import { trackVisit } from "./lib/setterTracking";
 
 function boot(): void {
   const form = document.querySelector<HTMLFormElement>("#nutribox-form");
@@ -23,6 +24,10 @@ function boot(): void {
   attachSubmit(form);
   initAbandoned();
   startRecovery();
+
+  // Merenje AI settera - šalje samo kad je ?setter=asistent i kad je
+  // proxy podešen; inače ne radi ništa.
+  trackVisit();
 
   // Enter ne submituje formu (sprečava slučajno slanje iz input polja)
   document.addEventListener("keydown", (e) => {

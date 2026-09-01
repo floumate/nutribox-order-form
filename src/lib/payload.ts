@@ -69,7 +69,7 @@ export function buildPayload(): Record<string, unknown> {
   payload.env = ENV;
 
   // Vezuje porudžbinu za dolazak preko AI settera. Prazno kad poseta nije
-  // došla sa ?setter=asistent. Make ovo šalje dalje kao "order".
+  // došla sa ?s=a. Make ovo šalje dalje kao "order".
   payload.visit_id = peekVisitId();
 
   // Gotov Nikolin registration payload (string) — Make HTTP modul ga prosleđuje

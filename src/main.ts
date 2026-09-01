@@ -25,8 +25,8 @@ function boot(): void {
   initAbandoned();
   startRecovery();
 
-  // Merenje AI settera - šalje samo kad je ?setter=asistent i kad je
-  // proxy podešen; inače ne radi ništa.
+  // Merenje AI settera - šalje samo kad je ?s=a i kad je adresa
+  // podešena; inače ne radi ništa.
   trackVisit();
 
   // Enter ne submituje formu (sprečava slučajno slanje iz input polja)

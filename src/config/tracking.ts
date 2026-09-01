@@ -17,5 +17,5 @@
  */
 export const VISIT_WEBHOOK = "";
 
-/** Prati se samo ova vrednost ?setter=. Sve ostalo se ignoriše. */
-export const TRACKED_SETTER = "asistent";
+/** Prati se samo ova vrednost ?s=. Sve ostalo se ignoriše. */
+export const TRACKED_SETTER = "a";

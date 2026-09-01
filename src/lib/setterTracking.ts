@@ -2,7 +2,7 @@ import { urlContext } from "./urlParams";
 import { VISIT_WEBHOOK, TRACKED_SETTER } from "../config/tracking";
 
 // =====================================================================
-// Događaj "visit" - forma otvorena sa ?setter=asistent.
+// Događaj "visit" - forma otvorena sa ?s=a.
 //
 // visit_id se pravi jednom po poseti i čuva u sessionStorage, pa
 // osvežavanje strane ne broji novi dolazak. Isti id kasnije koristi Make
@@ -106,7 +106,7 @@ function visitId(): string {
  *
  * Za razliku od visitId(), ovo NIŠTA ne pravi: vraća "" kad poseta nije
  * vezana za praćenog settera. Radi i kad je VISIT_WEBHOOK prazan, jer id
- * postoji čim je ?setter=asistent, nezavisno od toga da li se šalje.
+ * postoji čim je ?s=a, nezavisno od toga da li se šalje.
  */
 export function peekVisitId(): string {
   try {

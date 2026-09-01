@@ -1,11 +1,14 @@
 // =====================================================================
-// URL parametri (affiliate, discountCode, setter, referred_by, custom
-// plan, test). Čitaju se jednom - URL se ne menja tokom popunjavanja.
+// URL parametri (affiliate, discountCode, s, referred_by, custom plan,
+// test). Čitaju se jednom - URL se ne menja tokom popunjavanja.
 // =====================================================================
 
 export interface UrlContext {
   affiliate: string;
   discountCode: string;
+  /** Ko je doveo kupca. Čita se iz ?s= (kratko, da ne izgleda kao praćenje).
+   *  U Make payload i dalje ide pod imenom `setter`, da mapiranja u Google
+   *  Sheets-u i GHL-u ostanu netaknuta. */
   setter: string;
   /** Refer-a-friend: email preporučioca (?referred_by=). "" ako nema. */
   referredBy: string;
@@ -22,7 +25,7 @@ function read(): UrlContext {
   return {
     affiliate: p.get("affiliate") ?? "",
     discountCode: p.get("discountCode") ?? "",
-    setter: p.get("setter") ?? "",
+    setter: p.get("s") ?? "",
     referredBy: p.get("referred_by") ?? "",
     plan,
     customPlanName,

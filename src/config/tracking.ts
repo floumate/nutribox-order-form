@@ -12,10 +12,15 @@
 // =====================================================================
 
 /**
- * Puna adresa, npr:
- * "https://primer.com/api/webhooks/visit/f7313c5b-0511-4938-9009-78df8f5cadd9"
+ * Puna adresa za "visit". Ne traži tajni header, CORS je `*`, pa se zove
+ * direktno iz browsera.
+ *
+ * ⚠️ UUID je isti kao na `order` webhook-u. Onaj iz prve specifikacije
+ * (f7313c5b-...) NIJE aktivan - vraća prazno `{"ok":false}`.
+ * Prazan string ovde gasi merenje.
  */
-export const VISIT_WEBHOOK = "";
+export const VISIT_WEBHOOK =
+  "https://ai-setter-three.vercel.app/api/webhooks/visit/dd3d36e6-16fd-4118-8f98-7ee21a2946ba";
 
 /** Prati se samo ova vrednost ?s=. Sve ostalo se ignoriše. */
 export const TRACKED_SETTER = "a";

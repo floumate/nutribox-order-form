@@ -23,8 +23,8 @@ import { ENV, type Env } from "./env";
  * 22.08.2026. su otišle na blokiran račun stare firme.
  *
  * Kad stignu LIVE kredencijali: `prod: true` (jedna linija) - ali TEK POSLE
- * testa sa ?testiranje-placanja=true, gde se na checkout stranici očima
- * proveri da piše NUTRIBOX KETERING D.O.O.
+ * testa opisanog ispod, gde se na checkout stranici očima proveri da piše
+ * NUTRIBOX KETERING D.O.O.
  *
  * Detalji: docs/POVRATAK-NA-RAIFPAY.md
  */
@@ -33,7 +33,34 @@ const CARD_ENABLED_BY_ENV: Record<Env, boolean> = {
   staging: true,
 };
 
-export const CARD_PAYMENT_ENABLED = CARD_ENABLED_BY_ENV[ENV];
+/**
+ * Prolaz za testiranje PRAVOG kartičnog plaćanja na produkciji, pre nego
+ * što se uključi za sve:
+ *
+ *   https://nutribox.rs/order-form?kt=nb26x9
+ *
+ * Kupci i dalje vide prenos na račun; karticu vidi samo ko ima link.
+ *
+ * Nije prava tajna - token stoji u bundle-u i ko ga traži, naći će ga.
+ * Dovoljno je da se ne pogodi slučajno, a najgore što može da se desi je
+ * da neko plati karticom, što nam je ionako cilj.
+ *
+ * Briše se čim kartica bude uključena za sve.
+ */
+const CARD_TEST_TOKEN = "nb26x9";
+
+function cardTestUnlocked(): boolean {
+  try {
+    return (
+      new URLSearchParams(window.location.search).get("kt") === CARD_TEST_TOKEN
+    );
+  } catch {
+    return false;
+  }
+}
+
+export const CARD_PAYMENT_ENABLED =
+  CARD_ENABLED_BY_ENV[ENV] || (ENV === "prod" && cardTestUnlocked());
 
 /** Stranica sa uputstvima za uplatu (koristi se dok je kartica ugašena). */
 export const UPLATNICA_PATH = "/hvala";

@@ -4,17 +4,16 @@ import { ENV } from "./env";
 // Eksterni endpoint-i, po okruženju (vidi env.ts).
 // =====================================================================
 
-/** Checkout za kartično plaćanje. Contract je isti na oba: POST vrati
- *  201 + { orderId, redirectUrl, expiresAt }.
+/** Checkout za kartično plaćanje. POST vrati 201 + { orderId, redirectUrl,
+ *  expiresAt }; forma preusmeri na `redirectUrl`.
  *
- *  ⚠️ STAGING i CORS: customer-api trenutno propušta samo
- *  https://vuksanvasic.webflow.io. Forma šalje sa https://floumate.github.io
- *  (iframe), pa dok Nikola ne doda taj origin u allowlist, browser blokira
- *  zahtev. Fallback koji VEĆ propušta github.io:
- *      "https://raifpay-staging.nutribox.dev/checkout"
- *  Ako zatreba - zameni jednu liniju ispod. */
+ *  Stari `raifpay-prod` / `raifpay-staging` domeni su UGAŠENI - 02.09.2026.
+ *  im DNS više ne postoji, pa je kartica na produkciji pucala sa "Trenutno
+ *  ne možemo da pokrenemo plaćanje". Sve je prešlo na `customer-api`.
+ *
+ *  CORS na oba propušta https://floumate.github.io (provereno). */
 const CHECKOUT: Record<typeof ENV, string> = {
-  prod: "https://raifpay-prod.nutribox.dev/checkout",
+  prod: "https://customer-api.prod.nutribox.dev/card-payments/checkout",
   staging: "https://customer-api.staging.nutribox.dev/card-payments/checkout",
 };
 

@@ -11,56 +11,31 @@ import { ENV, type Env } from "./env";
  *   false = "Plaćanje karticom" vodi na /hvala sa uputstvima za uplatu
  *           (broj računa, IPS QR, uplatnica)
  *
- * Sada je uključeno SAMO na staging-u:
+ * Uključeno na oba okruženja od 04.09.2026.
  *
- *   prod (nutribox.rs)              → false, prenos na račun
- *   staging (vuksanvasic.webflow.io) → true, testno kartično
+ * Put dovde: stara firma (NUTRI BOX D.O.O.) je zatvorena i račun blokiran,
+ * pa je kartica bila ugašena od 23.08. Prvo je Raiffeisen odobrio testno
+ * okruženje na vuksanvasic.webflow.io, pa su stigli LIVE kredencijali.
  *
- * Zašto: prelazi se sa stare firme (NUTRI BOX D.O.O., račun u blokadi) na
- * novu (NUTRIBOX KETERING D.O.O.). Raiffeisen prvo mora da odobri testno
- * okruženje na vuksanvasic.webflow.io; LIVE kredencijali stižu tek posle
- * toga. Do tada na produkciji NE SME da bude kartice - dve uplate od
- * 22.08.2026. su otišle na blokiran račun stare firme.
+ * Pre uključivanja provereno na PRAVOJ prod checkout stranici:
+ *   Merchant: NUTRIBOX KETERING DOO ONLINE
+ *   Amount:   300.00 RSD (kod PROBNI300)
  *
- * Kad stignu LIVE kredencijali: `prod: true` (jedna linija) - ali TEK POSLE
- * testa opisanog ispod, gde se na checkout stranici očima proveri da piše
- * NUTRIBOX KETERING D.O.O.
+ * Ta provera nije formalnost. U avgustu je kartica vraćena na osnovu usmene
+ * potvrde da je merchant prebačen - nije bio, i dve uplate su otišle na
+ * blokiran račun. Ako se ovo ikad opet gasi i pali, prvo se otvori checkout
+ * stranica i OČIMA se pročita koja firma piše.
  *
- * Detalji: docs/POVRATAK-NA-RAIFPAY.md
+ * Gašenje: vrati `prod: false` (jedna linija). /hvala stranica i uplatnice
+ * u public/uplatnica/ stoje na svom mestu. Detalji:
+ * docs/POVRATAK-NA-RAIFPAY.md
  */
 const CARD_ENABLED_BY_ENV: Record<Env, boolean> = {
-  prod: false,
+  prod: true,
   staging: true,
 };
 
-/**
- * Prolaz za testiranje PRAVOG kartičnog plaćanja na produkciji, pre nego
- * što se uključi za sve:
- *
- *   https://nutribox.rs/order-form?kt=nb26x9
- *
- * Kupci i dalje vide prenos na račun; karticu vidi samo ko ima link.
- *
- * Nije prava tajna - token stoji u bundle-u i ko ga traži, naći će ga.
- * Dovoljno je da se ne pogodi slučajno, a najgore što može da se desi je
- * da neko plati karticom, što nam je ionako cilj.
- *
- * Briše se čim kartica bude uključena za sve.
- */
-const CARD_TEST_TOKEN = "nb26x9";
-
-function cardTestUnlocked(): boolean {
-  try {
-    return (
-      new URLSearchParams(window.location.search).get("kt") === CARD_TEST_TOKEN
-    );
-  } catch {
-    return false;
-  }
-}
-
-export const CARD_PAYMENT_ENABLED =
-  CARD_ENABLED_BY_ENV[ENV] || (ENV === "prod" && cardTestUnlocked());
+export const CARD_PAYMENT_ENABLED = CARD_ENABLED_BY_ENV[ENV];
 
 /** Stranica sa uputstvima za uplatu (koristi se dok je kartica ugašena). */
 export const UPLATNICA_PATH = "/hvala";

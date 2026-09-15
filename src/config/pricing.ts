@@ -1,4 +1,4 @@
-import type { PackageId } from "../types";
+import type { Lang, PackageId } from "../types";
 
 // =====================================================================
 // CENE.
@@ -128,8 +128,24 @@ const RSD_FORMAT = new Intl.NumberFormat("sr-RS", {
   maximumFractionDigits: 2,
 });
 
-/** "78.400,00" (bez oznake valute). */
+/** "78.400,00" (bez oznake valute). Uvek srpski - ide i u URL thank-you
+ *  stranice. Za prikaz u formi: formatPriceDisplay. */
 export function formatPrice(machine: number | null): string {
   if (machine == null) return "-";
   return RSD_FORMAT.format(machine);
+}
+
+const DISPLAY_LOCALE: Record<Lang, string> = {
+  sr: "sr-RS",
+  en: "en-US",
+  ru: "ru-RU",
+};
+
+/** Cena na jeziku forme: sr "78.400,00", en "78,400.00", ru "78 400,00". */
+export function formatPriceDisplay(machine: number | null, lang: Lang): string {
+  if (machine == null) return "-";
+  return new Intl.NumberFormat(DISPLAY_LOCALE[lang], {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(machine);
 }

@@ -10,6 +10,7 @@ import { ENDPOINTS } from "../config/endpoints";
 import { CARD_PAYMENT_ENABLED, UPLATNICA_PATH } from "../config/flags";
 import { getPhoneNumber } from "./phone";
 import { EMAIL_REGEX, showError, hideError } from "./validation";
+import { localizedPath, t } from "./i18n";
 
 // =====================================================================
 // Glavni submit handler.
@@ -42,7 +43,7 @@ function navigateTop(url: string): void {
 
 function setButtonLoading(btn: HTMLButtonElement, loading: boolean, original: string) {
   btn.disabled = loading;
-  btn.textContent = loading ? "Učitavanje..." : original;
+  btn.textContent = loading ? t("loading") : original;
 }
 
 export function attachSubmit(form: HTMLFormElement): void {
@@ -57,7 +58,7 @@ export function attachSubmit(form: HTMLFormElement): void {
     // --- VALIDACIJA ---
     const nacin = state.nacinPlacanja;
     if (!nacin) {
-      showError(paymentStep, "Molimo izaberite način plaćanja.");
+      showError(paymentStep, t("errPayment"));
       return;
     }
 
@@ -66,7 +67,7 @@ export function attachSubmit(form: HTMLFormElement): void {
     );
     const allChecked = Array.from(checkboxes).every((c) => c.checked);
     if (!allChecked) {
-      showError(paymentStep, "Morate prihvatiti uslove da biste nastavili.");
+      showError(paymentStep, t("errConsent"));
       return;
     }
 
@@ -79,17 +80,17 @@ export function attachSubmit(form: HTMLFormElement): void {
         !f.pibFirme.trim() ||
         !f.maticniBrojFirme.trim();
       if (prazno) {
-        showError(paymentStep, "Molimo popunite sva polja firme.");
+        showError(paymentStep, t("errCompany"));
         return;
       }
       if (!EMAIL_REGEX.test(f.emailFirme.trim())) {
-        showError(paymentStep, "Email firme nije ispravan.");
+        showError(paymentStep, t("errCompanyEmail"));
         return;
       }
     }
 
     if (!state.email) {
-      showError(paymentStep, "Email je obavezan.");
+      showError(paymentStep, t("errEmailRequired"));
       return;
     }
 
@@ -123,7 +124,10 @@ export function attachSubmit(form: HTMLFormElement): void {
       if (tyCena != null) tyParams.set("cena", formatPrice(tyCena));
       tyParams.set("order_id", orderId);
 
-      navigateTop(ENDPOINTS.thankYouBase + tyPath + "?" + tyParams.toString());
+      // Na jeziku kupca: /en/hvala-... (Webflow Localization).
+      navigateTop(
+        ENDPOINTS.thankYouBase + localizedPath(tyPath) + "?" + tyParams.toString(),
+      );
       return;
     }
 
@@ -163,7 +167,7 @@ export function attachSubmit(form: HTMLFormElement): void {
       up.set("order_id", payload.order_id as string);
 
       navigateTop(
-        ENDPOINTS.thankYouBase + UPLATNICA_PATH + "?" + up.toString(),
+        ENDPOINTS.thankYouBase + localizedPath(UPLATNICA_PATH) + "?" + up.toString(),
       );
       return;
     }
@@ -185,6 +189,8 @@ export function attachSubmit(form: HTMLFormElement): void {
         name: state.ime,
         lastname: state.prezime,
         phoneNumber,
+        // Raiffeisen stranica ostaje na srpskom dok Nikola ne potvrdi da
+        // checkout prima i "en"/"ru".
         locale: "sr",
         affiliate: urlContext.affiliate,
         discountCode: urlContext.discountCode,
@@ -211,11 +217,7 @@ export function attachSubmit(form: HTMLFormElement): void {
       }
     } catch (err) {
       if (btn) setButtonLoading(btn, false, originalText);
-      showError(
-        paymentStep,
-        "Trenutno ne možemo da pokrenemo plaćanje karticom. Pokušajte ponovo " +
-          "ili izaberite plaćanje pouzećem.",
-      );
+      showError(paymentStep, t("errCheckout"));
       // Detalji (endpoint/origin/plan) ostaju u konzoli za dijagnostiku.
       console.error("[nutribox] checkout error:", err, {
         endpoint: ENDPOINTS.raiffeisenCheckout,

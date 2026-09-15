@@ -21,88 +21,94 @@
     </noscript>
   </head>
   <body>
+    <!-- Tekstovi sa data-i18n / data-i18n-ph se prevode iz
+         src/config/translations.ts. Srpski ovde mora da ostane isti kao tamo. -->
     <div class="form-shell">
+      <!-- Izbor jezika - vidi se samo kad forma ima više jezika (flags.ts) -->
+      <select class="lang-switch" data-lang-switch aria-label="Jezik / Language / Язык" hidden></select>
+
       <!-- Progress bar (segmenti se generišu iz JS) -->
       <div class="progress" data-progress aria-hidden="true"></div>
 
       <form id="nutribox-form" novalidate>
         <!-- ============ STEP 1: Cilj (uvodno pitanje - NE bira plan) ============ -->
         <section class="step" data-step="motivacija">
-          <h2 class="step__title">Izaberi cilj koji želiš da ostvariš</h2>
+          <h2 class="step__title" data-i18n="goalTitle">Izaberi cilj koji želiš da ostvariš</h2>
           <div class="card-grid card-grid--3" data-grid="motivacija"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav step__nav--single">
-            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
+            <button type="button" class="btn btn--primary" data-nav="next" data-i18n="navNext">Dalje</button>
           </footer>
         </section>
 
         <!-- ============ STEP 2: Pol ============ -->
         <section class="step" data-step="pol">
-          <h2 class="step__title">Želiš da poručiš paket za</h2>
+          <h2 class="step__title" data-i18n="sexTitle">Želiš da poručiš paket za</h2>
           <div class="card-grid card-grid--2" data-grid="pol"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
-            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
-            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
+            <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>
+            <button type="button" class="btn btn--primary" data-nav="next" data-i18n="navNext">Dalje</button>
           </footer>
         </section>
 
         <!-- ============ STEP 3: Paket (NutriSlim/Balance/Pump/Max) — sa makroima ============ -->
         <section class="step" data-step="plan">
-          <h2 class="step__title">Izaberi svoj paket</h2>
+          <h2 class="step__title" data-i18n="planTitle">Izaberi svoj paket</h2>
           <div class="card-grid card-grid--4" data-grid="plan"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
-            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
-            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
+            <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>
+            <button type="button" class="btn btn--primary" data-nav="next" data-i18n="navNext">Dalje</button>
           </footer>
         </section>
 
         <!-- ============ STEP 4: Tip jelovnika (+ isključivanje namirnica) ============ -->
         <section class="step" data-step="diet">
-          <h2 class="step__title">Izaberi svoj tip jelovnika</h2>
+          <h2 class="step__title" data-i18n="dietTitle">Izaberi svoj tip jelovnika</h2>
           <div class="card-grid card-grid--4" data-grid="diet"></div>
           <div class="allergen-block" data-allergen-block>
-            <h3 class="allergen-block__title">Iz svakog od naših jelovnika možete izbaciti najviše 2:</h3>
+            <h3 class="allergen-block__title" data-i18n="excludeTitle">Iz svakog od naših jelovnika možete izbaciti najviše 2:</h3>
             <div class="card-grid card-grid--3" data-grid="namirnice"></div>
           </div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
-            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
-            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
+            <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>
+            <button type="button" class="btn btn--primary" data-nav="next" data-i18n="navNext">Dalje</button>
           </footer>
         </section>
 
         <!-- ============ STEP 5: Plan trajanja (grupisani accordion) ============ -->
         <section class="step" data-step="paket">
-          <h2 class="step__title">Izaberi plan koji ti najviše odgovara</h2>
+          <h2 class="step__title" data-i18n="packageTitle">Izaberi plan koji ti najviše odgovara</h2>
           <div class="pkg-groups" data-grid="paket"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
-            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
-            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
+            <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>
+            <button type="button" class="btn btn--primary" data-nav="next" data-i18n="navNext">Dalje</button>
           </footer>
         </section>
 
         <!-- ============ STEP 8: Lične informacije ============ -->
         <section class="step" data-step="licneInformacije">
-          <h2 class="step__title">Tvoje informacije</h2>
+          <h2 class="step__title" data-i18n="infoTitle">Tvoje informacije</h2>
           <div class="fields fields--3">
             <label class="field">
-              <span class="field__label">Ime</span>
-              <input id="ime" type="text" placeholder="Petar" autocomplete="given-name" />
+              <span class="field__label" data-i18n="firstName">Ime</span>
+              <input id="ime" type="text" placeholder="Petar" data-i18n-ph="firstNamePh" autocomplete="given-name" />
             </label>
             <label class="field">
-              <span class="field__label">Prezime</span>
-              <input id="prezime" type="text" placeholder="Petrović" autocomplete="family-name" />
+              <span class="field__label" data-i18n="lastName">Prezime</span>
+              <input id="prezime" type="text" placeholder="Petrović" data-i18n-ph="lastNamePh" autocomplete="family-name" />
             </label>
             <label class="field">
-              <span class="field__label">Datum rođenja</span>
+              <span class="field__label" data-i18n="birthDate">Datum rođenja</span>
               <div class="datepicker-wrap">
                 <input
                   id="datumRodjenja"
                   type="text"
                   placeholder="Unesite datum rođenja"
+                  data-i18n-ph="birthDatePh"
                   readonly
                 />
                 <svg
@@ -124,35 +130,36 @@
           </div>
           <div class="fields fields--2">
             <label class="field">
-              <span class="field__label">Email</span>
-              <input id="email" type="email" placeholder="petar@email.com" autocomplete="email" />
+              <span class="field__label" data-i18n="email">Email</span>
+              <input id="email" type="email" placeholder="petar@email.com" data-i18n-ph="emailPh" autocomplete="email" />
             </label>
             <!-- NIJE <label> wrapper: intl-tel-input ubaci <button> pre inputa,
                  pa bi label (implicitna asocijacija) vezao PRVI labelable
                  element = to dugme → hover bilo gde u polju sivi zastavu.
                  Zato div + eksplicitni <label for>. -->
             <div class="field">
-              <label class="field__label" for="telefon">Broj telefona</label>
+              <label class="field__label" for="telefon" data-i18n="phone">Broj telefona</label>
               <input id="telefon" type="tel" autocomplete="tel" />
             </div>
           </div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
-            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
-            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
+            <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>
+            <button type="button" class="btn btn--primary" data-nav="next" data-i18n="navNext">Dalje</button>
           </footer>
         </section>
 
         <!-- ============ STEP 9: Početni datum dostave ============ -->
         <section class="step" data-step="datum">
-          <h2 class="step__title">Početni datum dostave</h2>
-          <p class="step__subtitle">Izaberi kada želiš da krene dostava.</p>
+          <h2 class="step__title" data-i18n="dateTitle">Početni datum dostave</h2>
+          <p class="step__subtitle" data-i18n="dateSubtitle">Izaberi kada želiš da krene dostava.</p>
           <div class="datepicker-wrap">
             <input
               type="text"
               id="futureDate"
               name="datum-dostave"
               placeholder="Unesite datum početka dostave"
+              data-i18n-ph="startDatePh"
               readonly
             />
             <svg
@@ -172,55 +179,56 @@
           </div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
-            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
-            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
+            <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>
+            <button type="button" class="btn btn--primary" data-nav="next" data-i18n="navNext">Dalje</button>
           </footer>
         </section>
 
         <!-- ============ STEP 10: Podaci za dostavu ============ -->
         <section class="step" data-step="adresa">
-          <h2 class="step__title">Unesite podatke za dostavu</h2>
+          <h2 class="step__title" data-i18n="addressTitle">Unesite podatke za dostavu</h2>
           <div class="fields fields--2">
             <label class="field">
-              <span class="field__label">Zona dostave</span>
+              <span class="field__label" data-i18n="zone">Zona dostave</span>
               <select class="field-select" data-dostava="naselje"></select>
             </label>
             <label class="field">
-              <span class="field__label">Adresa</span>
-              <input type="text" data-dostava="adresa" placeholder="npr. Petra Petrovića" />
+              <span class="field__label" data-i18n="street">Adresa</span>
+              <input type="text" data-dostava="adresa" placeholder="npr. Petra Petrovića" data-i18n-ph="streetPh" />
             </label>
           </div>
           <div class="fields fields--3">
             <label class="field">
-              <span class="field__label">Kućni broj</span>
-              <input type="text" data-dostava="kucniBroj" placeholder="npr. 14" />
+              <span class="field__label" data-i18n="houseNumber">Kućni broj</span>
+              <input type="text" data-dostava="kucniBroj" placeholder="npr. 14" data-i18n-ph="houseNumberPh" />
             </label>
             <!-- Sprat/stan su numerički (Airtable i GHL polja su Number tipa).
                  Kućni broj OSTAJE tekst - tamo su "14b", "bb" uobičajeni. -->
             <label class="field">
-              <span class="field__label">Broj sprata</span>
-              <input type="number" inputmode="numeric" step="1" data-dostava="brojSprata" placeholder="npr. 3" />
+              <span class="field__label" data-i18n="floor">Broj sprata</span>
+              <input type="number" inputmode="numeric" step="1" data-dostava="brojSprata" placeholder="npr. 3" data-i18n-ph="floorPh" />
             </label>
             <label class="field">
-              <span class="field__label">Broj stana</span>
-              <input type="number" inputmode="numeric" step="1" data-dostava="brojStana" placeholder="npr. 12" />
+              <span class="field__label" data-i18n="apartment">Broj stana</span>
+              <input type="number" inputmode="numeric" step="1" data-dostava="brojStana" placeholder="npr. 12" data-i18n-ph="apartmentPh" />
             </label>
           </div>
           <div class="fields fields--2">
             <label class="field">
-              <span class="field__label">Šifra ulaznih vrata</span>
-              <input type="text" data-dostava="sifraUlaznihVrata" placeholder="Šifra" />
+              <span class="field__label" data-i18n="doorCode">Šifra ulaznih vrata</span>
+              <input type="text" data-dostava="sifraUlaznihVrata" placeholder="Šifra" data-i18n-ph="doorCodePh" />
             </label>
             <label class="field">
-              <span class="field__label">Instrukcije za vozača</span>
+              <span class="field__label" data-i18n="driverNotes">Instrukcije za vozača</span>
               <input
                 type="text"
                 data-dostava="instrukcije"
                 placeholder="Ako nemate instrukcija ostavite prazno polje"
+                data-i18n-ph="driverNotesPh"
               />
             </label>
           </div>
-          <p class="delivery-note">
+          <p class="delivery-note" data-i18n="deliveryNote">
             Naša standardna dostava vrši se svakog dana u periodu od 7:30 do 9:30
             časova. Ukoliko vam je potrebna lična predaja, kurir će vas
             kontaktirati pre dolaska. Za beskontaktne isporuke, obroci se mogu
@@ -228,43 +236,43 @@
           </p>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
-            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
-            <button type="button" class="btn btn--primary" data-nav="next">Dalje</button>
+            <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>
+            <button type="button" class="btn btn--primary" data-nav="next" data-i18n="navNext">Dalje</button>
           </footer>
         </section>
 
         <!-- ============ STEP 11: Plaćanje ============ -->
         <section class="step" data-step="placanje">
-          <h2 class="step__title">Način plaćanja</h2>
+          <h2 class="step__title" data-i18n="paymentTitle">Način plaćanja</h2>
           <div class="card-grid card-grid--3" data-grid="placanje"></div>
 
           <div class="firma" data-firma-wrap style="display: none">
-            <h3 class="firma__title">Plaćanje preko firme</h3>
-            <p class="firma__desc">
+            <h3 class="firma__title" data-i18n="companyTitle">Plaćanje preko firme</h3>
+            <p class="firma__desc" data-i18n="companyDesc">
               Na mejl koji ste uneli u formi će Vam stići popunjena faktura.
             </p>
             <div class="fields fields--3">
               <label class="field">
-                <span class="field__label">Naziv firme</span>
+                <span class="field__label" data-i18n="companyName">Naziv firme</span>
                 <input type="text" data-firma="nazivFirme" />
               </label>
               <label class="field">
-                <span class="field__label">Adresa firme</span>
+                <span class="field__label" data-i18n="companyAddress">Adresa firme</span>
                 <input type="text" data-firma="adresaFirme" />
               </label>
               <label class="field">
-                <span class="field__label">Email firme</span>
+                <span class="field__label" data-i18n="companyEmail">Email firme</span>
                 <input type="email" data-firma="emailFirme" />
-                <span class="field__hint">(na ovom email-u ćemo vam poslati fakturu)</span>
+                <span class="field__hint" data-i18n="companyEmailHint">(na ovom email-u ćemo vam poslati fakturu)</span>
               </label>
             </div>
             <div class="fields fields--2">
               <label class="field">
-                <span class="field__label">PIB</span>
+                <span class="field__label" data-i18n="companyPib">PIB</span>
                 <input type="text" data-firma="pibFirme" />
               </label>
               <label class="field">
-                <span class="field__label">Matični broj</span>
+                <span class="field__label" data-i18n="companyMb">Matični broj</span>
                 <input type="text" data-firma="maticniBrojFirme" />
               </label>
             </div>
@@ -274,11 +282,11 @@
 
           <label class="consent-row">
             <input type="checkbox" class="consent" />
-            <span>Pročitao/la sam i prihvatam Opšte uslove korišćenja</span>
+            <span data-i18n="consentTerms">Pročitao/la sam i prihvatam Opšte uslove korišćenja</span>
           </label>
           <label class="consent-row">
             <input type="checkbox" class="consent" />
-            <span
+            <span data-i18n="consentPrivacy"
               >Pročitao/la sam Politiku privatnosti i slažem se sa obradom mojih
               ličnih podataka u skladu sa njom</span
             >
@@ -286,8 +294,8 @@
 
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
-            <button type="button" class="btn btn--ghost" data-nav="prev">Nazad</button>
-            <button type="submit" class="btn btn--primary" data-nav="submit">Poruči</button>
+            <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>
+            <button type="submit" class="btn btn--primary" data-nav="submit" data-i18n="order">Poruči</button>
           </footer>
         </section>
 

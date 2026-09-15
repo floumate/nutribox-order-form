@@ -1,4 +1,5 @@
 import { ENV, type Env } from "./env";
+import type { Lang } from "../types";
 
 // =====================================================================
 // PREKIDAČI (privremena stanja).
@@ -39,3 +40,25 @@ export const CARD_PAYMENT_ENABLED = CARD_ENABLED_BY_ENV[ENV];
 
 /** Stranica sa uputstvima za uplatu (koristi se dok je kartica ugašena). */
 export const UPLATNICA_PATH = "/hvala";
+
+/**
+ * Jezici forme, po okruženju.
+ *
+ *   ["sr"]             = forma samo na srpskom, bez izbora jezika
+ *   ["sr", "en", "ru"] = izbor jezika gore desno; forma sama uzme jezik
+ *                        stranice sa koje je otvorena (Webflow /en/, /ru/)
+ *
+ * Jezik se dodaje tek kad je OBJAVLJEN na sajtu tog okruženja. Posle
+ * porudžbine forma vodi na /en/hvala-..., /ru/hvala-..., a te stranice
+ * postoje tek kad Webflow objavi taj locale - inače kupac posle plaćanja
+ * vidi 404.
+ *
+ * Staging ima sve jezike radi provere prevoda. Probna porudžbina na EN/RU
+ * tamo završava na 404 dok EN/RU nisu objavljeni na vuksanvasic.webflow.io.
+ */
+const LANGS_BY_ENV: Record<Env, Lang[]> = {
+  prod: ["sr"],
+  staging: ["sr", "en", "ru"],
+};
+
+export const FORM_LANGS: Lang[] = LANGS_BY_ENV[ENV];

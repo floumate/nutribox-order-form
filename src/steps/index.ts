@@ -325,12 +325,14 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     stepLicneInfo,
     "[data-email-suggest]",
   );
+  const emailError = reqEl<HTMLElement>(stepLicneInfo, "[data-email-error]");
 
   const refreshEmailSuggestion = () => {
     const fix = suggestEmailFix(state.email);
     emailSuggest.dataset.fix = fix;
     emailSuggest.textContent = fix ? `Da li ste mislili ${fix}?` : "";
     emailSuggest.hidden = !fix;
+    emailError.hidden = true; // kupac je promenio mejl → greška više ne važi
   };
 
   const syncEmail = () => {
@@ -664,6 +666,18 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
         }
         if (!EMAIL_REGEX.test(state.email.trim())) {
           showError(stepLicneInfo, "Molimo unesite ispravan email.");
+          return false;
+        }
+        // Domen sa spiska poznatih grešaka u kucanju - ne puštamo dalje dok se
+        // ne ispravi. Poruka stoji uz polje, ispod predloga ispravke.
+        const emailFix = suggestEmailFix(state.email);
+        if (emailFix) {
+          const domen = state.email.slice(state.email.lastIndexOf("@") + 1);
+          emailError.textContent =
+            `Domen "${domen}" izgleda kao greška u kucanju. ` +
+            `Kliknite na predlog iznad ili ispravite mejl.`;
+          emailError.hidden = false;
+          emailInput.focus();
           return false;
         }
         const phone = stepLicneInfo.querySelector<HTMLInputElement>("#telefon");

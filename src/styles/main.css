@@ -927,3 +927,14 @@ body {
 .field__suggest[hidden] {
   display: none;
 }
+
+/* Greška uz mejl polje (pogrešan domen) - stoji ispod predloga ispravke. */
+.field__error {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--error);
+}
+.field__error[hidden] {
+  display: none;
+}

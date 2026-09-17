@@ -126,6 +126,8 @@
             <label class="field">
               <span class="field__label">Email</span>
               <input id="email" type="email" placeholder="petar@email.com" autocomplete="email" />
+              <!-- Predlog ispravke domena (gmial.com → gmail.com). Ne blokira. -->
+              <button type="button" class="field__suggest" data-email-suggest hidden></button>
             </label>
             <!-- NIJE <label> wrapper: intl-tel-input ubaci <button> pre inputa,
                  pa bi label (implicitna asocijacija) vezao PRVI labelable

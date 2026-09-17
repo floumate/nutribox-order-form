@@ -907,3 +907,23 @@ body {
     font-size: 19px;
   }
 }
+
+/* Predlog ispravke mejla - link ispod polja, ne blokira dalje. */
+.field__suggest {
+  align-self: flex-start;
+  margin: -2px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  text-decoration: underline;
+  color: var(--green-dark);
+  cursor: pointer;
+}
+.field__suggest[hidden] {
+  display: none;
+}

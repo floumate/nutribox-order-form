@@ -3,7 +3,13 @@ import { state } from "../lib/state";
 import { urlContext } from "../lib/urlParams";
 import { isPhoneValid } from "../lib/phone";
 import { initDatepicker, initBirthDatepicker } from "../lib/datepicker";
-import { showError, hideError, EMAIL_REGEX } from "../lib/validation";
+import {
+  showError,
+  hideError,
+  EMAIL_REGEX,
+  normalizeEmail,
+  suggestEmailFix,
+} from "../lib/validation";
 import { GOALS } from "../config/goals";
 import { PLANS, getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { DIET_TYPES, getDiet } from "../config/dietTypes";
@@ -311,7 +317,51 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   const stepLicneInfo = reqEl<HTMLElement>(form, '[data-step="licneInformacije"]');
   bindInput(stepLicneInfo, "#ime", (v) => (state.ime = v));
   bindInput(stepLicneInfo, "#prezime", (v) => (state.prezime = v));
-  bindInput(stepLicneInfo, "#email", (v) => (state.email = v));
+  // Mejl: uvek mala slova, i tiho upozorenje na česte greške u domenu.
+  // Upozorenje NE blokira dalje - server nam ne može reći da li sanduče
+  // postoji, pa se ispravna adresa nikad ne sme zaustaviti.
+  const emailInput = reqEl<HTMLInputElement>(stepLicneInfo, "#email");
+  const emailSuggest = reqEl<HTMLButtonElement>(
+    stepLicneInfo,
+    "[data-email-suggest]",
+  );
+
+  const refreshEmailSuggestion = () => {
+    const fix = suggestEmailFix(state.email);
+    emailSuggest.dataset.fix = fix;
+    emailSuggest.textContent = fix ? `Da li ste mislili ${fix}?` : "";
+    emailSuggest.hidden = !fix;
+  };
+
+  const syncEmail = () => {
+    const lower = emailInput.value.toLowerCase();
+    if (lower !== emailInput.value) {
+      // Mala slova su iste dužine, pa kursor ostaje gde je bio. Na nekim
+      // browserima selection ne radi za type="email" - tada pada na kraj.
+      const start = emailInput.selectionStart;
+      const end = emailInput.selectionEnd;
+      emailInput.value = lower;
+      try {
+        if (start !== null && end !== null) emailInput.setSelectionRange(start, end);
+      } catch {
+        /* browser ne dozvoljava selection na ovom tipu polja */
+      }
+    }
+    state.email = normalizeEmail(emailInput.value);
+    refreshEmailSuggestion();
+  };
+
+  emailInput.addEventListener("input", syncEmail);
+  emailInput.addEventListener("change", syncEmail); // autofill
+
+  emailSuggest.addEventListener("click", () => {
+    const fix = emailSuggest.dataset.fix ?? "";
+    if (!fix) return;
+    emailInput.value = fix;
+    state.email = fix;
+    refreshEmailSuggestion();
+    emailInput.focus();
+  });
   bindInput(stepLicneInfo, "#telefon", (v) => (state.telefon = v));
   const birthDateInput = reqEl<HTMLInputElement>(stepLicneInfo, "#datumRodjenja");
   initBirthDatepicker(birthDateInput, (v) => (state.datumRodjenja = v));

@@ -127,16 +127,22 @@ export function trackVisit(): void {
 
     const json = JSON.stringify({ visit_id: visitId(), setter });
 
-    if (typeof navigator.sendBeacon === "function") {
-      const blob = new Blob([json], { type: "application/json" });
-      if (navigator.sendBeacon(VISIT_WEBHOOK, blob)) return;
-    }
-
+    // NE sendBeacon, iako je za ovakvo javljanje napravljen.
+    //
+    // Beacon zahtev uvek ide sa credentials "include", a servis odgovara sa
+    // Access-Control-Allow-Origin: *. Browser tu kombinaciju odbija već na
+    // preflight-u, pa zahtev nikad ne ode - a beacon pri tom vrati true, jer
+    // samo javlja da ga je stavio u red. Zato je merenje mesecima ćutalo:
+    // porudžbine su stizale, dolasci nijedan (provereno 18.09.2026).
+    //
+    // fetch sa keepalive radi isti posao (preživi odlazak sa strane), a
+    // credentials "omit" je ono što wildcard CORS dozvoljava.
     void fetch(VISIT_WEBHOOK, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: json,
       keepalive: true,
+      credentials: "omit",
     }).catch(() => {});
   } catch {
     /* merenje nikad ne sme da obori formu */

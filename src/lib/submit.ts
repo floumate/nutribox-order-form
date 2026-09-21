@@ -45,8 +45,14 @@ function setButtonLoading(btn: HTMLButtonElement, loading: boolean, original: st
   btn.textContent = loading ? "Učitavanje..." : original;
 }
 
-/** Koliko najduže čekamo potvrdu od Make-a pre nego što javimo grešku. */
-const DELIVERY_WAIT_MS = 3000;
+/**
+ * Koliko najduže čekamo potvrdu od Make-a pre nego što javimo grešku.
+ *
+ * 6s namerno: slanje pokušava tri puta (odmah, pa posle 1s, pa posle 3s),
+ * i sva tri staju u ovaj prozor. Bolje da kupac sačeka nekoliko sekundi
+ * nego da mu izađe greška zbog jednog lošeg trenutka na mreži.
+ */
+const DELIVERY_WAIT_MS = 6000;
 
 /**
  * Isti order_id kroz sve pokušaje iste porudžbine.

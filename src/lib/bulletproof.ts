@@ -89,13 +89,47 @@ export function cleanQueue(): void {
   );
 }
 
-function sendViaBeacon(data: OrderData): boolean {
+/**
+ * Beacon kao form-encoded - JEDINI oblik koji ovde stvarno stigne.
+ *
+ * Izmereno 21.09.2026. na test webhook-u (Make, ista platforma):
+ *   beacon + application/json  → nikad ne stigne. Nije "prost" zahtev, pa
+ *     traži preflight, a Make odgovara sa `Access-Control-Allow-Origin: *`
+ *     dok beacon uvek ide sa credentials "include" - browser to odbije.
+ *     sendBeacon svejedno vrati true, pa se greška ne vidi.
+ *   beacon + text/plain        → stigne, ali Make NE parsira telo: sva
+ *     polja su prazna.
+ *   beacon + form-encoded      → stigne I Make ga parsira u ista polja kao
+ *     JSON. Zato ovaj oblik.
+ *
+ * Payload je ravan (samo tekst, brojevi i true/false), pa ga form-encoded
+ * prenosi bez gubitka; sve što ipak ne bi bilo prosto ide kao JSON tekst.
+ */
+export function sendViaBeaconForm(
+  url: string,
+  data: Record<string, unknown>,
+): boolean {
   try {
-    const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-    return navigator.sendBeacon(ENDPOINTS.make, blob);
+    if (typeof navigator.sendBeacon !== "function") return false;
+    const form = new URLSearchParams();
+    for (const [key, value] of Object.entries(data)) {
+      if (value === null || value === undefined) continue;
+      form.set(
+        key,
+        typeof value === "object" ? JSON.stringify(value) : String(value),
+      );
+    }
+    const blob = new Blob([form.toString()], {
+      type: "application/x-www-form-urlencoded",
+    });
+    return navigator.sendBeacon(url, blob);
   } catch {
     return false;
   }
+}
+
+function sendViaBeacon(data: OrderData): boolean {
+  return sendViaBeaconForm(ENDPOINTS.make, data);
 }
 
 function sendViaFetch(data: OrderData, timeoutMs = 8000): Promise<Response> {
@@ -139,15 +173,13 @@ export interface SubmitHandle {
 /**
  * Glavni submit.
  *
- * ⚠️ Beacon je OVDE MRTAV, iako je za ovo napravljen: Make odgovara sa
- * `Access-Control-Allow-Origin: *`, a sendBeacon zahtev uvek ide sa
- * credentials "include" — browser tu kombinaciju odbija na preflight-u i
- * zahtev nikad ne ode. sendBeacon pri tom vraća true, pa se ne vidi ništa.
- * Zaglavlja su na Make-ovom serveru i ne možemo ih menjati. Poziv ostaje
- * jer ne košta ništa i proradiće ako Make ikad promeni odgovor.
+ * Dva nezavisna kanala idu UVEK, jer nijedan sam nije dovoljan:
+ *   - beacon (form-encoded) preživi zatvaranje strane, ali ne kaže da li je
+ *     stigao;
+ *   - fetch kaže da li je stigao, ali ga browser ume prekinuti pri odlasku.
+ * Make dedupuje po order_id, pa dupla dostava ne pravi duplu porudžbinu.
  *
- * Zato POZIVALAC mora da sačeka `delivered` pre nego što odvede kupca sa
- * stranice - inače browser ume da prekine fetch u letu i porudžbina nestane.
+ * Uz to POZIVALAC čeka `delivered` pre nego što odvede kupca sa stranice.
  */
 export function bulletproofSubmit(formData: OrderData): SubmitHandle {
   if (!formData.order_id) formData.order_id = generateOrderId();

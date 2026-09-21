@@ -1,6 +1,25 @@
 import { ENDPOINTS } from "../config/endpoints";
 import { runtime } from "./runtime";
 import { buildPayload } from "./payload";
+import { sendViaBeaconForm } from "./bulletproof";
+
+/**
+ * Slanje na abandoned webhook.
+ *
+ * Do 21.09.2026. je ovde stajao `sendBeacon(JSON.stringify(...))`. Takav
+ * zahtev Make prima kao običan tekst i NE parsira ga - polja su stizala
+ * prazna. Form-encoded beacon Make razume; fetch je rezerva kad beacon ne
+ * postoji. Samo jedan kanal, jer abandoned nema order_id za dedup.
+ */
+function sendAbandoned(data: Record<string, unknown>): void {
+  if (sendViaBeaconForm(ENDPOINTS.abandoned, data)) return;
+  void fetch(ENDPOINTS.abandoned, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    keepalive: true,
+  }).catch(() => {});
+}
 
 // =====================================================================
 // ABANDONED CART
@@ -83,11 +102,7 @@ function send(): void {
   if (Object.keys(formData).length === 0) return;
   abandonedSent = true;
   formData.form_status = "abandoned";
-  try {
-    navigator.sendBeacon(ENDPOINTS.abandoned, JSON.stringify(formData));
-  } catch {
-    /* ignore */
-  }
+  sendAbandoned(formData);
   clearSession();
 }
 
@@ -132,11 +147,7 @@ export function initAbandoned(): void {
   loadSession();
   if (Object.keys(formData).length > 0) {
     formData.form_status = "abandoned";
-    try {
-      navigator.sendBeacon(ENDPOINTS.abandoned, JSON.stringify(formData));
-    } catch {
-      /* ignore */
-    }
+    sendAbandoned(formData);
     clearSession();
     formData = {};
   }

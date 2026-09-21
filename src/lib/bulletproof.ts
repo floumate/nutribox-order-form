@@ -128,24 +128,46 @@ function sendWithRetry(data: OrderData, attempt = 0): Promise<Response> {
   });
 }
 
-/** Glavni submit - beacon odmah + fetch retry u pozadini. Vraća order_id. */
-export function bulletproofSubmit(formData: OrderData): string {
+export interface SubmitHandle {
+  /** Jedinstveni id porudžbine (Make po njemu radi dedup). */
+  orderId: string;
+  /** true kad je Make potvrdio prijem, false kad prvi krug nije uspeo. */
+  delivered: Promise<boolean>;
+}
+
+/**
+ * Glavni submit.
+ *
+ * ⚠️ Beacon je OVDE MRTAV, iako je za ovo napravljen: Make odgovara sa
+ * `Access-Control-Allow-Origin: *`, a sendBeacon zahtev uvek ide sa
+ * credentials "include" — browser tu kombinaciju odbija na preflight-u i
+ * zahtev nikad ne ode. sendBeacon pri tom vraća true, pa se ne vidi ništa.
+ * Zaglavlja su na Make-ovom serveru i ne možemo ih menjati. Poziv ostaje
+ * jer ne košta ništa i proradiće ako Make ikad promeni odgovor.
+ *
+ * Zato POZIVALAC mora da sačeka `delivered` pre nego što odvede kupca sa
+ * stranice - inače browser ume da prekine fetch u letu i porudžbina nestane.
+ */
+export function bulletproofSubmit(formData: OrderData): SubmitHandle {
   if (!formData.order_id) formData.order_id = generateOrderId();
   formData.submitted_at = new Date().toISOString();
   formData.user_agent = navigator.userAgent;
   formData.attempt_source = "initial_submit";
 
+  const orderId = formData.order_id as string;
+
   saveToQueue(formData); // sloj 1: localStorage PRE network-a
-  sendViaBeacon(formData); // sloj 2: beacon (preživi navigaciju)
+  sendViaBeacon(formData); // sloj 2: beacon (vidi upozorenje gore)
 
   // sloj 3: fetch + retry u pozadini
-  sendWithRetry(formData)
-    .then(() => markConfirmed(formData.order_id as string))
-    .catch(() => {
-      /* beacon je verovatno prošao; queue retry-uje na sledećem loadu */
-    });
+  const delivered = sendWithRetry(formData)
+    .then(() => {
+      markConfirmed(orderId);
+      return true;
+    })
+    .catch(() => false); // queue pokušava ponovo na sledećem otvaranju forme
 
-  return formData.order_id as string;
+  return { orderId, delivered };
 }
 
 /** Recovery - pokreće se na svakom page loadu. */

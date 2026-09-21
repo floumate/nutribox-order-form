@@ -45,6 +45,25 @@ function setButtonLoading(btn: HTMLButtonElement, loading: boolean, original: st
   btn.textContent = loading ? "Učitavanje..." : original;
 }
 
+/** Koliko najduže čekamo potvrdu od Make-a pre nego što vodimo kupca dalje. */
+const DELIVERY_WAIT_MS = 3000;
+
+/**
+ * Sačekaj potvrdu prijema, ali kupca ne drži duže od DELIVERY_WAIT_MS.
+ *
+ * Ako potvrda ne stigne na vreme, svejedno se ide dalje: porudžbina je u
+ * localStorage redu, slanje se nastavlja u pozadini i ponavlja se pri
+ * sledećem otvaranju forme. Bolje pustiti kupca nego ga držati na ekranu.
+ */
+function waitForDelivery(delivered: Promise<boolean>): Promise<boolean> {
+  return Promise.race([
+    delivered,
+    new Promise<boolean>((resolve) =>
+      window.setTimeout(() => resolve(false), DELIVERY_WAIT_MS),
+    ),
+  ]);
+}
+
 export function attachSubmit(form: HTMLFormElement): void {
   const paymentStep = form.querySelector<HTMLElement>('[data-step="placanje"]');
 
@@ -99,9 +118,14 @@ export function attachSubmit(form: HTMLFormElement): void {
     const payload = buildPayload();
     const pkg = state.paket ? getPackage(state.paket) : undefined;
 
+    const btn =
+      form.querySelector<HTMLButtonElement>('[data-nav="submit"]') ??
+      form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const originalText = btn?.textContent ?? "Plati";
+
     // ---------------- POUZEĆE / FIRMA ----------------
     if (nacin !== "Kartica") {
-      const orderId = bulletproofSubmit(payload);
+      const { orderId, delivered } = bulletproofSubmit(payload);
 
       // Pouzeće → jedinstvena /hvala-pouzece (cena stiže kao ?cena=). Firma → po paketu.
       const tyPath =
@@ -123,19 +147,22 @@ export function attachSubmit(form: HTMLFormElement): void {
       if (tyCena != null) tyParams.set("cena", formatPrice(tyCena));
       tyParams.set("order_id", orderId);
 
+      // Sačekaj da Make potvrdi prijem PRE odlaska na "hvala" stranicu.
+      // Bez ovoga browser ume da prekine zahtev u letu, a beacon ne uskače
+      // jer ga Make-ov CORS odbija (vidi bulletproof.ts). Dugme je u
+      // međuvremenu na "Učitavanje...", da niko ne klikne dvaput.
+      if (btn) setButtonLoading(btn, true, originalText);
+      await waitForDelivery(delivered);
+
       navigateTop(ENDPOINTS.thankYouBase + tyPath + "?" + tyParams.toString());
       return;
     }
 
     // ---------------- KARTICA ----------------
-    const btn =
-      form.querySelector<HTMLButtonElement>('[data-nav="submit"]') ??
-      form.querySelector<HTMLButtonElement>('button[type="submit"]');
-    const originalText = btn?.textContent ?? "Plati";
     if (btn) setButtonLoading(btn, true, originalText);
 
     // Bulletproof na Make ODMAH (ne čeka Raiffeisen).
-    bulletproofSubmit(payload);
+    const { delivered } = bulletproofSubmit(payload);
 
     // PRIVREMENO (firma zatvorena): bez raifpay-a → uputstva za uplatu.
     // Sve ispod ovog bloka je raifpay kod - netaknut, samo nedostižan.
@@ -162,6 +189,7 @@ export function attachSubmit(form: HTMLFormElement): void {
       if (cena != null && puna != null && cena !== puna) up.set("popust", "1");
       up.set("order_id", payload.order_id as string);
 
+      await waitForDelivery(delivered); // isti razlog kao kod pouzeća
       navigateTop(
         ENDPOINTS.thankYouBase + UPLATNICA_PATH + "?" + up.toString(),
       );
@@ -205,6 +233,9 @@ export function attachSubmit(form: HTMLFormElement): void {
       }
       const data = (await response.json()) as { redirectUrl?: string };
       if (data.redirectUrl) {
+        // Raiffeisen odvodi kupca sa stranice - i ovde prvo potvrda od Make-a.
+        // Obično je već stigla dok je trajao checkout, pa se ne čeka ništa.
+        await waitForDelivery(delivered);
         navigateTop(data.redirectUrl);
       } else {
         throw new Error("Nema redirectUrl u odgovoru");

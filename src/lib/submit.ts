@@ -135,7 +135,9 @@ export function attachSubmit(form: HTMLFormElement): void {
     }
 
     hideError(paymentStep);
-    cancelAbandoned(); // validacija prošla → ugasi abandoned
+    // Abandoned se NE gasi ovde, nego tek kad Make potvrdi porudžbinu.
+    // Ako slanje padne a kupac zatvori stranicu, abandoned je poslednje što
+    // nam ostavlja njegov broj telefona - i tada nam najviše treba.
 
     const payload = buildPayload();
     if (pendingOrderId) payload.order_id = pendingOrderId; // ponovni pokušaj
@@ -184,6 +186,7 @@ export function attachSubmit(form: HTMLFormElement): void {
         return;
       }
 
+      cancelAbandoned(); // potvrđeno → nema više razloga za abandoned
       navigateTop(ENDPOINTS.thankYouBase + tyPath + "?" + tyParams.toString());
       return;
     }
@@ -225,6 +228,7 @@ export function attachSubmit(form: HTMLFormElement): void {
         showError(paymentStep, DELIVERY_FAILED_MESSAGE);
         return;
       }
+      cancelAbandoned();
       navigateTop(
         ENDPOINTS.thankYouBase + UPLATNICA_PATH + "?" + up.toString(),
       );
@@ -278,6 +282,7 @@ export function attachSubmit(form: HTMLFormElement): void {
           showError(paymentStep, DELIVERY_FAILED_MESSAGE);
           return;
         }
+        cancelAbandoned();
         navigateTop(data.redirectUrl);
       } else {
         throw new Error("Nema redirectUrl u odgovoru");

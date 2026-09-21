@@ -45,15 +45,31 @@ function setButtonLoading(btn: HTMLButtonElement, loading: boolean, original: st
   btn.textContent = loading ? "Učitavanje..." : original;
 }
 
-/** Koliko najduže čekamo potvrdu od Make-a pre nego što vodimo kupca dalje. */
+/** Koliko najduže čekamo potvrdu od Make-a pre nego što javimo grešku. */
 const DELIVERY_WAIT_MS = 3000;
+
+/**
+ * Isti order_id kroz sve pokušaje iste porudžbine.
+ *
+ * Bez ovoga bi svaki ponovni klik napravio novu porudžbinu, pa bi dedup u
+ * Make-u (po order_id) prestao da radi i kupac bi ušao dvaput.
+ */
+let pendingOrderId = "";
+
+/**
+ * Bez broja porudžbine: kad slanje ne prođe, ona nigde nije ni upisana, pa
+ * taj broj nema gde da se pronađe - kupcu bi bio samo zbunjujuć.
+ */
+const DELIVERY_FAILED_MESSAGE =
+  "Porudžbina nije potvrđena. Proverite internet i kliknite Poruči ponovo. " +
+  "Ako ni tada ne prođe, pozovite nas na 0800 001 007 i unećemo je ručno.";
 
 /**
  * Sačekaj potvrdu prijema, ali kupca ne drži duže od DELIVERY_WAIT_MS.
  *
- * Ako potvrda ne stigne na vreme, svejedno se ide dalje: porudžbina je u
- * localStorage redu, slanje se nastavlja u pozadini i ponavlja se pri
- * sledećem otvaranju forme. Bolje pustiti kupca nego ga držati na ekranu.
+ * Vraća false kad potvrda ne stigne na vreme - tada pozivalac prikazuje
+ * grešku i NE vodi kupca dalje. Porudžbina ostaje u localStorage redu i
+ * slanje se nastavlja u pozadini, ali na to se više ne oslanjamo.
  */
 function waitForDelivery(delivered: Promise<boolean>): Promise<boolean> {
   return Promise.race([
@@ -116,6 +132,7 @@ export function attachSubmit(form: HTMLFormElement): void {
     cancelAbandoned(); // validacija prošla → ugasi abandoned
 
     const payload = buildPayload();
+    if (pendingOrderId) payload.order_id = pendingOrderId; // ponovni pokušaj
     const pkg = state.paket ? getPackage(state.paket) : undefined;
 
     const btn =
@@ -151,8 +168,15 @@ export function attachSubmit(form: HTMLFormElement): void {
       // Bez ovoga browser ume da prekine zahtev u letu, a beacon ne uskače
       // jer ga Make-ov CORS odbija (vidi bulletproof.ts). Dugme je u
       // međuvremenu na "Učitavanje...", da niko ne klikne dvaput.
+      pendingOrderId = orderId;
       if (btn) setButtonLoading(btn, true, originalText);
-      await waitForDelivery(delivered);
+      if (!(await waitForDelivery(delivered))) {
+        // Bez potvrde NE vodimo kupca na "hvala" - to je bio tihi gubitak
+        // porudžbine. Ponovni klik šalje isti order_id, pa dedup radi.
+        if (btn) setButtonLoading(btn, false, originalText);
+        showError(paymentStep, DELIVERY_FAILED_MESSAGE);
+        return;
+      }
 
       navigateTop(ENDPOINTS.thankYouBase + tyPath + "?" + tyParams.toString());
       return;
@@ -162,7 +186,8 @@ export function attachSubmit(form: HTMLFormElement): void {
     if (btn) setButtonLoading(btn, true, originalText);
 
     // Bulletproof na Make ODMAH (ne čeka Raiffeisen).
-    const { delivered } = bulletproofSubmit(payload);
+    const { orderId: cardOrderId, delivered } = bulletproofSubmit(payload);
+    pendingOrderId = cardOrderId;
 
     // PRIVREMENO (firma zatvorena): bez raifpay-a → uputstva za uplatu.
     // Sve ispod ovog bloka je raifpay kod - netaknut, samo nedostižan.
@@ -189,7 +214,11 @@ export function attachSubmit(form: HTMLFormElement): void {
       if (cena != null && puna != null && cena !== puna) up.set("popust", "1");
       up.set("order_id", payload.order_id as string);
 
-      await waitForDelivery(delivered); // isti razlog kao kod pouzeća
+      if (!(await waitForDelivery(delivered))) {
+        if (btn) setButtonLoading(btn, false, originalText);
+        showError(paymentStep, DELIVERY_FAILED_MESSAGE);
+        return;
+      }
       navigateTop(
         ENDPOINTS.thankYouBase + UPLATNICA_PATH + "?" + up.toString(),
       );
@@ -235,7 +264,14 @@ export function attachSubmit(form: HTMLFormElement): void {
       if (data.redirectUrl) {
         // Raiffeisen odvodi kupca sa stranice - i ovde prvo potvrda od Make-a.
         // Obično je već stigla dok je trajao checkout, pa se ne čeka ništa.
-        await waitForDelivery(delivered);
+        //
+        // Ako potvrde nema, NE puštamo kupca na plaćanje: gore je naplatiti
+        // porudžbinu koju nemamo nego tražiti da klikne ponovo.
+        if (!(await waitForDelivery(delivered))) {
+          if (btn) setButtonLoading(btn, false, originalText);
+          showError(paymentStep, DELIVERY_FAILED_MESSAGE);
+          return;
+        }
         navigateTop(data.redirectUrl);
       } else {
         throw new Error("Nema redirectUrl u odgovoru");

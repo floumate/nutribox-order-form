@@ -56,7 +56,8 @@ function generateOrderId(): string {
 }
 
 function saveToQueue(orderData: OrderData): void {
-  const queue = readQueue();
+  // Ponovni pokušaj nosi ISTI order_id - ne gomilaj isti red dvaput.
+  const queue = readQueue().filter((i) => i.order_id !== orderData.order_id);
   queue.push({
     order_id: orderData.order_id as string,
     data: orderData,

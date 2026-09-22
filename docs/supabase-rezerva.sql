@@ -134,7 +134,9 @@ begin
 
     -- `attachments` sa bojom daje crvenu traku sa strane, a `header` veliki
     -- naslov - poruka se izdvaja od svega ostalog u kanalu.
-    perform net.http_post(
+    -- Bez imena šeme: `pg_net` može da bude instaliran u `net` ili u
+    -- `extensions`, a oba su u search_path-u funkcije (vidi `set` gore).
+    perform http_post(
       url     := url,
       headers := '{"Content-Type": "application/json"}'::jsonb,
       body    := jsonb_build_object(
@@ -232,4 +234,28 @@ select cron.schedule(
 --
 --   -- proba javljanja odmah, bez čekanja
 --   select public.javi_nepotvrdjene();
+-- ---------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------
+-- KAD PORUKA NE STIGNE - pokreni ovo redom, odgovor kaže gde je zapelo:
+--
+--   -- 1) da li je Slack adresa upisana (ne sme da piše OVDE_NALEPI...)
+--   select kljuc, left(vrednost, 40) from public.podesavanja;
+--
+--   -- 2) ima li uopšte nepotvrđenih redova starijih od 5 minuta
+--   select order_id, ime, napravljeno, potvrdjeno, javljeno
+--   from public.porudzbine order by napravljeno desc limit 10;
+--
+--   -- 3) da li je posao zakazan i da li se izvršava
+--   select jobid, jobname, schedule, active from cron.job;
+--   select status, return_message, start_time
+--   from cron.job_run_details order by start_time desc limit 5;
+--
+--   -- 4) u kojoj šemi je pg_net (zato se zove bez imena šeme)
+--   select extname, extnamespace::regnamespace as sema
+--   from pg_extension where extname in ('pg_net', 'pg_cron');
+--
+--   -- 5) šta je Slack odgovorio na poslatu poruku
+--   select id, status_code, left(content, 200) as odgovor, created
+--   from net._http_response order by created desc limit 5;
 -- ---------------------------------------------------------------------

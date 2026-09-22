@@ -156,8 +156,13 @@ begin
                 'fields', jsonb_build_array(
                   jsonb_build_object('type', 'mrkdwn', 'text',
                     '*Kupac*' || chr(10) || coalesce(r.ime, '') || ' ' || coalesce(r.prezime, '')),
+                  -- Telefon kao tel: link - na telefonu se zove jednim dodirom.
                   jsonb_build_object('type', 'mrkdwn', 'text',
-                    '*Telefon*' || chr(10) || coalesce(r.telefon, '')),
+                    '*Telefon*' || chr(10) ||
+                    case
+                      when coalesce(r.telefon, '') = '' then '-'
+                      else '<tel:' || r.telefon || '|' || r.telefon || '>'
+                    end),
                   jsonb_build_object('type', 'mrkdwn', 'text',
                     '*Paket*' || chr(10) || coalesce(r.paket, '')),
                   jsonb_build_object('type', 'mrkdwn', 'text',
@@ -168,11 +173,25 @@ begin
                     '*Adresa*' || chr(10) || coalesce(r.adresa, ''))
                 )
               ),
+              -- Dva puta do istog cilja: ili se porudžbina unese ručno iz
+              -- podataka koji već stoje u tabeli, ili kupac dobije link i
+              -- sam je ponovo pošalje.
               jsonb_build_object(
                 'type', 'section',
                 'text', jsonb_build_object('type', 'mrkdwn', 'text',
-                  ':telephone_receiver: *Pozovi kupca i unesi porudžbinu ručno.*' || chr(10) ||
-                  'Svi podaci su u Supabase tabeli `porudzbine`.')
+                  '*Šta sad:*' || chr(10) ||
+                  ':telephone_receiver: pozovi kupca i unesi porudžbinu ručno — svi podaci su u Supabase tabeli `porudzbine`' || chr(10) ||
+                  ':link: ili mu pošalji formu ponovo: https://nutribox.rs/order-form')
+              ),
+              jsonb_build_object(
+                'type', 'actions',
+                'elements', jsonb_build_array(
+                  jsonb_build_object(
+                    'type', 'button',
+                    'text', jsonb_build_object('type', 'plain_text', 'text', 'Otvori formu', 'emoji', true),
+                    'url', 'https://nutribox.rs/order-form'
+                  )
+                )
               ),
               jsonb_build_object(
                 'type', 'context',

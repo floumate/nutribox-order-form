@@ -28,3 +28,11 @@ export const BACKUP_KEY: string = "sb_publishable_Tv9icqg5wMWCKWx4exXqew_OO9z8jA
 
 /** Naziv tabele iz SQL-a. */
 export const BACKUP_TABLE = "porudzbine";
+
+/**
+ * Tabela sa tragom kroz korake (docs/supabase-koraci.sql).
+ *
+ * Tu ide zapis pri svakom prelasku na sledeći korak, da bismo imali ime i
+ * telefon i kad poslednji klik nikad ne stigne nikuda. Ne pali alarm.
+ */
+export const BACKUP_STEPS_TABLE = "koraci";

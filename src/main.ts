@@ -6,6 +6,7 @@ import { attachSubmit } from "./lib/submit";
 import { initAbandoned } from "./lib/abandoned";
 import { startRecovery } from "./lib/bulletproof";
 import { trackVisit } from "./lib/setterTracking";
+import { saveStep } from "./lib/backup";
 
 function boot(): void {
   const form = document.querySelector<HTMLFormElement>("#nutribox-form");
@@ -18,7 +19,9 @@ function boot(): void {
   // Koraci + engine
   const steps = buildSteps(form);
   const progress = document.querySelector<HTMLElement>("[data-progress]");
-  new StepEngine(steps, progress).init();
+  // Svaki završen korak ostavlja trag u Supabase-u: ako kupcu veza pukne
+  // na poslednjem kliku, i dalje imamo ime i telefon da ga pozovemo.
+  new StepEngine(steps, progress, (stepId) => saveStep(stepId)).init();
 
   // Submit + abandoned + recovery queue
   attachSubmit(form);

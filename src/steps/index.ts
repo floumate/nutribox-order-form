@@ -10,6 +10,7 @@ import {
   normalizeEmail,
   suggestEmailFix,
 } from "../lib/validation";
+import { saveStep } from "../lib/backup";
 import { GOALS } from "../config/goals";
 import { PLANS, getPlan, getMacros, isMaxPlan } from "../config/plans";
 import { DIET_TYPES, getDiet } from "../config/dietTypes";
@@ -574,6 +575,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       }
       btn.textContent = "Izmeni";
       updateTotal();
+      saveStep("izmena-u-pregledu"); // izmena pred slanje ide u trag
     }
   });
 

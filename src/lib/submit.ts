@@ -3,7 +3,7 @@ import { urlContext } from "./urlParams";
 import { buildPayload } from "./payload";
 import { bulletproofSubmit } from "./bulletproof";
 import { cancelAbandoned } from "./abandoned";
-import { backupOrder, markBackupConfirmed } from "./backup";
+import { backupOrder, getWorkingOrderId, markBackupConfirmed } from "./backup";
 import { getPackage } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
 import { isMaxPlan } from "../config/plans";
@@ -141,7 +141,9 @@ export function attachSubmit(form: HTMLFormElement): void {
     // nam ostavlja njegov broj telefona - i tada nam najviše treba.
 
     const payload = buildPayload();
-    if (pendingOrderId) payload.order_id = pendingOrderId; // ponovni pokušaj
+    // Isti broj koji nose i zapisi o koracima. Pri ponovnom pokušaju ostaje
+    // onaj prvi, da dedup u Make-u i dalje prepozna istu porudžbinu.
+    payload.order_id = pendingOrderId || getWorkingOrderId();
     const pkg = state.paket ? getPackage(state.paket) : undefined;
 
     const btn =

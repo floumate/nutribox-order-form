@@ -39,13 +39,20 @@ function scrollToTop(): void {
 export class StepEngine {
   private steps: StepConfig[];
   private progressEl: HTMLElement | null;
+  /** Poziva se kad korak prođe validaciju, pre prelaska na sledeći. */
+  private onAdvance: ((stepId: string) => void) | undefined;
   private index = 0;
   /** Prvi prikaz (mount) - bez scroll-a i bez fade animacije, da nema "flash"-a. */
   private booted = false;
 
-  constructor(steps: StepConfig[], progressEl: HTMLElement | null) {
+  constructor(
+    steps: StepConfig[],
+    progressEl: HTMLElement | null,
+    onAdvance?: (stepId: string) => void,
+  ) {
     this.steps = steps;
     this.progressEl = progressEl;
+    this.onAdvance = onAdvance;
   }
 
   init(): void {
@@ -93,6 +100,8 @@ export class StepEngine {
   next(): void {
     const step = this.steps[this.index];
     if (step?.validate && !step.validate()) return;
+    // Korak je završen i ispravan - zapiši šta je do sada popunjeno.
+    if (step) this.onAdvance?.(step.id);
     let i = this.index + 1;
     while (i < this.steps.length && this.isSkipped(i)) i++;
     if (i < this.steps.length) this.show(i);

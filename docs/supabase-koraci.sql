@@ -165,7 +165,11 @@ grant execute on function public.upisi_korak(text, text, jsonb) to anon;
 -- ---------------------------------------------------------------------
 -- Pogled: ko je počeo formu i nije je završio. Spisak za zvanje.
 -- ---------------------------------------------------------------------
-create or replace view public.nezavrsene as
+-- Prvo se uklanja stari: `create or replace` ne ume da promeni redosled
+-- ni nazive kolona pogleda. Brisanje pogleda ne dira nikakve podatke.
+drop view if exists public.nezavrsene;
+
+create view public.nezavrsene as
 select
   k.vreme  as poslednji_put,
   k.korak  as stao_na,

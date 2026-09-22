@@ -286,7 +286,7 @@ begin
     headers := '{"Content-Type": "application/json"}'::jsonb,
     body    := jsonb_build_object(
       'text', format(
-        'Nedeljna provera: sistem radi. Porudžbina: %s, nepotvrđenih: %s, započeto pa nezavršeno: %s (7 dana).',
+        'Sistem za porudžbine radi. Za 7 dana: %s porudžbina, %s nije stiglo u Make, %s počelo formu a nije poručilo.',
         ukupno, nepotvrdjene, zapocete
       ),
       'attachments', jsonb_build_array(
@@ -296,18 +296,23 @@ begin
             jsonb_build_object(
               'type', 'section',
               'text', jsonb_build_object('type', 'mrkdwn', 'text',
-                ':white_check_mark: *Nedeljna provera - sistem radi*' || chr(10) ||
-                'Ako ova poruka neke nedelje ne stigne, proveri javljanje o porudžbinama.')
+                ':white_check_mark: *Sistem za porudžbine radi*' || chr(10) ||
+                'Ova poruka stiže svakog ponedeljka i služi kao dokaz da javljanje radi. ' ||
+                'Ako je neke nedelje nema, nije da nema porudžbina - nego se javljanje pokvarilo i treba ga proveriti.')
             ),
             jsonb_build_object(
               'type', 'section',
               'fields', jsonb_build_array(
                 jsonb_build_object('type', 'mrkdwn', 'text',
-                  '*Porudžbina (7 dana)*' || chr(10) || ukupno),
+                  '*Porudžbina kroz formu*' || chr(10) || ukupno ||
+                  '  _(poslednjih 7 dana)_'),
                 jsonb_build_object('type', 'mrkdwn', 'text',
-                  '*Nepotvrđenih*' || chr(10) || nepotvrdjene),
+                  '*Nije stiglo u Make*' || chr(10) || nepotvrdjene ||
+                  case when nepotvrdjene = 0 then '  _(tako i treba)_'
+                       else '  :warning: _(proveri, za svaku je stigla crvena poruka)_' end),
                 jsonb_build_object('type', 'mrkdwn', 'text',
-                  '*Započeto, nezavršeno*' || chr(10) || zapocete)
+                  '*Počeli formu, nisu poručili*' || chr(10) || zapocete ||
+                  '  _(spisak: tabela nezavrsene - vredi ih pozvati)_')
               )
             )
           )

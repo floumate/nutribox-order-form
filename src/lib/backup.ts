@@ -1,6 +1,6 @@
 import {
   BACKUP_KEY,
-  BACKUP_STEPS_TABLE,
+  BACKUP_STEP_FN,
   BACKUP_TABLE,
   BACKUP_URL,
 } from "../config/backup";
@@ -112,28 +112,28 @@ export function backupOrder(payload: OrderData): void {
 }
 
 /**
- * Zapis o koraku. Samo DODAJE - postojeći zapisi se ne diraju, pa vraćanje
- * unazad i izmena odgovora prosto ostavljaju nov, noviji zapis.
+ * Dopuna reda o toku popunjavanja - jedan red po kupcu.
+ *
+ * Ide kroz funkciju `upisi_korak`, ne kroz tabelu: ključ iz forme nema
+ * nikakvo pravo nad tabelom, pa niko ko ga pročita iz koda ne može da
+ * prepravi ili obriše tuđe podatke. Funkcija sama izvuče polja iz
+ * payload-a, pa se ovde ne prepisuje mapiranje.
  */
 export function saveStep(korak: string): void {
   if (!ukljuceno()) return;
   try {
     const payload = buildPayload();
     payload.order_id = getWorkingOrderId();
-    const p = vidljivaPolja(payload);
-    posalji(BACKUP_STEPS_TABLE, {
-      order_id: payload.order_id,
-      korak,
-      ime: p.ime,
-      prezime: p.prezime,
-      telefon: p.telefon,
-      email: p.email,
-      plan: p.plan,
-      paket: p.paket,
-      nacin_placanja: p.nacin_placanja,
-      adresa: p.adresa,
-      podaci: payload,
-    });
+    void fetch(`${BACKUP_URL}/rest/v1/rpc/${BACKUP_STEP_FN}`, {
+      method: "POST",
+      headers: zaglavlja(),
+      body: JSON.stringify({
+        p_order_id: payload.order_id,
+        p_korak: korak,
+        p_podaci: payload,
+      }),
+      keepalive: true,
+    }).catch(() => {});
   } catch {
     /* isto - tiho */
   }

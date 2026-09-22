@@ -12,7 +12,7 @@
 // =====================================================================
 
 /** Adresa Supabase projekta, npr. "https://abcdefgh.supabase.co". */
-export const BACKUP_URL = "";
+export const BACKUP_URL = "https://hqtzdhrdefluuspspuox.supabase.co";
 
 /**
  * `anon` ključ tog projekta.
@@ -22,7 +22,7 @@ export const BACKUP_URL = "";
  * označiti da je potvrđena, ništa se ne može pročitati ni obrisati
  * (vidi SQL u docs/supabase-rezerva.sql).
  */
-export const BACKUP_KEY = "";
+export const BACKUP_KEY = "sb_publishable_Tv9icqg5wMWCKWx4exXqew_OO9z8jA8";
 
 /** Naziv tabele iz SQL-a. */
 export const BACKUP_TABLE = "porudzbine";

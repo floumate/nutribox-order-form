@@ -55,6 +55,11 @@ alter table public.porudzbine enable row level security;
 revoke all on public.porudzbine from anon;
 grant insert on public.porudzbine to anon;
 grant update (potvrdjeno, potvrdjeno_u) on public.porudzbine to anon;
+-- Da bi označio SVOJ red, PostgREST mora da pročita `order_id` (to je uslov
+-- u WHERE-u). Zato pravo čitanja ide samo na tu jednu kolonu. Pošto nema
+-- nijedne politike za čitanje, ni nju ne može da izlista - služi isključivo
+-- za pogađanje reda koji se menja.
+grant select (order_id) on public.porudzbine to anon;
 
 drop policy if exists "upis porudzbine" on public.porudzbine;
 create policy "upis porudzbine"
@@ -80,9 +85,12 @@ create table if not exists public.podesavanja (
 alter table public.podesavanja enable row level security;
 revoke all on public.podesavanja from anon;
 
+-- `do nothing`: ako je adresa već upisana, ponovno pokretanje fajla je NE
+-- gazi. Za izmenu: update public.podesavanja set vrednost = '...' where
+-- kljuc = 'slack_webhook';
 insert into public.podesavanja (kljuc, vrednost)
 values ('slack_webhook', 'OVDE_NALEPI_SLACK_WEBHOOK')
-on conflict (kljuc) do update set vrednost = excluded.vrednost;
+on conflict (kljuc) do nothing;
 
 -- ---------------------------------------------------------------------
 -- 4) Javljanje na Slack
@@ -115,22 +123,69 @@ begin
     order by napravljeno
     limit 20
   loop
+    -- Ovo je tekst koji Slack pokaže u obaveštenju na telefonu i na traci
+    -- kanala, pa u njemu odmah stoje ime i telefon. <!channel> tera Slack
+    -- da oglasi poruku - javlja se retko i ne sme da prođe neprimećeno.
     poruka := format(
-      'PORUDŽBINA NIJE STIGLA U MAKE%s%s %s | tel: %s | %s | %s | %s%sBroj: %s',
-      chr(10),
+      '<!channel> :rotating_light: PORUDŽBINA NIJE STIGLA U MAKE - %s %s, tel %s, %s',
       coalesce(r.ime, ''), coalesce(r.prezime, ''),
-      coalesce(r.telefon, ''),
-      coalesce(r.paket, ''),
-      coalesce(r.cena, ''),
-      coalesce(r.nacin_placanja, ''),
-      chr(10),
-      r.order_id
+      coalesce(r.telefon, ''), coalesce(r.paket, '')
     );
 
+    -- `attachments` sa bojom daje crvenu traku sa strane, a `header` veliki
+    -- naslov - poruka se izdvaja od svega ostalog u kanalu.
     perform net.http_post(
       url     := url,
       headers := '{"Content-Type": "application/json"}'::jsonb,
-      body    := jsonb_build_object('text', poruka)
+      body    := jsonb_build_object(
+        'text', poruka,
+        'attachments', jsonb_build_array(
+          jsonb_build_object(
+            'color', '#D72638',
+            'blocks', jsonb_build_array(
+              jsonb_build_object(
+                'type', 'header',
+                'text', jsonb_build_object(
+                  'type', 'plain_text',
+                  'text', ':rotating_light: PORUDŽBINA NIJE STIGLA U MAKE',
+                  'emoji', true
+                )
+              ),
+              jsonb_build_object(
+                'type', 'section',
+                'fields', jsonb_build_array(
+                  jsonb_build_object('type', 'mrkdwn', 'text',
+                    '*Kupac*' || chr(10) || coalesce(r.ime, '') || ' ' || coalesce(r.prezime, '')),
+                  jsonb_build_object('type', 'mrkdwn', 'text',
+                    '*Telefon*' || chr(10) || coalesce(r.telefon, '')),
+                  jsonb_build_object('type', 'mrkdwn', 'text',
+                    '*Paket*' || chr(10) || coalesce(r.paket, '')),
+                  jsonb_build_object('type', 'mrkdwn', 'text',
+                    '*Cena*' || chr(10) || coalesce(r.cena, '')),
+                  jsonb_build_object('type', 'mrkdwn', 'text',
+                    '*Plaćanje*' || chr(10) || coalesce(r.nacin_placanja, '')),
+                  jsonb_build_object('type', 'mrkdwn', 'text',
+                    '*Adresa*' || chr(10) || coalesce(r.adresa, ''))
+                )
+              ),
+              jsonb_build_object(
+                'type', 'section',
+                'text', jsonb_build_object('type', 'mrkdwn', 'text',
+                  ':telephone_receiver: *Pozovi kupca i unesi porudžbinu ručno.*' || chr(10) ||
+                  'Svi podaci su u Supabase tabeli `porudzbine`.')
+              ),
+              jsonb_build_object(
+                'type', 'context',
+                'elements', jsonb_build_array(
+                  jsonb_build_object('type', 'mrkdwn', 'text',
+                    'stigla ' || to_char(r.napravljeno at time zone 'Europe/Belgrade', 'DD.MM. HH24:MI') ||
+                    '  ·  broj: `' || r.order_id || '`')
+                )
+              )
+            )
+          )
+        )
+      )
     );
 
     update public.porudzbine set javljeno = true where order_id = r.order_id;

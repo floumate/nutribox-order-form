@@ -243,7 +243,96 @@ select cron.schedule(
 );
 
 -- ---------------------------------------------------------------------
+-- NEDELJNA PROVERA - da tišina nešto znači
+--
+-- Alarm ćuti i kad je sve u redu, i kad je alarm pokvaren. Zato jednom
+-- nedeljno stiže poruka da sistem radi, sa brojkama za prethodnih 7 dana.
+-- Ako te neke nedelje ne stigne, ne znači da nema porudžbina - znači da
+-- treba proveriti samo javljanje.
+-- ---------------------------------------------------------------------
+create or replace function public.nedeljna_provera()
+returns void
+language plpgsql
+security definer
+set search_path = public, extensions, net
+as $$
+declare
+  url          text;
+  ukupno       int;
+  nepotvrdjene int;
+  zapocete     int;
+begin
+  select vrednost into url from public.podesavanja where kljuc = 'slack_webhook';
+  if url is null or url = '' or url like 'OVDE%' then
+    return;
+  end if;
+
+  select count(*) into ukupno
+  from public.porudzbine where napravljeno > now() - interval '7 days';
+
+  select count(*) into nepotvrdjene
+  from public.porudzbine
+  where napravljeno > now() - interval '7 days' and potvrdjeno = false;
+
+  -- Započeto pa nezavršeno; bez oslanjanja na pogled, da radi i ako
+  -- tabela `koraci` još ne postoji.
+  select count(*) into zapocete
+  from public.koraci k
+  left join public.porudzbine p on p.order_id = k.order_id
+  where p.order_id is null and k.vreme > now() - interval '7 days';
+
+  perform http_post(
+    url     := url,
+    headers := '{"Content-Type": "application/json"}'::jsonb,
+    body    := jsonb_build_object(
+      'text', format(
+        'Nedeljna provera: sistem radi. Porudžbina: %s, nepotvrđenih: %s, započeto pa nezavršeno: %s (7 dana).',
+        ukupno, nepotvrdjene, zapocete
+      ),
+      'attachments', jsonb_build_array(
+        jsonb_build_object(
+          'color', '#2E7D32',
+          'blocks', jsonb_build_array(
+            jsonb_build_object(
+              'type', 'section',
+              'text', jsonb_build_object('type', 'mrkdwn', 'text',
+                ':white_check_mark: *Nedeljna provera - sistem radi*' || chr(10) ||
+                'Ako ova poruka neke nedelje ne stigne, proveri javljanje o porudžbinama.')
+            ),
+            jsonb_build_object(
+              'type', 'section',
+              'fields', jsonb_build_array(
+                jsonb_build_object('type', 'mrkdwn', 'text',
+                  '*Porudžbina (7 dana)*' || chr(10) || ukupno),
+                jsonb_build_object('type', 'mrkdwn', 'text',
+                  '*Nepotvrđenih*' || chr(10) || nepotvrdjene),
+                jsonb_build_object('type', 'mrkdwn', 'text',
+                  '*Započeto, nezavršeno*' || chr(10) || zapocete)
+              )
+            )
+          )
+        )
+      )
+    )
+  );
+end;
+$$;
+
+-- Ponedeljkom u 10h po našem vremenu (raspoređivač radi po UTC-u).
+select cron.unschedule('nutribox-nedeljna')
+where exists (select 1 from cron.job where jobname = 'nutribox-nedeljna');
+
+select cron.schedule(
+  'nutribox-nedeljna',
+  '0 8 * * 1',
+  $$select public.nedeljna_provera();$$
+);
+
+-- ---------------------------------------------------------------------
 -- Korisno posle:
+--   -- proba nedeljne poruke odmah
+--   select public.nedeljna_provera();
+--
 --   -- šta je ostalo nepotvrđeno
 --   select napravljeno, ime, prezime, telefon, paket, order_id
 --   from public.porudzbine where potvrdjeno = false order by napravljeno desc;

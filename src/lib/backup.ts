@@ -139,24 +139,41 @@ export function saveStep(korak: string): void {
   }
 }
 
-/** Make je potvrdio prijem - red više nije razlog za uzbunu. */
-export function markBackupConfirmed(orderId: string): void {
-  if (!ukljuceno() || !orderId) return;
-  try {
-    const url =
-      `${BACKUP_URL}/rest/v1/${BACKUP_TABLE}` +
-      `?order_id=eq.${encodeURIComponent(orderId)}`;
+/** Koliko se najduže čeka da oznaka "potvrđeno" stigne do Supabase-a. */
+const CONFIRM_WAIT_MS = 1500;
 
-    void fetch(url, {
-      method: "PATCH",
-      headers: zaglavlja(),
-      body: JSON.stringify({
-        potvrdjeno: true,
-        potvrdjeno_u: new Date().toISOString(),
-      }),
-      keepalive: true,
-    }).catch(() => {});
-  } catch {
-    /* isto - tiho */
-  }
+/**
+ * Make je potvrdio prijem - red više nije razlog za uzbunu.
+ *
+ * MORA da se sačeka pre nego što kupac ode sa stranice. Prvo izdanje je
+ * slalo i odmah nastavljalo, pa je navigacija na "hvala" prekidala zahtev:
+ * porudžbina je uredno stizala u Make, a u Supabase-u je ostajala
+ * nepotvrđena i palila lažnu uzbunu na Slack (viđeno 22.09.2026).
+ *
+ * Ako potvrda ne stigne ni za 1,5s, ide se dalje - lažna uzbuna je
+ * neprijatna, ali zadržavati kupca zbog nje nema smisla.
+ */
+export function markBackupConfirmed(orderId: string): Promise<void> {
+  if (!ukljuceno() || !orderId) return Promise.resolve();
+
+  const url =
+    `${BACKUP_URL}/rest/v1/${BACKUP_TABLE}` +
+    `?order_id=eq.${encodeURIComponent(orderId)}`;
+
+  const upis = fetch(url, {
+    method: "PATCH",
+    headers: zaglavlja(),
+    body: JSON.stringify({
+      potvrdjeno: true,
+      potvrdjeno_u: new Date().toISOString(),
+    }),
+    keepalive: true,
+  })
+    .then(() => undefined)
+    .catch(() => undefined);
+
+  return Promise.race([
+    upis,
+    new Promise<void>((resolve) => window.setTimeout(resolve, CONFIRM_WAIT_MS)),
+  ]);
 }

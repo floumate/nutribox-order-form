@@ -190,7 +190,7 @@ export function attachSubmit(form: HTMLFormElement): void {
         return;
       }
 
-      markBackupConfirmed(orderId);
+      await markBackupConfirmed(orderId);
       cancelAbandoned(); // potvrđeno → nema više razloga za abandoned
       navigateTop(ENDPOINTS.thankYouBase + tyPath + "?" + tyParams.toString());
       return;
@@ -234,7 +234,7 @@ export function attachSubmit(form: HTMLFormElement): void {
         showError(paymentStep, DELIVERY_FAILED_MESSAGE);
         return;
       }
-      markBackupConfirmed(cardOrderId);
+      await markBackupConfirmed(cardOrderId);
       cancelAbandoned();
       navigateTop(
         ENDPOINTS.thankYouBase + UPLATNICA_PATH + "?" + up.toString(),
@@ -289,7 +289,7 @@ export function attachSubmit(form: HTMLFormElement): void {
           showError(paymentStep, DELIVERY_FAILED_MESSAGE);
           return;
         }
-        markBackupConfirmed(cardOrderId);
+        await markBackupConfirmed(cardOrderId);
         cancelAbandoned();
         navigateTop(data.redirectUrl);
       } else {

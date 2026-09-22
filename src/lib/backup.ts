@@ -156,17 +156,12 @@ const CONFIRM_WAIT_MS = 1500;
 export function markBackupConfirmed(orderId: string): Promise<void> {
   if (!ukljuceno() || !orderId) return Promise.resolve();
 
-  const url =
-    `${BACKUP_URL}/rest/v1/${BACKUP_TABLE}` +
-    `?order_id=eq.${encodeURIComponent(orderId)}`;
-
-  const upis = fetch(url, {
-    method: "PATCH",
+  // Kroz funkciju, ne izmenom tabele: ključ nema pravo čitanja, pa izmena
+  // sa `where` uslovom nije videla nijedan red i tiho nije radila ništa.
+  const upis = fetch(`${BACKUP_URL}/rest/v1/rpc/potvrdi_porudzbinu`, {
+    method: "POST",
     headers: zaglavlja(),
-    body: JSON.stringify({
-      potvrdjeno: true,
-      potvrdjeno_u: new Date().toISOString(),
-    }),
+    body: JSON.stringify({ p_order_id: orderId }),
     keepalive: true,
   })
     .then(() => undefined)

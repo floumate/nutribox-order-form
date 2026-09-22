@@ -54,23 +54,39 @@ alter table public.porudzbine enable row level security;
 
 revoke all on public.porudzbine from anon;
 grant insert on public.porudzbine to anon;
-grant update (potvrdjeno, potvrdjeno_u) on public.porudzbine to anon;
--- Da bi označio SVOJ red, PostgREST mora da pročita `order_id` (to je uslov
--- u WHERE-u). Zato pravo čitanja ide samo na tu jednu kolonu. Pošto nema
--- nijedne politike za čitanje, ni nju ne može da izlista - služi isključivo
--- za pogađanje reda koji se menja.
-grant select (order_id) on public.porudzbine to anon;
 
 drop policy if exists "upis porudzbine" on public.porudzbine;
 create policy "upis porudzbine"
   on public.porudzbine for insert to anon
   with check (true);
 
+-- Potvrda ide kroz FUNKCIJU, ne kroz izmenu tabele.
+--
+-- Zašto: Postgres pri `update ... where` prvo mora da VIDI red, a ključ
+-- nema pravo čitanja - pa je izmena tiho pogađala nula redova i vraćala
+-- 204 kao da je uspela (viđeno 22.09.2026). Ovako ključ nema nikakvo
+-- pravo nad tabelom osim upisa, a potvrdu obavlja funkcija iznutra.
+--
+-- Prozor od sat vremena: stara porudžbina ne može naknadno da se "utiša".
 drop policy if exists "potvrda u roku od sat vremena" on public.porudzbine;
-create policy "potvrda u roku od sat vremena"
-  on public.porudzbine for update to anon
-  using (napravljeno > now() - interval '1 hour')
-  with check (napravljeno > now() - interval '1 hour');
+revoke update on public.porudzbine from anon;
+revoke select on public.porudzbine from anon;
+
+create or replace function public.potvrdi_porudzbinu(p_order_id text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.porudzbine
+  set potvrdjeno = true,
+      potvrdjeno_u = now()
+  where order_id = p_order_id
+    and napravljeno > now() - interval '1 hour';
+$$;
+
+revoke all on function public.potvrdi_porudzbinu(text) from public;
+grant execute on function public.potvrdi_porudzbinu(text) to anon;
 
 -- ---------------------------------------------------------------------
 -- 3) Slack adresa

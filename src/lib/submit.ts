@@ -3,6 +3,7 @@ import { urlContext } from "./urlParams";
 import { buildPayload } from "./payload";
 import { bulletproofSubmit } from "./bulletproof";
 import { cancelAbandoned } from "./abandoned";
+import { backupOrder, markBackupConfirmed } from "./backup";
 import { getPackage } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
 import { isMaxPlan } from "../config/plans";
@@ -151,6 +152,7 @@ export function attachSubmit(form: HTMLFormElement): void {
     // ---------------- POUZEĆE / FIRMA ----------------
     if (nacin !== "Kartica") {
       const { orderId, delivered } = bulletproofSubmit(payload);
+      backupOrder(payload); // rezervni trag, nezavisan od Make-a
 
       // Pouzeće → jedinstvena /hvala-pouzece (cena stiže kao ?cena=). Firma → po paketu.
       const tyPath =
@@ -186,6 +188,7 @@ export function attachSubmit(form: HTMLFormElement): void {
         return;
       }
 
+      markBackupConfirmed(orderId);
       cancelAbandoned(); // potvrđeno → nema više razloga za abandoned
       navigateTop(ENDPOINTS.thankYouBase + tyPath + "?" + tyParams.toString());
       return;
@@ -197,6 +200,7 @@ export function attachSubmit(form: HTMLFormElement): void {
     // Bulletproof na Make ODMAH (ne čeka Raiffeisen).
     const { orderId: cardOrderId, delivered } = bulletproofSubmit(payload);
     pendingOrderId = cardOrderId;
+    backupOrder(payload); // rezervni trag, nezavisan od Make-a
 
     // PRIVREMENO (firma zatvorena): bez raifpay-a → uputstva za uplatu.
     // Sve ispod ovog bloka je raifpay kod - netaknut, samo nedostižan.
@@ -228,6 +232,7 @@ export function attachSubmit(form: HTMLFormElement): void {
         showError(paymentStep, DELIVERY_FAILED_MESSAGE);
         return;
       }
+      markBackupConfirmed(cardOrderId);
       cancelAbandoned();
       navigateTop(
         ENDPOINTS.thankYouBase + UPLATNICA_PATH + "?" + up.toString(),
@@ -282,6 +287,7 @@ export function attachSubmit(form: HTMLFormElement): void {
           showError(paymentStep, DELIVERY_FAILED_MESSAGE);
           return;
         }
+        markBackupConfirmed(cardOrderId);
         cancelAbandoned();
         navigateTop(data.redirectUrl);
       } else {

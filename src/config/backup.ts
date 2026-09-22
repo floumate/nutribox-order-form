@@ -11,8 +11,10 @@
 // Dok su vrednosti ispod prazne, ne šalje se ništa (kao kod VISIT_WEBHOOK).
 // =====================================================================
 
-/** Adresa Supabase projekta, npr. "https://abcdefgh.supabase.co". */
-export const BACKUP_URL = "https://hqtzdhrdefluuspspuox.supabase.co";
+/** Adresa Supabase projekta, npr. "https://abcdefgh.supabase.co".
+ *  Tip `string` namerno: kod proverava da li je prazno, a bez toga bi
+ *  TypeScript rekao da je poređenje besmisleno i oborio build. */
+export const BACKUP_URL: string = "https://hqtzdhrdefluuspspuox.supabase.co";
 
 /**
  * `anon` ključ tog projekta.
@@ -22,7 +24,7 @@ export const BACKUP_URL = "https://hqtzdhrdefluuspspuox.supabase.co";
  * označiti da je potvrđena, ništa se ne može pročitati ni obrisati
  * (vidi SQL u docs/supabase-rezerva.sql).
  */
-export const BACKUP_KEY = "sb_publishable_Tv9icqg5wMWCKWx4exXqew_OO9z8jA8";
+export const BACKUP_KEY: string = "sb_publishable_Tv9icqg5wMWCKWx4exXqew_OO9z8jA8";
 
 /** Naziv tabele iz SQL-a. */
 export const BACKUP_TABLE = "porudzbine";

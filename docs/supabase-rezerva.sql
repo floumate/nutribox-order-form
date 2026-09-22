@@ -310,9 +310,11 @@ begin
                   '*Nije stiglo u Make*' || chr(10) || nepotvrdjene ||
                   case when nepotvrdjene = 0 then '  _(tako i treba)_'
                        else '  :warning: _(proveri, za svaku je stigla crvena poruka)_' end),
+                -- Bez poziva na akciju: tim je odlučio da se ovi ljudi ne
+                -- zovu. Brojka stoji samo kao podatak.
                 jsonb_build_object('type', 'mrkdwn', 'text',
                   '*Počeli formu, nisu poručili*' || chr(10) || zapocete ||
-                  '  _(spisak: tabela nezavrsene - vredi ih pozvati)_')
+                  '  _(poslednjih 7 dana)_')
               )
             )
           )

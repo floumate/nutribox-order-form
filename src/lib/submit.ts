@@ -60,12 +60,12 @@ function setButtonLoading(btn: HTMLButtonElement, loading: boolean, original: st
 const DELIVERY_WAIT_MS = 10000;
 
 /**
- * "Hvala" stranice za ?ns=year (cena dogovorena sa Vuksanom). Bez iznosa -
- * postojeća /hvala-pouzece ima 78.400 upisano u tekstu i menja ga samo kad
- * dobije ?cena=, pa ovde ne sme da se koristi.
+ * "Hvala" stranice za ?ns=year (cena dogovorena sa Vuksanom). Pouzeće ide
+ * na postojeću /hvala-pouzece (odluka klijenta, 28.09.2026) - ona bez
+ * ?cena= prikazuje 78.400 upisano u tekstu. Kartica ima svoju stranicu.
  */
 const AGREED_PRICE_TY: Partial<Record<string, string>> = {
-  Pouzeće: "/hvala-pouzece-dogovor",
+  Pouzeće: "/hvala-pouzece",
   Kartica: "/hvala-kartica-dogovor",
 };
 
@@ -173,7 +173,7 @@ export function attachSubmit(form: HTMLFormElement): void {
       backupOrder(payload); // rezervni trag, nezavisan od Make-a
 
       // Pouzeće → jedinstvena /hvala-pouzece (cena stiže kao ?cena=). Firma → po paketu.
-      // ?ns=year → stranice bez iznosa, po načinu plaćanja.
+      // ?ns=year → po načinu plaćanja (AGREED_PRICE_TY).
       const tyPath = urlContext.agreedPrice
         ? (AGREED_PRICE_TY[nacin] ?? AGREED_PRICE_TY["Pouzeće"])
         : nacin === "Pouzeće"
@@ -194,6 +194,8 @@ export function attachSubmit(form: HTMLFormElement): void {
         ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
         : null;
       if (tyCena != null) tyParams.set("cena", formatPrice(tyCena));
+      // /hvala-pouzece na ?ns=year menja rečenicu sa iznosom u "prema dogovoru".
+      if (urlContext.agreedPrice) tyParams.set("ns", urlContext.ns);
       tyParams.set("order_id", orderId);
 
       // Sačekaj da Make potvrdi prijem PRE odlaska na "hvala" stranicu.

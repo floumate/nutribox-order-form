@@ -36,7 +36,9 @@ export function buildPayload(): Record<string, unknown> {
     Pol: state.pol ?? "",
     "Tip-ishrane": diet?.name ?? "",
     NamirniceZalzbacivanje: state.izuzeteNamirnice.join(", "),
-    paket: state.paket ?? "",
+    // ?ns=year nema korak sa paketima - "custom" da prođe Make filtere
+    // koji traže paket.
+    paket: urlContext.agreedPrice ? "custom" : (state.paket ?? ""),
     "datum-dostave": state.datumDostave,
 
     Naselje: state.dostava.naselje,
@@ -69,8 +71,8 @@ export function buildPayload(): Record<string, unknown> {
   payload.env = ENV;
 
   // "year" kad je porudžbina sa ?ns=year - cena se dogovara sa Vuksanom,
-  // pa su `paket` i `cenaPaketa` namerno prazni, a registracija ide sa
-  // `paket: "custom"` i bez cene (vidi registration.ts).
+  // pa `paket` ide kao "custom", `cenaPaketa` je namerno prazan, a
+  // registracija ide sa `paket: "custom"` i bez cene (vidi registration.ts).
   payload.ns = urlContext.ns;
 
   // Vezuje porudžbinu za dolazak preko AI settera. Prazno kad poseta nije

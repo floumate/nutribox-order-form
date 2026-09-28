@@ -41,25 +41,39 @@ const NAMIRNICE_MAP: Record<string, string> = {
   "Morski plodovi": "seafood",
 };
 
+/** Šifra paketa za ?ns=year - paket i cenu dogovara Vuksan sa kupcem. */
+const AGREED_PRICE_PAKET = "custom";
+
 /**
  * Vrati Nikolin registration objekat, ili null kad se NE registruje:
- *   - custom plan (nije u Nikolinom enum-u)
+ *   - custom plan (?plan=custom) - nije u Nikolinom enum-u
  *   - nepotpuni podaci (npr. abandoned)
+ *
+ * ?ns=year se REGISTRUJE, sa `paket: "custom"` i bez `cena` (iznos se
+ * dogovara naknadno). ⚠️ Pretpostavka da Nikola prima "custom" i
+ * registraciju bez cene - potvrditi sa njim; do tada Make može da javi
+ * grešku na tom modulu.
  */
 export function buildRegistration(): Record<string, unknown> | null {
   if (urlContext.isCustomPlan) return null;
 
+  const agreed = urlContext.agreedPrice;
   const plan = state.plan;
   const paketId = state.paket;
   const pol = state.pol;
   const tip = state.tipIshrane;
   const nacin = state.nacinPlacanja;
-  if (!plan || !paketId || !pol || !tip || !nacin) return null;
+  if (!plan || !pol || !tip || !nacin) return null;
 
-  const pkg = getPackage(paketId);
-  if (!pkg) return null;
-
-  const paketKod = isMaxPlan(plan) ? pkg.raiffeisenPlanMax : pkg.raiffeisenPlan;
+  let paketKod: string;
+  if (agreed) {
+    paketKod = AGREED_PRICE_PAKET;
+  } else {
+    if (!paketId) return null;
+    const pkg = getPackage(paketId);
+    if (!pkg) return null;
+    paketKod = isMaxPlan(plan) ? pkg.raiffeisenPlanMax : pkg.raiffeisenPlan;
+  }
 
   const reg: Record<string, unknown> = {
     ime: state.ime,
@@ -80,8 +94,11 @@ export function buildRegistration(): Record<string, unknown> | null {
 
   // Iznos koji mušterija stvarno plaća - sa primenjenim popustom
   // (promo kod / affiliate) i NutriMax nivoom. Ceo broj RSD, npr. 70560.
-  const cena = computePrice(paketId, urlContext, isMaxPlan(plan));
-  if (cena != null) reg.cena = cena;
+  // ?ns=year: bez cene - dogovara se sa Vuksanom.
+  if (!agreed && paketId) {
+    const cena = computePrice(paketId, urlContext, isMaxPlan(plan));
+    if (cena != null) reg.cena = cena;
+  }
 
   // Namirnice → enum niz (bez duplikata), samo ako ih ima.
   const namirnice = [

@@ -69,7 +69,8 @@ export function buildPayload(): Record<string, unknown> {
   payload.env = ENV;
 
   // "year" kad je porudžbina sa ?ns=year - cena se dogovara sa Vuksanom,
-  // pa su `paket`, `cenaPaketa` i `registrationJson` namerno prazni.
+  // pa su `paket` i `cenaPaketa` namerno prazni, a registracija ide sa
+  // `paket: "custom"` i bez cene (vidi registration.ts).
   payload.ns = urlContext.ns;
 
   // Vezuje porudžbinu za dolazak preko AI settera. Prazno kad poseta nije

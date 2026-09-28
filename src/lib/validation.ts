@@ -50,6 +50,9 @@ const DOMAIN_TYPOS: Record<string, string> = {
   "yahooo.com": "yahoo.com",
   "yhaoo.com": "yahoo.com",
   "yahoo.con": "yahoo.com",
+  "yahhoo.com": "yahoo.com", // viđeno u pravoj prijavi 25.09.2026
+  "yaahoo.com": "yahoo.com",
+  "yahoo.rs": "yahoo.com",
   "hotmail.co": "hotmail.com",
   "hotmail.con": "hotmail.com",
   "hotmial.com": "hotmail.com",

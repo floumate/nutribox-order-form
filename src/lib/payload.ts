@@ -68,6 +68,10 @@ export function buildPayload(): Record<string, unknown> {
   // vuksanvasic.webflow.io od pravih sa nutribox.rs.
   payload.env = ENV;
 
+  // "year" kad je porudžbina sa ?ns=year - cena se dogovara sa Vuksanom,
+  // pa su `paket`, `cenaPaketa` i `registrationJson` namerno prazni.
+  payload.ns = urlContext.ns;
+
   // Vezuje porudžbinu za dolazak preko AI settera. Prazno kad poseta nije
   // došla sa ?s=a. Make ovo šalje dalje kao "order".
   payload.visit_id = peekVisitId();

@@ -60,6 +60,16 @@ function setButtonLoading(btn: HTMLButtonElement, loading: boolean, original: st
 const DELIVERY_WAIT_MS = 10000;
 
 /**
+ * "Hvala" stranice za ?ns=year (cena dogovorena sa Vuksanom). Bez iznosa -
+ * postojeća /hvala-pouzece ima 78.400 upisano u tekstu i menja ga samo kad
+ * dobije ?cena=, pa ovde ne sme da se koristi.
+ */
+const AGREED_PRICE_TY: Partial<Record<string, string>> = {
+  Pouzeće: "/hvala-pouzece-dogovor",
+  Kartica: "/hvala-kartica-dogovor",
+};
+
+/**
  * Isti order_id kroz sve pokušaje iste porudžbine.
  *
  * Bez ovoga bi svaki ponovni klik napravio novu porudžbinu, pa bi dedup u
@@ -156,13 +166,19 @@ export function attachSubmit(form: HTMLFormElement): void {
     const originalText = btn?.textContent ?? "Plati";
 
     // ---------------- POUZEĆE / FIRMA ----------------
-    if (nacin !== "Kartica") {
+    // (i kartica kad je cena dogovorena - ?ns=year: nema iznosa za banku,
+    // pa kartica ide istim putem kao pouzeće, samo na svoju "hvala" stranicu)
+    if (nacin !== "Kartica" || urlContext.agreedPrice) {
       const { orderId, delivered } = bulletproofSubmit(payload);
       backupOrder(payload); // rezervni trag, nezavisan od Make-a
 
       // Pouzeće → jedinstvena /hvala-pouzece (cena stiže kao ?cena=). Firma → po paketu.
-      const tyPath =
-        nacin === "Pouzeće" ? "/hvala-pouzece" : (pkg?.tyFirma ?? "/hvala-pouzece");
+      // ?ns=year → stranice bez iznosa, po načinu plaćanja.
+      const tyPath = urlContext.agreedPrice
+        ? (AGREED_PRICE_TY[nacin] ?? AGREED_PRICE_TY["Pouzeće"])
+        : nacin === "Pouzeće"
+          ? "/hvala-pouzece"
+          : (pkg?.tyFirma ?? "/hvala-pouzece");
 
       const tyParams = new URLSearchParams();
       if (urlContext.affiliate) tyParams.set("affiliate", urlContext.affiliate);

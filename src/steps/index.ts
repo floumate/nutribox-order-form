@@ -225,7 +225,11 @@ function renderPackageCards(container: HTMLElement, isMax: boolean): void {
 }
 
 function renderPaymentCards(container: HTMLElement): void {
-  container.innerHTML = PAYMENT_OPTIONS.map(
+  // ?ns=year: samo pouzeće i kartica - plaćanje preko firme se ne nudi.
+  const opcije = urlContext.agreedPrice
+    ? PAYMENT_OPTIONS.filter((o) => o.value !== "Firma")
+    : PAYMENT_OPTIONS;
+  container.innerHTML = opcije.map(
     (o) => `
     <button type="button" class="card card--choice" data-choice="${o.value}">
       <span class="card__icon"><img src="${o.icon}" alt="" /></span>
@@ -424,7 +428,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     apply: (v: string) => void;
   }
 
-  const SUM_FIELDS: SumField[] = [
+  const SVA_POLJA: SumField[] = [
     {
       label: "Plan",
       kind: "select",
@@ -506,7 +510,13 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
         adresaInput.value = v;
       },
     },
+    // ?ns=year: paket se ne bira u formi, pa ni red za njega ne postoji.
+    // Filtrira se ovde, na jednom mestu, jer i crtanje i "Izmeni" koriste
+    // redni broj reda iz istog niza.
   ];
+  const SUM_FIELDS = SVA_POLJA.filter(
+    (f) => !(urlContext.agreedPrice && f.label === "Paket"),
+  );
 
   const renderSummary = () => {
     const price = state.paket
@@ -521,7 +531,10 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
           <button type="button" class="summary__edit" data-sedit="${i}">Izmeni</button>
         </div>`,
       ).join("") +
-      `<div class="summary__row summary__total"><span class="summary__label">Ukupno</span><strong>${formatPrice(price)} RSD</strong></div>`;
+      // ?ns=year: nigde se ne ispisuje iznos.
+      (urlContext.agreedPrice
+        ? ""
+        : `<div class="summary__row summary__total"><span class="summary__label">Ukupno</span><strong>${formatPrice(price)} RSD</strong></div>`);
   };
 
   // Osveži samo "Ukupno" (bez re-rendera celog summary-ja, da ne zatvori druge editore).
@@ -650,6 +663,8 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       id: "paket",
       el: stepPaket,
       onEnter: renderPaket,
+      // ?ns=year: cena i paket se dogovaraju sa Vuksanom, korak se preskače.
+      skip: () => urlContext.agreedPrice,
       validate: () => {
         if (!state.paket) {
           showError(stepPaket, "Molimo izaberite plan.");

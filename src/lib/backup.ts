@@ -156,19 +156,26 @@ const CONFIRM_WAIT_MS = 1500;
 export function markBackupConfirmed(orderId: string): Promise<void> {
   if (!ukljuceno() || !orderId) return Promise.resolve();
 
-  // Kroz funkciju, ne izmenom tabele: ključ nema pravo čitanja, pa izmena
-  // sa `where` uslovom nije videla nijedan red i tiho nije radila ništa.
-  const upis = fetch(`${BACKUP_URL}/rest/v1/rpc/potvrdi_porudzbinu`, {
-    method: "POST",
-    headers: zaglavlja(),
-    body: JSON.stringify({ p_order_id: orderId }),
-    keepalive: true,
-  })
-    .then(() => undefined)
-    .catch(() => undefined);
+  // Sve u try: ovde se čeka pre odlaska na "hvala", pa bilo kakva greška
+  // koja bi pukla van obećanja zaglavila bi kupca na "Učitavanje..." -
+  // iako je porudžbina već u Make-u. Rezerva nikad ne sme da blokira.
+  try {
+    // Kroz funkciju, ne izmenom tabele: ključ nema pravo čitanja, pa izmena
+    // sa `where` uslovom nije videla nijedan red i tiho nije radila ništa.
+    const upis = fetch(`${BACKUP_URL}/rest/v1/rpc/potvrdi_porudzbinu`, {
+      method: "POST",
+      headers: zaglavlja(),
+      body: JSON.stringify({ p_order_id: orderId }),
+      keepalive: true,
+    })
+      .then(() => undefined)
+      .catch(() => undefined);
 
-  return Promise.race([
-    upis,
-    new Promise<void>((resolve) => window.setTimeout(resolve, CONFIRM_WAIT_MS)),
-  ]);
+    return Promise.race([
+      upis,
+      new Promise<void>((resolve) => window.setTimeout(resolve, CONFIRM_WAIT_MS)),
+    ]);
+  } catch {
+    return Promise.resolve();
+  }
 }

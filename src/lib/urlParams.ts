@@ -16,6 +16,15 @@ export interface UrlContext {
   customPlanName: string; // npr. "standard"
   isCustomPlan: boolean;
   isTest: boolean; // ?testiranje-placanja=true
+  /** Sirova vrednost ?ns= (ide u payload kao `ns`). */
+  ns: string;
+  /**
+   * ?ns=year - cena se dogovara direktno sa Vuksanom.
+   * Forma tada nema korak sa cenama, u pregledu nema iznosa, plaćanje je
+   * samo pouzeće ili kartica, i obe vode na "hvala" stranice bez iznosa.
+   * Kartica NE ide na banku - nema iznosa koji bi se naplatio.
+   */
+  agreedPrice: boolean;
 }
 
 function read(): UrlContext {
@@ -31,6 +40,8 @@ function read(): UrlContext {
     customPlanName,
     isCustomPlan: plan === "custom" && customPlanName === "standard",
     isTest: p.get("testiranje-placanja") === "true",
+    ns: p.get("ns") ?? "",
+    agreedPrice: p.get("ns") === "year",
   };
 }
 

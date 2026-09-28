@@ -49,11 +49,15 @@ function setButtonLoading(btn: HTMLButtonElement, loading: boolean, original: st
 /**
  * Koliko najduže čekamo potvrdu od Make-a pre nego što javimo grešku.
  *
- * 6s namerno: slanje pokušava tri puta (odmah, pa posle 1s, pa posle 3s),
- * i sva tri staju u ovaj prozor. Bolje da kupac sačeka nekoliko sekundi
- * nego da mu izađe greška zbog jednog lošeg trenutka na mreži.
+ * Slanje pokušava tri puta (odmah, pa posle 1s, pa posle 3s), pa prozor
+ * mora da pokrije i njih i spor odgovor. Podignuto sa 6s na 10s posle
+ * 28.09.2026: porudžbina iz Instagram pregledača na iPhone-u stizala je
+ * 12 sekundi, sve je bilo uredno, a kupcu je izašla greška.
+ *
+ * Dugme tih 10s stoji na "Učitavanje...", pa kupac vidi da se nešto
+ * dešava; bolje to nego lažna greška na kraju popunjavanja.
  */
-const DELIVERY_WAIT_MS = 6000;
+const DELIVERY_WAIT_MS = 10000;
 
 /**
  * Isti order_id kroz sve pokušaje iste porudžbine.

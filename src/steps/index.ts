@@ -400,6 +400,10 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   wireChoiceGrid(payGrid, (v) => {
     state.nacinPlacanja = v as PaymentMethod;
     firmaWrap.style.display = v === "Firma" ? "block" : "none";
+    // Posle ovog koraka nema "Dalje" nego "Poruči", pa se trag upisuje
+    // odmah po izboru - inače način plaćanja ne bi bio zabeležen kod
+    // onih koji ne završe porudžbinu.
+    saveStep("placanje");
   });
   stepPay.querySelectorAll<HTMLInputElement>("[data-firma]").forEach((inp) => {
     inp.addEventListener("input", () => {

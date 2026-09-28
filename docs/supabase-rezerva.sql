@@ -72,18 +72,72 @@ drop policy if exists "potvrda u roku od sat vremena" on public.porudzbine;
 revoke update on public.porudzbine from anon;
 revoke select on public.porudzbine from anon;
 
+-- Potvrde koje stignu PRE nego što red uopšte postoji.
+--
+-- Dešava se na sporoj mreži: kupac klikne "Poruči", Make dobije porudžbinu
+-- i odmah potvrdi, a upis u Supabase iz njegovog telefona stigne tek par
+-- sekundi kasnije (viđeno 28.09.2026: 12 sekundi, Instagram pregledač na
+-- iPhone-u). Potvrda tada nema šta da označi i propadne, pa uredna
+-- porudžbina digne lažnu uzbunu. Zato se takva potvrda pamti i primeni
+-- čim red stigne.
+create table if not exists public.potvrde_na_cekanju (
+  order_id text primary key,
+  stiglo   timestamptz not null default now()
+);
+alter table public.potvrde_na_cekanju enable row level security;
+revoke all on public.potvrde_na_cekanju from anon;
+
 create or replace function public.potvrdi_porudzbinu(p_order_id text)
 returns void
-language sql
+language plpgsql
 security definer
 set search_path = public
 as $$
+declare
+  v_pogodjeno int;
+begin
   update public.porudzbine
   set potvrdjeno = true,
       potvrdjeno_u = now()
   where order_id = p_order_id
     and napravljeno > now() - interval '1 hour';
+
+  get diagnostics v_pogodjeno = row_count;
+
+  -- Reda još nema - zapamti potvrdu, okinuće se pri upisu.
+  if v_pogodjeno = 0 then
+    insert into public.potvrde_na_cekanju (order_id)
+    values (p_order_id)
+    on conflict (order_id) do nothing;
+  end if;
+end;
 $$;
+
+-- Red koji stigne posle svoje potvrde upisuje se odmah kao potvrđen.
+create or replace function public.primeni_cekajucu_potvrdu()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if exists (
+    select 1 from public.potvrde_na_cekanju c
+    where c.order_id = new.order_id
+      and c.stiglo > now() - interval '1 hour'
+  ) then
+    new.potvrdjeno := true;
+    new.potvrdjeno_u := now();
+    delete from public.potvrde_na_cekanju where order_id = new.order_id;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists porudzbine_cekajuca_potvrda on public.porudzbine;
+create trigger porudzbine_cekajuca_potvrda
+  before insert on public.porudzbine
+  for each row execute function public.primeni_cekajucu_potvrdu();
 
 revoke all on function public.potvrdi_porudzbinu(text) from public;
 grant execute on function public.potvrdi_porudzbinu(text) to anon;
@@ -125,6 +179,9 @@ declare
   url    text;
   poruka text;
 begin
+  -- Potvrde koje nikad nisu našle svoj red (stariji od dana) samo smetaju.
+  delete from public.potvrde_na_cekanju where stiglo < now() - interval '1 day';
+
   select vrednost into url from public.podesavanja where kljuc = 'slack_webhook';
   if url is null or url = '' or url like 'OVDE%' then
     return; -- Slack adresa još nije upisana

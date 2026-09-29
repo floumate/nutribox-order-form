@@ -41,18 +41,24 @@ const NAMIRNICE_MAP: Record<string, string> = {
   "Morski plodovi": "seafood",
 };
 
-/** Šifra paketa za ?ns=year - paket i cenu dogovara Vuksan sa kupcem. */
-const AGREED_PRICE_PAKET = "custom";
+/**
+ * ?ns=year - paket i cenu dogovara Vuksan sa kupcem. Nikola za `custom`
+ * traži i broj dostava, cenu i naziv (potvrđeno 29.09.2026, test vratio
+ * 201). Vrednosti je izabrao klijent.
+ */
+const AGREED_PRICE_REG = {
+  paket: "custom",
+  brojDostava: 240,
+  cena: 480000,
+  nazivPaketa: "Godišnji",
+} as const;
 
 /**
  * Vrati Nikolin registration objekat, ili null kad se NE registruje:
  *   - custom plan (?plan=custom) - nije u Nikolinom enum-u
  *   - nepotpuni podaci (npr. abandoned)
  *
- * ?ns=year se REGISTRUJE, sa `paket: "custom"` i bez `cena` (iznos se
- * dogovara naknadno). ⚠️ Pretpostavka da Nikola prima "custom" i
- * registraciju bez cene - potvrditi sa njim; do tada Make može da javi
- * grešku na tom modulu.
+ * ?ns=year se REGISTRUJE, sa `paket: "custom"` i poljima iz AGREED_PRICE_REG.
  */
 export function buildRegistration(): Record<string, unknown> | null {
   if (urlContext.isCustomPlan) return null;
@@ -67,7 +73,7 @@ export function buildRegistration(): Record<string, unknown> | null {
 
   let paketKod: string;
   if (agreed) {
-    paketKod = AGREED_PRICE_PAKET;
+    paketKod = AGREED_PRICE_REG.paket;
   } else {
     if (!paketId) return null;
     const pkg = getPackage(paketId);
@@ -94,8 +100,12 @@ export function buildRegistration(): Record<string, unknown> | null {
 
   // Iznos koji mušterija stvarno plaća - sa primenjenim popustom
   // (promo kod / affiliate) i NutriMax nivoom. Ceo broj RSD, npr. 70560.
-  // ?ns=year: bez cene - dogovara se sa Vuksanom.
-  if (!agreed && paketId) {
+  // ?ns=year: dogovoreni paket (AGREED_PRICE_REG).
+  if (agreed) {
+    reg.brojDostava = AGREED_PRICE_REG.brojDostava;
+    reg.cena = AGREED_PRICE_REG.cena;
+    reg.nazivPaketa = AGREED_PRICE_REG.nazivPaketa;
+  } else if (paketId) {
     const cena = computePrice(paketId, urlContext, isMaxPlan(plan));
     if (cena != null) reg.cena = cena;
   }

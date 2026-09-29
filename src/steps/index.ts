@@ -17,7 +17,7 @@ import { DIET_TYPES, getDiet } from "../config/dietTypes";
 import { getAllergensFor } from "../config/allergens";
 import { PACKAGES, PACKAGE_GROUPS, getPackage } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
-import { NASELJA } from "../config/delivery";
+import { NASELJA, NASELJA_PO_GRADU } from "../config/delivery";
 import { PAYMENT_OPTIONS } from "../config/payments";
 import type {
   DietId,
@@ -384,7 +384,12 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   const adresaInput = reqEl<HTMLInputElement>(stepAdresa, "[data-dostava='adresa']");
   naseljeSelect.innerHTML =
     `<option value="">Izaberite zonu</option>` +
-    NASELJA.map((n) => `<option value="${n}">${n}</option>`).join("");
+    NASELJA_PO_GRADU.map(
+      (g) =>
+        `<optgroup label="${g.grad}">` +
+        g.naselja.map((n) => `<option value="${n}">${n}</option>`).join("") +
+        `</optgroup>`,
+    ).join("");
   stepAdresa
     .querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
       "[data-dostava]",

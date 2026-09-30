@@ -57,11 +57,12 @@ body {
 
 /* ---------- Progress + izbor jezika u istom redu ----------
    Gornje ivice poravnate. Kad nema mesta (uzak telefon), red se prelomi
-   tako da izbor jezika ode IZNAD progress-a (wrap-reverse). */
+   tako da izbor jezika ode IZNAD progress-a (wrap-reverse).
+   flex-end je namerno: uz wrap-reverse to znači GORNJU ivicu reda. */
 .form-top {
   display: flex;
   flex-wrap: wrap-reverse;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 18px;

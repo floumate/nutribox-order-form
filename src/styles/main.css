@@ -55,22 +55,22 @@ body {
   padding: 28px 20px 48px;
 }
 
-/* ---------- Progress + izbor jezika u istom redu ----------
-   Gornje ivice poravnate. Kad nema mesta (uzak telefon), red se prelomi
-   tako da izbor jezika ode IZNAD progress-a (wrap-reverse).
-   flex-end je namerno: uz wrap-reverse to znači GORNJU ivicu reda. */
+/* ---------- Progress + izbor jezika ----------
+   Progress stoji na istom mestu kao bez izbora jezika (18px iznad naslova).
+   Izbor jezika je van toka, gornja ivica mu je u ravni sa progress-om, a
+   visi pored naslova - zato naslov dobija prazan prostor desno. Na uskom
+   telefonu (vidi @media 480px) izbor ide iznad progress-a. */
 .form-top {
-  display: flex;
-  flex-wrap: wrap-reverse;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
+  position: relative;
   margin-bottom: 18px;
 }
 
 .lang-switch {
+  position: absolute;
+  top: 0;
+  right: 0;
   display: block;
-  margin: 0 0 0 auto;
+  margin: 0;
   padding: 6px 10px;
   border: 1.5px solid var(--line);
   border-radius: 8px;
@@ -88,6 +88,10 @@ body {
 /* display:block iznad bi pregazio hidden atribut */
 .lang-switch[hidden] {
   display: none;
+}
+/* Naslov koraka ne sme da ode ispod izbora jezika. */
+.form-shell:has(.lang-switch:not([hidden])) .step__title {
+  padding-right: 96px;
 }
 
 /* ---------- Progress ---------- */
@@ -907,6 +911,19 @@ body {
   }
 }
 @media (max-width: 480px) {
+  /* Nema mesta pored naslova: izbor jezika ide u svoj red iznad progress-a. */
+  .form-top {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+  .lang-switch {
+    position: static;
+    margin-left: auto;
+  }
+  .form-shell:has(.lang-switch:not([hidden])) .step__title {
+    padding-right: 0;
+  }
   .fields--2,
   .fields--3 {
     grid-template-columns: 1fr;

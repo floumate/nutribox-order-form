@@ -55,6 +55,29 @@ body {
   padding: 28px 20px 48px;
 }
 
+/* ---------- Izbor jezika (gore desno, iznad progress-a) ---------- */
+.lang-switch {
+  display: block;
+  margin: 0 0 12px auto;
+  padding: 6px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--bg);
+  cursor: pointer;
+  outline: none;
+}
+.lang-switch:focus-visible {
+  border-color: var(--green);
+}
+/* display:block iznad bi pregazio hidden atribut */
+.lang-switch[hidden] {
+  display: none;
+}
+
 /* ---------- Progress ---------- */
 .progress {
   display: flex;

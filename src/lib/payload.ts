@@ -7,6 +7,7 @@ import { computePrice } from "../config/pricing";
 import { buildRegistration } from "./registration";
 import { ENV } from "../config/env";
 import { peekVisitId } from "./setterTracking";
+import { getLang } from "./i18n";
 
 // =====================================================================
 // Gradi payload za Make / abandoned iz trenutnog stanja forme.
@@ -74,6 +75,10 @@ export function buildPayload(): Record<string, unknown> {
   // pa `paket` ide kao "custom", `cenaPaketa` je namerno prazan, a
   // registracija ide sa `paket: "custom"` i bez cene (vidi registration.ts).
   payload.ns = urlContext.ns;
+
+  // Jezik na kom je kupac popunio formu ("sr" | "en" | "ru"). Sva ostala
+  // polja su uvek na srpskom, bez obzira na jezik.
+  payload.jezik = getLang();
 
   // Vezuje porudžbinu za dolazak preko AI settera. Prazno kad poseta nije
   // došla sa ?s=a. Make ovo šalje dalje kao "order".

@@ -17,6 +17,9 @@ export type PackageId =
 
 export type PaymentMethod = "Kartica" | "Pouzeće" | "Firma";
 
+/** Jezik forme. Menja samo PRIKAZ - vrednosti u payload-u ostaju srpske. */
+export type Lang = "sr" | "en" | "ru";
+
 /** Dnevni makro ciljevi koji se prikazuju korisniku (fiksni po Plan × Pol). */
 export interface Macros {
   kcal: number | null;

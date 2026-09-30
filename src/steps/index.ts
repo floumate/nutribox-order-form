@@ -11,12 +11,13 @@ import {
   suggestEmailFix,
 } from "../lib/validation";
 import { saveStep } from "../lib/backup";
+import { getLang, labels, onLangChange, t, tf } from "../lib/i18n";
 import { GOALS } from "../config/goals";
 import { PLANS, getPlan, getMacros, isMaxPlan } from "../config/plans";
-import { DIET_TYPES, getDiet } from "../config/dietTypes";
+import { DIET_TYPES } from "../config/dietTypes";
 import { getAllergensFor } from "../config/allergens";
-import { PACKAGES, PACKAGE_GROUPS, getPackage } from "../config/packages";
-import { computePrice, formatPrice } from "../config/pricing";
+import { PACKAGES, PACKAGE_GROUPS } from "../config/packages";
+import { computePrice, formatPriceDisplay } from "../config/pricing";
 import { NASELJA, NASELJA_PO_GRADU } from "../config/delivery";
 import { PAYMENT_OPTIONS } from "../config/payments";
 import type {
@@ -111,8 +112,12 @@ function escapeHtml(s: string): string {
 // Render kartica
 // ---------------------------------------------------------------------
 
+// Tekstovi kartica dolaze iz labels() (prevodi), a data-choice je uvek
+// id ili srpska vrednost - to ide u payload.
+
 function renderPlanCards(container: HTMLElement): void {
   const sex = state.pol;
+  const L = labels();
   container.innerHTML = PLANS.map((p) => {
     const m = sex ? getMacros(p.id, sex) : null;
     const macroHtml =
@@ -120,9 +125,9 @@ function renderPlanCards(container: HTMLElement): void {
         ? `<span class="macros">
              <span class="macros__kcal">${m.kcal}<small>kcal</small></span>
              <span class="macros__grid">
-               <span class="macro"><b>${m.proteini}g</b><i>Proteini</i></span>
-               <span class="macro"><b>${m.uh}g</b><i>UH</i></span>
-               <span class="macro"><b>${m.masti}g</b><i>Masti</i></span>
+               <span class="macro"><b>${m.proteini}g</b><i>${t("protein")}</i></span>
+               <span class="macro"><b>${m.uh}g</b><i>${t("carbs")}</i></span>
+               <span class="macro"><b>${m.masti}g</b><i>${t("fat")}</i></span>
              </span>
            </span>`
         : "";
@@ -130,46 +135,44 @@ function renderPlanCards(container: HTMLElement): void {
     <button type="button" class="card card--choice card--plan" data-choice="${p.id}">
       <span class="card__icon"><img src="${p.icon}" alt="" /></span>
       <span class="card__title">${p.name}</span>
-      <span class="card__desc">${p.tagline}</span>
+      <span class="card__desc">${L.planTagline[p.id]}</span>
       ${macroHtml}
     </button>`;
   }).join("");
 }
 
 function renderGoalCards(container: HTMLElement): void {
+  const L = labels();
   container.innerHTML = GOALS.map(
     (g) => `
     <button type="button" class="card card--choice card--goal" data-choice="${escapeHtml(g)}">
-      <span class="card__title">${escapeHtml(g)}</span>
+      <span class="card__title">${escapeHtml(L.goals[g] ?? g)}</span>
     </button>`,
   ).join("");
 }
 
-/** Display labele za pol (vrednost ostaje "Muški"/"Ženski" za makroe/Airtable/Nikolu). */
-const POL_LABELS: Record<Sex, string> = {
-  Muški: "Muškarca",
-  Ženski: "Ženu",
-};
-
+/** Vrednost ostaje "Muški"/"Ženski" (makroi/Airtable/Nikola); prikaz je iz prevoda. */
 function renderPolCards(container: HTMLElement): void {
   const opcije: Sex[] = ["Muški", "Ženski"];
+  const L = labels();
   container.innerHTML = opcije
     .map(
       (s) => `
     <button type="button" class="card card--choice card--pol" data-choice="${s}">
-      <span class="card__title">${POL_LABELS[s]}</span>
+      <span class="card__title">${L.sex[s]}</span>
     </button>`,
     )
     .join("");
 }
 
 function renderDietCards(container: HTMLElement): void {
+  const L = labels();
   container.innerHTML = DIET_TYPES.map(
     (d) => `
     <button type="button" class="card card--choice" data-choice="${d.id}">
       <span class="card__icon"><img src="${d.icon}" alt="" /></span>
-      <span class="card__title">${d.label}</span>
-      <span class="card__desc">${d.description}</span>
+      <span class="card__title">${L.diets[d.id].label}</span>
+      <span class="card__desc">${L.diets[d.id].description}</span>
     </button>`,
   ).join("");
 }
@@ -180,6 +183,7 @@ function renderAllergenCards(
   selected: string[],
   atLimit: boolean,
 ): void {
+  const L = labels();
   container.innerHTML = options
     .map((label) => {
       const isSel = selected.includes(label);
@@ -189,26 +193,27 @@ function renderAllergenCards(
       isSel ? " card--selected" : ""
     }${disabled ? " card--disabled" : ""}" data-choice="${escapeHtml(label)}">
       <span class="allergen-check" aria-hidden="true"></span>
-      <span class="card__title">${escapeHtml(label)}</span>
+      <span class="card__title">${escapeHtml(L.allergens[label] ?? label)}</span>
     </button>`;
     })
     .join("");
 }
 
 function renderPackageCards(container: HTMLElement, isMax: boolean): void {
+  const L = labels();
   const cardHtml = (p: (typeof PACKAGES)[number]): string => {
     const price = computePrice(p.id, urlContext, isMax);
     const priceHtml =
       price != null
-        ? `<span class="card__price">${formatPrice(price)} <small>RSD</small></span>`
+        ? `<span class="card__price">${formatPriceDisplay(price, getLang())} <small>RSD</small></span>`
         : "";
     const badge = p.badge ? `<span class="card__badge">${p.badge}</span>` : "";
     return `
     <button type="button" class="card card--pkg card--${p.tier}" data-choice="${p.id}">
       <span class="card__info">
         ${badge}
-        <span class="card__title">${p.name}</span>
-        <span class="card__sub">${p.subtitle}</span>
+        <span class="card__title">${L.packages[p.id].name}</span>
+        <span class="card__sub">${L.packages[p.id].subtitle}</span>
       </span>
       ${priceHtml}
     </button>`;
@@ -218,7 +223,7 @@ function renderPackageCards(container: HTMLElement, isMax: boolean): void {
     const cards = PACKAGES.filter((p) => p.group === g.id).map(cardHtml).join("");
     return `
     <div class="pkg-group">
-      <span class="pkg-group__label">${g.label}</span>
+      <span class="pkg-group__label">${L.packageGroups[g.id]}</span>
       <div class="pkg-group__cards">${cards}</div>
     </div>`;
   }).join("");
@@ -229,12 +234,13 @@ function renderPaymentCards(container: HTMLElement): void {
   const opcije = urlContext.agreedPrice
     ? PAYMENT_OPTIONS.filter((o) => o.value !== "Firma")
     : PAYMENT_OPTIONS;
+  const L = labels();
   container.innerHTML = opcije.map(
     (o) => `
     <button type="button" class="card card--choice" data-choice="${o.value}">
       <span class="card__icon"><img src="${o.icon}" alt="" /></span>
-      <span class="card__title">${o.title}</span>
-      <span class="card__desc">${o.desc}</span>
+      <span class="card__title">${L.payments[o.value].title}</span>
+      <span class="card__desc">${L.payments[o.value].desc}</span>
     </button>`,
   ).join("");
 }
@@ -335,7 +341,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   const refreshEmailSuggestion = () => {
     const fix = suggestEmailFix(state.email);
     emailSuggest.dataset.fix = fix;
-    emailSuggest.textContent = fix ? `Da li ste mislili ${fix}?` : "";
+    emailSuggest.textContent = fix ? tf("emailSuggest", { email: fix }) : "";
     emailSuggest.hidden = !fix;
     emailError.hidden = true; // kupac je promenio mejl → greška više ne važi
   };
@@ -382,14 +388,22 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   const stepAdresa = reqEl<HTMLElement>(form, '[data-step="adresa"]');
   const naseljeSelect = reqEl<HTMLSelectElement>(stepAdresa, "[data-dostava='naselje']");
   const adresaInput = reqEl<HTMLInputElement>(stepAdresa, "[data-dostava='adresa']");
-  naseljeSelect.innerHTML =
-    `<option value="">Izaberite zonu</option>` +
-    NASELJA_PO_GRADU.map(
-      (g) =>
-        `<optgroup label="${g.grad}">` +
-        g.naselja.map((n) => `<option value="${n}">${n}</option>`).join("") +
-        `</optgroup>`,
-    ).join("");
+  // Nazivi opština ostaju latinicom na svim jezicima - tako pišu na tablama
+  // i u adresi, a vrednost ide Make-u i kuhinji. Prevodi se samo naslov
+  // grupe (grad), koji se ne može izabrati i ne ide u payload.
+  const renderZones = () => {
+    const cities = labels().cities;
+    naseljeSelect.innerHTML =
+      `<option value="">${t("zonePh")}</option>` +
+      NASELJA_PO_GRADU.map(
+        (g) =>
+          `<optgroup label="${escapeHtml(cities[g.grad] ?? g.grad)}">` +
+          g.naselja.map((n) => `<option value="${n}">${n}</option>`).join("") +
+          `</optgroup>`,
+      ).join("");
+    naseljeSelect.value = state.dostava.naselje;
+  };
+  renderZones();
   stepAdresa
     .querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
       "[data-dostava]",
@@ -424,20 +438,27 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   // ---- Summary recap sa inline izmenom ("Izmeni" / "Sačuvaj") ----
   const summaryEl = reqEl<HTMLElement>(stepPay, "[data-summary]");
 
+  // Labele i opcije su funkcije - čitaju se pri svakom iscrtavanju, pa
+  // prate promenu jezika.
   interface SumField {
-    label: string;
+    /** Red za paket - jedini koji se izbacuje na ?ns=year. Labela se
+     *  prevodi, pa se red ne može prepoznati po njoj. */
+    isPackage?: boolean;
+    label: () => string;
     kind: "select" | "text" | "date";
-    options?: { value: string; label: string }[];
+    options?: () => { value: string; label: string }[];
     stored: () => string;
     display: () => string;
     apply: (v: string) => void;
   }
 
+  const SEXES: Sex[] = ["Muški", "Ženski"];
+
   const SVA_POLJA: SumField[] = [
     {
-      label: "Plan",
+      label: () => t("sumPlan"),
       kind: "select",
-      options: PLANS.map((p) => ({ value: p.id, label: p.name })),
+      options: () => PLANS.map((p) => ({ value: p.id, label: p.name })),
       stored: () => state.plan ?? "",
       display: () => (state.plan ? (getPlan(state.plan)?.name ?? "") : ""),
       apply: (v) => {
@@ -446,44 +467,44 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       },
     },
     {
-      label: "Pol",
+      label: () => t("sumSex"),
       kind: "select",
-      options: [
-        { value: "Muški", label: POL_LABELS["Muški"] },
-        { value: "Ženski", label: POL_LABELS["Ženski"] },
-      ],
+      options: () => SEXES.map((s) => ({ value: s, label: labels().sex[s] })),
       stored: () => state.pol ?? "",
-      display: () => (state.pol ? POL_LABELS[state.pol] : ""),
+      display: () => (state.pol ? labels().sex[state.pol] : ""),
       apply: (v) => {
         state.pol = v as Sex;
         selectCardInGrid(polGrid, v);
       },
     },
     {
-      label: "Tip jelovnika",
+      label: () => t("sumDiet"),
       kind: "select",
-      options: DIET_TYPES.map((d) => ({ value: d.id, label: d.label })),
+      options: () =>
+        DIET_TYPES.map((d) => ({ value: d.id, label: labels().diets[d.id].label })),
       stored: () => state.tipIshrane ?? "",
       display: () =>
-        state.tipIshrane ? (getDiet(state.tipIshrane)?.label ?? "") : "",
+        state.tipIshrane ? labels().diets[state.tipIshrane].label : "",
       apply: (v) => {
         state.tipIshrane = v as DietId;
         selectCardInGrid(dietGrid, v);
       },
     },
     {
-      label: "Paket",
+      isPackage: true,
+      label: () => t("sumPackage"),
       kind: "select",
-      options: PACKAGES.map((p) => ({ value: p.id, label: p.name })),
+      options: () =>
+        PACKAGES.map((p) => ({ value: p.id, label: labels().packages[p.id].name })),
       stored: () => state.paket ?? "",
-      display: () => (state.paket ? (getPackage(state.paket)?.name ?? "") : ""),
+      display: () => (state.paket ? labels().packages[state.paket].name : ""),
       apply: (v) => {
         state.paket = v as PackageId;
         selectCardInGrid(paketGrid, v);
       },
     },
     {
-      label: "Datum dostave",
+      label: () => t("sumDate"),
       kind: "date",
       stored: () => state.datumDostave,
       display: () => state.datumDostave,
@@ -495,9 +516,9 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       },
     },
     {
-      label: "Zona dostave",
+      label: () => t("sumZone"),
       kind: "select",
-      options: NASELJA.map((n) => ({ value: n, label: n })),
+      options: () => NASELJA.map((n) => ({ value: n, label: n })),
       stored: () => state.dostava.naselje,
       display: () => state.dostava.naselje,
       apply: (v) => {
@@ -506,7 +527,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       },
     },
     {
-      label: "Adresa",
+      label: () => t("sumAddress"),
       kind: "text",
       stored: () => state.dostava.adresa,
       display: () => state.dostava.adresa,
@@ -520,7 +541,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     // redni broj reda iz istog niza.
   ];
   const SUM_FIELDS = SVA_POLJA.filter(
-    (f) => !(urlContext.agreedPrice && f.label === "Paket"),
+    (f) => !(urlContext.agreedPrice && f.isPackage),
   );
 
   const renderSummary = () => {
@@ -531,15 +552,15 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       SUM_FIELDS.map(
         (f, i) => `
         <div class="summary__row" data-srow="${i}">
-          <span class="summary__label">${f.label}</span>
+          <span class="summary__label">${f.label()}</span>
           <span class="summary__value">${escapeHtml(f.display() || "-")}</span>
-          <button type="button" class="summary__edit" data-sedit="${i}">Izmeni</button>
+          <button type="button" class="summary__edit" data-sedit="${i}">${t("sumEdit")}</button>
         </div>`,
       ).join("") +
       // ?ns=year: nigde se ne ispisuje iznos.
       (urlContext.agreedPrice
         ? ""
-        : `<div class="summary__row summary__total"><span class="summary__label">Ukupno</span><strong>${formatPrice(price)} RSD</strong></div>`);
+        : `<div class="summary__row summary__total"><span class="summary__label">${t("sumTotal")}</span><strong>${formatPriceDisplay(price, getLang())} RSD</strong></div>`);
   };
 
   // Osveži samo "Ukupno" (bez re-rendera celog summary-ja, da ne zatvori druge editore).
@@ -548,7 +569,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
       : null;
     const totalEl = summaryEl.querySelector<HTMLElement>(".summary__total strong");
-    if (totalEl) totalEl.textContent = `${formatPrice(price)} RSD`;
+    if (totalEl) totalEl.textContent = `${formatPriceDisplay(price, getLang())} RSD`;
   };
 
   summaryEl.addEventListener("click", (e) => {
@@ -567,7 +588,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       let editor: HTMLInputElement | HTMLSelectElement;
       if (field.kind === "select") {
         const sel = document.createElement("select");
-        sel.innerHTML = (field.options ?? [])
+        sel.innerHTML = (field.options?.() ?? [])
           .map(
             (o) =>
               `<option value="${escapeHtml(o.value)}">${escapeHtml(o.label)}</option>`,
@@ -585,7 +606,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       editor.className = "summary__editor";
       btn.insertAdjacentElement("beforebegin", editor);
       if (field.kind === "date") initDatepicker(editor as HTMLInputElement, () => {});
-      btn.textContent = "Sačuvaj";
+      btn.textContent = t("sumSave");
     } else {
       // sačuvaj SAMO ovaj red — ostali otvoreni editori ostaju netaknuti
       field.apply((existing as HTMLInputElement | HTMLSelectElement).value);
@@ -595,14 +616,13 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
         valueSpan.textContent = field.display() || "-";
         valueSpan.style.display = "";
       }
-      btn.textContent = "Izmeni";
+      btn.textContent = t("sumEdit");
       updateTotal();
       saveStep("izmena-u-pregledu"); // izmena pred slanje ide u trag
     }
   });
 
-  // Generičko skrivanje errora na promenu unutar koraka.
-  [
+  const allSteps = [
     stepMotivacija,
     stepPlan,
     stepPol,
@@ -612,9 +632,34 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     stepDatum,
     stepAdresa,
     stepPay,
-  ].forEach((s) => {
+  ];
+
+  // Generičko skrivanje errora na promenu unutar koraka.
+  allSteps.forEach((s) => {
     s.addEventListener("input", () => hideError(s));
     s.addEventListener("change", () => hideError(s));
+  });
+
+  // Promena jezika: ponovo iscrtaj kartice (izbor ostaje), listu zona i
+  // pregled porudžbine. Poruka o grešci nestaje - bila je na starom jeziku.
+  onLangChange(() => {
+    renderGoalCards(motivacijaGrid);
+    if (state.cilj) selectCardInGrid(motivacijaGrid, state.cilj);
+    renderPolCards(polGrid);
+    if (state.pol) selectCardInGrid(polGrid, state.pol);
+    renderPlan();
+    renderDietCards(dietGrid);
+    if (state.tipIshrane) selectCardInGrid(dietGrid, state.tipIshrane);
+    renderNamirnice();
+    renderPaket();
+    renderZones();
+    renderPaymentCards(payGrid);
+    if (state.nacinPlacanja) selectCardInGrid(payGrid, state.nacinPlacanja);
+    renderSummary();
+    allSteps.forEach(hideError);
+    // Predlog ispravke mejla se ispisuje na novom jeziku; greška uz polje
+    // nestaje, kao i ostale poruke o grešci.
+    refreshEmailSuggestion();
   });
 
   return [
@@ -623,7 +668,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       el: stepMotivacija,
       validate: () => {
         if (!state.cilj) {
-          showError(stepMotivacija, "Molimo izaberite cilj.");
+          showError(stepMotivacija, t("errGoal"));
           return false;
         }
         return true;
@@ -634,7 +679,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       el: stepPol,
       validate: () => {
         if (!state.pol) {
-          showError(stepPol, "Molimo izaberite pol.");
+          showError(stepPol, t("errSex"));
           return false;
         }
         return true;
@@ -646,7 +691,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       onEnter: renderPlan,
       validate: () => {
         if (!state.plan) {
-          showError(stepPlan, "Molimo izaberite paket.");
+          showError(stepPlan, t("errPlan"));
           return false;
         }
         return true;
@@ -658,7 +703,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       onEnter: renderDiet,
       validate: () => {
         if (!state.tipIshrane) {
-          showError(stepDiet, "Molimo izaberite tip jelovnika.");
+          showError(stepDiet, t("errDiet"));
           return false;
         }
         return true;
@@ -672,7 +717,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       skip: () => urlContext.agreedPrice,
       validate: () => {
         if (!state.paket) {
-          showError(stepPaket, "Molimo izaberite plan.");
+          showError(stepPaket, t("errPackage"));
           return false;
         }
         return true;
@@ -683,15 +728,15 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       el: stepLicneInfo,
       validate: () => {
         if (!state.ime.trim() || !state.prezime.trim()) {
-          showError(stepLicneInfo, "Molimo unesite ime i prezime.");
+          showError(stepLicneInfo, t("errName"));
           return false;
         }
         if (!state.datumRodjenja.trim()) {
-          showError(stepLicneInfo, "Molimo unesite datum rođenja.");
+          showError(stepLicneInfo, t("errBirthDate"));
           return false;
         }
         if (!EMAIL_REGEX.test(state.email.trim())) {
-          showError(stepLicneInfo, "Molimo unesite ispravan email.");
+          showError(stepLicneInfo, t("errEmail"));
           return false;
         }
         // Domen sa spiska poznatih grešaka u kucanju - ne puštamo dalje dok se
@@ -699,20 +744,18 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
         const emailFix = suggestEmailFix(state.email);
         if (emailFix) {
           const domen = state.email.slice(state.email.lastIndexOf("@") + 1);
-          emailError.textContent =
-            `Domen "${domen}" izgleda kao greška u kucanju. ` +
-            `Kliknite na predlog iznad ili ispravite mejl.`;
+          emailError.textContent = tf("errEmailTypo", { domain: domen });
           emailError.hidden = false;
           emailInput.focus();
           return false;
         }
         const phone = stepLicneInfo.querySelector<HTMLInputElement>("#telefon");
         if (!phone || phone.value.trim() === "") {
-          showError(stepLicneInfo, "Molimo unesite broj telefona.");
+          showError(stepLicneInfo, t("errPhoneEmpty"));
           return false;
         }
         if (!isPhoneValid()) {
-          showError(stepLicneInfo, "Broj telefona nije ispravan.");
+          showError(stepLicneInfo, t("errPhoneInvalid"));
           return false;
         }
         hideError(stepLicneInfo);
@@ -724,7 +767,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       el: stepDatum,
       validate: () => {
         if (!state.datumDostave.trim()) {
-          showError(stepDatum, "Molimo izaberite datum početka dostave.");
+          showError(stepDatum, t("errStartDate"));
           return false;
         }
         return true;
@@ -736,14 +779,11 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       validate: () => {
         const d = state.dostava;
         if (!d.naselje.trim() || !d.adresa.trim()) {
-          showError(stepAdresa, "Molimo izaberite zonu dostave i unesite adresu.");
+          showError(stepAdresa, t("errAddress"));
           return false;
         }
         if (!d.kucniBroj.trim() || !d.brojStana.trim() || !d.brojSprata.trim()) {
-          showError(
-            stepAdresa,
-            "Molimo unesite kućni broj, broj stana i broj sprata.",
-          );
+          showError(stepAdresa, t("errAddressDetails"));
           return false;
         }
         return true;

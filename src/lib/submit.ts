@@ -11,6 +11,7 @@ import { ENDPOINTS } from "../config/endpoints";
 import { CARD_PAYMENT_ENABLED, UPLATNICA_PATH } from "../config/flags";
 import { getPhoneNumber } from "./phone";
 import { EMAIL_REGEX, showError, hideError } from "./validation";
+import { localizedPath, t } from "./i18n";
 
 // =====================================================================
 // Glavni submit handler.
@@ -43,7 +44,7 @@ function navigateTop(url: string): void {
 
 function setButtonLoading(btn: HTMLButtonElement, loading: boolean, original: string) {
   btn.disabled = loading;
-  btn.textContent = loading ? "Učitavanje..." : original;
+  btn.textContent = loading ? t("loading") : original;
 }
 
 /**
@@ -77,13 +78,9 @@ const AGREED_PRICE_TY: Partial<Record<string, string>> = {
  */
 let pendingOrderId = "";
 
-/**
- * Bez broja porudžbine: kad slanje ne prođe, ona nigde nije ni upisana, pa
- * taj broj nema gde da se pronađe - kupcu bi bio samo zbunjujuć.
- */
-const DELIVERY_FAILED_MESSAGE =
-  "Porudžbina nije potvrđena. Proverite internet i kliknite Poruči ponovo. " +
-  "Ako ni tada ne prođe, pozovite nas na 0800 001 007 i unećemo je ručno.";
+// Poruka kad potvrda ne stigne je t("errDeliveryFailed") (translations.ts).
+// Bez broja porudžbine: kad slanje ne prođe, ona nigde nije ni upisana, pa
+// taj broj nema gde da se pronađe - kupcu bi bio samo zbunjujuć.
 
 /**
  * Sačekaj potvrdu prijema, ali kupca ne drži duže od DELIVERY_WAIT_MS.
@@ -113,7 +110,7 @@ export function attachSubmit(form: HTMLFormElement): void {
     // --- VALIDACIJA ---
     const nacin = state.nacinPlacanja;
     if (!nacin) {
-      showError(paymentStep, "Molimo izaberite način plaćanja.");
+      showError(paymentStep, t("errPayment"));
       return;
     }
 
@@ -122,7 +119,7 @@ export function attachSubmit(form: HTMLFormElement): void {
     );
     const allChecked = Array.from(checkboxes).every((c) => c.checked);
     if (!allChecked) {
-      showError(paymentStep, "Morate prihvatiti uslove da biste nastavili.");
+      showError(paymentStep, t("errConsent"));
       return;
     }
 
@@ -135,17 +132,17 @@ export function attachSubmit(form: HTMLFormElement): void {
         !f.pibFirme.trim() ||
         !f.maticniBrojFirme.trim();
       if (prazno) {
-        showError(paymentStep, "Molimo popunite sva polja firme.");
+        showError(paymentStep, t("errCompany"));
         return;
       }
       if (!EMAIL_REGEX.test(f.emailFirme.trim())) {
-        showError(paymentStep, "Email firme nije ispravan.");
+        showError(paymentStep, t("errCompanyEmail"));
         return;
       }
     }
 
     if (!state.email) {
-      showError(paymentStep, "Email je obavezan.");
+      showError(paymentStep, t("errEmailRequired"));
       return;
     }
 
@@ -175,7 +172,7 @@ export function attachSubmit(form: HTMLFormElement): void {
       // Pouzeće → jedinstvena /hvala-pouzece (cena stiže kao ?cena=). Firma → po paketu.
       // ?ns=year → po načinu plaćanja (AGREED_PRICE_TY).
       const tyPath = urlContext.agreedPrice
-        ? (AGREED_PRICE_TY[nacin] ?? AGREED_PRICE_TY["Pouzeće"])
+        ? (AGREED_PRICE_TY[nacin] ?? AGREED_PRICE_TY["Pouzeće"] ?? "/hvala-pouzece")
         : nacin === "Pouzeće"
           ? "/hvala-pouzece"
           : (pkg?.tyFirma ?? "/hvala-pouzece");
@@ -208,13 +205,16 @@ export function attachSubmit(form: HTMLFormElement): void {
         // Bez potvrde NE vodimo kupca na "hvala" - to je bio tihi gubitak
         // porudžbine. Ponovni klik šalje isti order_id, pa dedup radi.
         if (btn) setButtonLoading(btn, false, originalText);
-        showError(paymentStep, DELIVERY_FAILED_MESSAGE);
+        showError(paymentStep, t("errDeliveryFailed"));
         return;
       }
 
       await markBackupConfirmed(orderId);
       cancelAbandoned(); // potvrđeno → nema više razloga za abandoned
-      navigateTop(ENDPOINTS.thankYouBase + tyPath + "?" + tyParams.toString());
+      // Na jeziku kupca: /en/hvala-... (Webflow Localization).
+      navigateTop(
+        ENDPOINTS.thankYouBase + localizedPath(tyPath) + "?" + tyParams.toString(),
+      );
       return;
     }
 
@@ -253,13 +253,13 @@ export function attachSubmit(form: HTMLFormElement): void {
 
       if (!(await waitForDelivery(delivered))) {
         if (btn) setButtonLoading(btn, false, originalText);
-        showError(paymentStep, DELIVERY_FAILED_MESSAGE);
+        showError(paymentStep, t("errDeliveryFailed"));
         return;
       }
       await markBackupConfirmed(cardOrderId);
       cancelAbandoned();
       navigateTop(
-        ENDPOINTS.thankYouBase + UPLATNICA_PATH + "?" + up.toString(),
+        ENDPOINTS.thankYouBase + localizedPath(UPLATNICA_PATH) + "?" + up.toString(),
       );
       return;
     }
@@ -281,6 +281,8 @@ export function attachSubmit(form: HTMLFormElement): void {
         name: state.ime,
         lastname: state.prezime,
         phoneNumber,
+        // Raiffeisen stranica ostaje na srpskom dok Nikola ne potvrdi da
+        // checkout prima i "en"/"ru".
         locale: "sr",
         affiliate: urlContext.affiliate,
         discountCode: urlContext.discountCode,
@@ -296,8 +298,8 @@ export function attachSubmit(form: HTMLFormElement): void {
         body: JSON.stringify(checkoutPayload),
       });
       if (!response.ok) {
-        const t = await response.text().catch(() => "");
-        throw new Error("HTTP " + response.status + " - " + t);
+        const body = await response.text().catch(() => "");
+        throw new Error("HTTP " + response.status + " - " + body);
       }
       const data = (await response.json()) as { redirectUrl?: string };
       if (data.redirectUrl) {
@@ -308,7 +310,7 @@ export function attachSubmit(form: HTMLFormElement): void {
         // porudžbinu koju nemamo nego tražiti da klikne ponovo.
         if (!(await waitForDelivery(delivered))) {
           if (btn) setButtonLoading(btn, false, originalText);
-          showError(paymentStep, DELIVERY_FAILED_MESSAGE);
+          showError(paymentStep, t("errDeliveryFailed"));
           return;
         }
         await markBackupConfirmed(cardOrderId);
@@ -319,11 +321,7 @@ export function attachSubmit(form: HTMLFormElement): void {
       }
     } catch (err) {
       if (btn) setButtonLoading(btn, false, originalText);
-      showError(
-        paymentStep,
-        "Trenutno ne možemo da pokrenemo plaćanje karticom. Pokušajte ponovo " +
-          "ili izaberite plaćanje pouzećem.",
-      );
+      showError(paymentStep, t("errCheckout"));
       // Detalji (endpoint/origin/plan) ostaju u konzoli za dijagnostiku.
       console.error("[nutribox] checkout error:", err, {
         endpoint: ENDPOINTS.raiffeisenCheckout,

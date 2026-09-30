@@ -7,10 +7,14 @@ import { initAbandoned } from "./lib/abandoned";
 import { startRecovery } from "./lib/bulletproof";
 import { trackVisit } from "./lib/setterTracking";
 import { saveStep } from "./lib/backup";
+import { initLang } from "./lib/i18n";
 
 function boot(): void {
   const form = document.querySelector<HTMLFormElement>("#nutribox-form");
   if (!form) return;
+
+  // Jezik (sr/en/ru) - pre iscrtavanja koraka, da se odmah vide prevodi.
+  initLang(document.querySelector<HTMLSelectElement>("[data-lang-switch]"));
 
   // Telefon (intl-tel-input)
   const phone = document.querySelector<HTMLInputElement>("#telefon");

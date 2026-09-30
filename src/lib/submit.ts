@@ -169,13 +169,14 @@ export function attachSubmit(form: HTMLFormElement): void {
       const { orderId, delivered } = bulletproofSubmit(payload);
       backupOrder(payload); // rezervni trag, nezavisan od Make-a
 
-      // Pouzeće → jedinstvena /hvala-pouzece (cena stiže kao ?cena=). Firma → po paketu.
+      // Pouzeće → /hvala-pouzece (cena stiže kao ?cena=). Firma → /hvala-firma,
+      // ista za sve pakete (do 30.09.2026 bile 4 identične /hvala-{dani}-firma).
       // ?ns=year → po načinu plaćanja (AGREED_PRICE_TY).
       const tyPath = urlContext.agreedPrice
         ? (AGREED_PRICE_TY[nacin] ?? AGREED_PRICE_TY["Pouzeće"] ?? "/hvala-pouzece")
         : nacin === "Pouzeće"
           ? "/hvala-pouzece"
-          : (pkg?.tyFirma ?? "/hvala-pouzece");
+          : "/hvala-firma";
 
       const tyParams = new URLSearchParams();
       if (urlContext.affiliate) tyParams.set("affiliate", urlContext.affiliate);

@@ -24,11 +24,13 @@
     <!-- Tekstovi sa data-i18n / data-i18n-ph se prevode iz
          src/config/translations.ts. Srpski ovde mora da ostane isti kao tamo. -->
     <div class="form-shell">
-      <!-- Izbor jezika - vidi se samo kad forma ima više jezika (flags.ts) -->
-      <select class="lang-switch" data-lang-switch aria-label="Jezik / Language / Язык" hidden></select>
+      <div class="form-top">
+        <!-- Progress bar (segmenti se generišu iz JS) -->
+        <div class="progress" data-progress aria-hidden="true"></div>
 
-      <!-- Progress bar (segmenti se generišu iz JS) -->
-      <div class="progress" data-progress aria-hidden="true"></div>
+        <!-- Izbor jezika - vidi se samo kad forma ima više jezika (flags.ts) -->
+        <select class="lang-switch" data-lang-switch aria-label="Jezik / Language / Язык" hidden></select>
+      </div>
 
       <form id="nutribox-form" novalidate>
         <!-- ============ STEP 1: Cilj (uvodno pitanje - NE bira plan) ============ -->

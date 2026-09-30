@@ -55,10 +55,21 @@ body {
   padding: 28px 20px 48px;
 }
 
-/* ---------- Izbor jezika (gore desno, iznad progress-a) ---------- */
+/* ---------- Progress + izbor jezika u istom redu ----------
+   Gornje ivice poravnate. Kad nema mesta (uzak telefon), red se prelomi
+   tako da izbor jezika ode IZNAD progress-a (wrap-reverse). */
+.form-top {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
 .lang-switch {
   display: block;
-  margin: 0 0 12px auto;
+  margin: 0 0 0 auto;
   padding: 6px 10px;
   border: 1.5px solid var(--line);
   border-radius: 8px;
@@ -82,7 +93,6 @@ body {
 .progress {
   display: flex;
   gap: 6px;
-  margin-bottom: 18px;
 }
 .progress__seg {
   flex: 0 0 34px;

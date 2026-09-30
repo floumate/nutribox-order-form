@@ -10,8 +10,8 @@ import type { PackageId } from "../types";
 //   trial     → probni (najmanje istaknut)
 //
 // Raiffeisen kodovi (Nikola potvrdio): standard = {28,20,7,5}_day + probni;
-// NutriMax = *_max. Pouzeće ide na jedinstvenu /hvala-pouzece (submit.ts),
-// firma na /hvala-{dani}-firma.
+// NutriMax = *_max. "Hvala" stranice ne zavise od paketa: pouzeće ide na
+// /hvala-pouzece, firma na /hvala-firma (submit.ts).
 // =====================================================================
 
 export type PackageTier = "hero" | "secondary" | "muted" | "trial";
@@ -36,9 +36,6 @@ export interface PackageDef {
   raiffeisenPlan: string;
   /** Kod za NutriMax nivo (viša cena). */
   raiffeisenPlanMax: string;
-  /** Thank-you stranice (relativne na thankYouBase). null = TODO. */
-  tyPouzece: string | null;
-  tyFirma: string | null;
 }
 
 export const PACKAGES: PackageDef[] = [
@@ -50,8 +47,6 @@ export const PACKAGES: PackageDef[] = [
     group: "mesecni",
     raiffeisenPlan: "28_day",
     raiffeisenPlanMax: "28_day_max",
-    tyPouzece: "/hvala-28-pouzece",
-    tyFirma: "/hvala-28-firma",
   },
   {
     id: "7-dnevni",
@@ -61,8 +56,6 @@ export const PACKAGES: PackageDef[] = [
     group: "nedeljni",
     raiffeisenPlan: "7_day",
     raiffeisenPlanMax: "7_day_max",
-    tyPouzece: "/hvala-7-pouzece",
-    tyFirma: "/hvala-7-firma",
   },
   {
     id: "20-dnevni",
@@ -72,8 +65,6 @@ export const PACKAGES: PackageDef[] = [
     group: "mesecni",
     raiffeisenPlan: "20_day",
     raiffeisenPlanMax: "20_day_max",
-    tyPouzece: null,
-    tyFirma: "/hvala-20-firma",
   },
   {
     id: "5-dnevni",
@@ -83,8 +74,6 @@ export const PACKAGES: PackageDef[] = [
     group: "nedeljni",
     raiffeisenPlan: "5_day",
     raiffeisenPlanMax: "5_day_max",
-    tyPouzece: null,
-    tyFirma: "/hvala-5-firma",
   },
   {
     id: "probni",
@@ -94,10 +83,6 @@ export const PACKAGES: PackageDef[] = [
     group: "probni",
     raiffeisenPlan: "probni",
     raiffeisenPlanMax: "probni_max",
-    tyPouzece: null,
-    // Nema zasebne /hvala-1-firma; sve firma stranice su identične
-    // (generičan tekst o fakturi, bez paketa i cene).
-    tyFirma: "/hvala-5-firma",
   },
 ];
 

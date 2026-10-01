@@ -53,11 +53,10 @@ export const UPLATNICA_PATH = "/hvala";
  * postoje tek kad Webflow objavi taj locale - inače kupac posle plaćanja
  * vidi 404.
  *
- * Staging ima sve jezike radi provere prevoda. Probna porudžbina na EN/RU
- * tamo završava na 404 dok EN/RU nisu objavljeni na vuksanvasic.webflow.io.
+ * EN i RU objavljeni na nutribox.rs 01.10.2026, pa su uključeni i na prod.
  */
 const LANGS_BY_ENV: Record<Env, Lang[]> = {
-  prod: ["sr"],
+  prod: ["sr", "en", "ru"],
   staging: ["sr", "en", "ru"],
 };
 

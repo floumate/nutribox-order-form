@@ -8,16 +8,16 @@ import { getPackage } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
 import { isMaxPlan } from "../config/plans";
 import { ENDPOINTS } from "../config/endpoints";
-import { CARD_PAYMENT_ENABLED, UPLATNICA_PATH } from "../config/flags";
+import { CARD_PAYMENT_ENABLED, CHECKOUT_FIRST, UPLATNICA_PATH } from "../config/flags";
 import { getPhoneNumber } from "./phone";
 import { EMAIL_REGEX, showError, hideError } from "./validation";
 import { localizedPath, t } from "./i18n";
 
 // =====================================================================
 // Glavni submit handler.
-//   Kartica → Raiffeisen checkout (redirect na redirectUrl)
+//   Kartica → checkout, pa Make (sa brojem plaćanja), pa redirect u banku
 //   Pouzeće / Firma → Make webhook + redirect na thank-you stranicu
-// Sve uz bulletproof slanje na Make.
+// Sve uz bulletproof slanje na Make i čekanje njegove potvrde.
 // =====================================================================
 
 /**
@@ -222,14 +222,16 @@ export function attachSubmit(form: HTMLFormElement): void {
     // ---------------- KARTICA ----------------
     if (btn) setButtonLoading(btn, true, originalText);
 
-    // Bulletproof na Make ODMAH (ne čeka Raiffeisen).
-    const { orderId: cardOrderId, delivered } = bulletproofSubmit(payload);
+    const cardOrderId = payload.order_id as string;
     pendingOrderId = cardOrderId;
-    backupOrder(payload); // rezervni trag, nezavisan od Make-a
+    // Rezervni trag odmah na klik, pre banke i pre Make-a. Ako se dalje
+    // išta zaglavi a kupac ode, nepotvrđen red pali alarm na Slack.
+    backupOrder(payload);
 
     // PRIVREMENO (firma zatvorena): bez raifpay-a → uputstva za uplatu.
     // Sve ispod ovog bloka je raifpay kod - netaknut, samo nedostižan.
     if (!CARD_PAYMENT_ENABLED) {
+      const { delivered } = bulletproofSubmit(payload);
       const kod = isMaxPlan(state.plan)
         ? (pkg?.raiffeisenPlanMax ?? "")
         : (pkg?.raiffeisenPlan ?? "");
@@ -275,52 +277,40 @@ export function attachSubmit(form: HTMLFormElement): void {
 
     const phoneNumber = getPhoneNumber() || state.telefon;
 
-    try {
-      const checkoutPayload: Record<string, unknown> = {
-        plan: finalPlan,
-        email: state.email,
-        name: state.ime,
-        lastname: state.prezime,
-        phoneNumber,
-        // Raiffeisen stranica ostaje na srpskom dok Nikola ne potvrdi da
-        // checkout prima i "en"/"ru".
-        locale: "sr",
-        affiliate: urlContext.affiliate,
-        discountCode: urlContext.discountCode,
-        order_id: payload.order_id,
-      };
-      if (urlContext.isCustomPlan) {
-        checkoutPayload.customPlanName = urlContext.customPlanName;
-      }
+    const checkoutPayload: Record<string, unknown> = {
+      plan: finalPlan,
+      email: state.email,
+      name: state.ime,
+      lastname: state.prezime,
+      phoneNumber,
+      // Raiffeisen stranica ostaje na srpskom dok Nikola ne potvrdi da
+      // checkout prima i "en"/"ru".
+      locale: "sr",
+      affiliate: urlContext.affiliate,
+      discountCode: urlContext.discountCode,
+      order_id: payload.order_id,
+    };
+    if (urlContext.isCustomPlan) {
+      checkoutPayload.customPlanName = urlContext.customPlanName;
+    }
 
-      const response = await fetch(ENDPOINTS.raiffeisenCheckout, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(checkoutPayload),
-      });
-      if (!response.ok) {
-        const body = await response.text().catch(() => "");
-        throw new Error("HTTP " + response.status + " - " + body);
-      }
-      const data = (await response.json()) as { redirectUrl?: string };
-      if (data.redirectUrl) {
-        // Raiffeisen odvodi kupca sa stranice - i ovde prvo potvrda od Make-a.
-        // Obično je već stigla dok je trajao checkout, pa se ne čeka ništa.
-        //
-        // Ako potvrde nema, NE puštamo kupca na plaćanje: gore je naplatiti
-        // porudžbinu koju nemamo nego tražiti da klikne ponovo.
-        if (!(await waitForDelivery(delivered))) {
-          if (btn) setButtonLoading(btn, false, originalText);
-          showError(paymentStep, t("errDeliveryFailed"));
-          return;
-        }
-        await markBackupConfirmed(cardOrderId);
-        cancelAbandoned();
-        navigateTop(data.redirectUrl);
-      } else {
-        throw new Error("Nema redirectUrl u odgovoru");
-      }
+    // Redosled (Nikolin zahtev, 03.10.2026): prvo plaćanje u banci, pa
+    // porudžbina u Make sa brojem tog plaćanja, pa potvrda, pa banka.
+    // Nikola tim brojem (raifpayOrderId) vezuje uplatu za registrovanog
+    // kupca. Stari redosled (porudžbina u Make odmah, istovremeno sa
+    // checkout-om, bez broja) ostaje gde CHECKOUT_FIRST nije uključen.
+    let delivered: Promise<boolean> | null = null;
+    if (!CHECKOUT_FIRST) ({ delivered } = bulletproofSubmit(payload));
+
+    let checkout: Checkout;
+    try {
+      checkout = await getCheckout(checkoutPayload);
     } catch (err) {
+      // Po novom redosledu porudžbina namerno NE ide u Make: kupac će
+      // kliknuti ponovo ili izabrati pouzeće, sa ISTIM order_id-jem, a Make
+      // bi taj drugi pokušaj odbacio kao duplikat i ostala bi prva, pogrešna
+      // verzija. Ako kupac odustane, ostaje rezervni red iz backupOrder-a i
+      // alarm na Slack-u.
       if (btn) setButtonLoading(btn, false, originalText);
       showError(paymentStep, t("errCheckout"));
       // Detalji (endpoint/origin/plan) ostaju u konzoli za dijagnostiku.
@@ -329,6 +319,113 @@ export function attachSubmit(form: HTMLFormElement): void {
         origin: location.origin,
         plan: finalPlan,
       });
+      return;
     }
+
+    if (!delivered) {
+      attachRaifpayOrderId(payload, checkout.orderId);
+      ({ delivered } = bulletproofSubmit(payload));
+    }
+
+    // Raiffeisen odvodi kupca sa stranice - i ovde prvo potvrda od Make-a.
+    // Ako potvrde nema, NE puštamo kupca na plaćanje: gore je naplatiti
+    // porudžbinu koju nemamo nego tražiti da klikne ponovo. Ponovni klik
+    // dobija ISTO plaćanje (getCheckout), pa se broj ne menja.
+    if (!(await waitForDelivery(delivered))) {
+      if (btn) setButtonLoading(btn, false, originalText);
+      showError(paymentStep, t("errDeliveryFailed"));
+      return;
+    }
+    await markBackupConfirmed(cardOrderId);
+    cancelAbandoned();
+    navigateTop(checkout.redirectUrl);
   });
+}
+
+// =====================================================================
+// Checkout (plaćanje u banci preko Nikolinog raifpay-a).
+// =====================================================================
+
+interface Checkout {
+  /** Broj plaćanja, npr. "ORD196FAE711AF0D463". "" ako ga odgovor nema. */
+  orderId: string;
+  redirectUrl: string;
+}
+
+/** Koliko najduže čekamo raifpay pre nego što javimo da kartica ne radi. */
+const CHECKOUT_WAIT_MS = 10000;
+
+/** Ponovno korišćenje plaćanja ako nemamo `expiresAt` iz odgovora. */
+const CHECKOUT_REUSE_MS = 15 * 60 * 1000;
+
+/**
+ * Poslednje napravljeno plaćanje za ovu porudžbinu.
+ *
+ * Kad Make ne potvrdi na vreme, kupac klikne ponovo. Novo plaćanje bi
+ * imalo NOV broj, a Make bi drugi pokušaj (isti order_id) odbacio kao
+ * duplikat - Nikola bi dobio prvi broj, a kupac platio drugi. Zato isti
+ * zahtev dobija isto plaćanje dok ono ne istekne.
+ */
+let lastCheckout: { key: string; until: number; result: Checkout } | null = null;
+
+async function getCheckout(body: Record<string, unknown>): Promise<Checkout> {
+  const key = JSON.stringify(body);
+  if (lastCheckout && lastCheckout.key === key && Date.now() < lastCheckout.until) {
+    return lastCheckout.result;
+  }
+
+  const ctrl = new AbortController();
+  const timer = window.setTimeout(() => ctrl.abort(), CHECKOUT_WAIT_MS);
+  try {
+    const response = await fetch(ENDPOINTS.raiffeisenCheckout, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: key,
+      signal: ctrl.signal,
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new Error("HTTP " + response.status + " - " + text);
+    }
+    const data = (await response.json()) as {
+      orderId?: string;
+      redirectUrl?: string;
+      expiresAt?: string;
+    };
+    if (!data.redirectUrl) throw new Error("Nema redirectUrl u odgovoru");
+
+    // Isti broj stoji i na kraju redirectUrl-a - rezerva ako polje fali.
+    const orderId =
+      data.orderId || (data.redirectUrl.match(/ORD[0-9A-Za-z]+/) ?? [""])[0];
+    const expires = data.expiresAt ? Date.parse(data.expiresAt) : NaN;
+    const result: Checkout = { orderId, redirectUrl: data.redirectUrl };
+    lastCheckout = {
+      key,
+      // Minut rezerve: kupac ne sme da stigne u banku na plaćanje koje je
+      // upravo isteklo.
+      until: Number.isFinite(expires) ? expires - 60_000 : Date.now() + CHECKOUT_REUSE_MS,
+      result,
+    };
+    return result;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+/**
+ * Broj plaćanja u Nikolinu registraciju (na prvom nivou, pored
+ * nacinPlacanja: "card") i, radi traga u Make-u, u sam payload.
+ */
+function attachRaifpayOrderId(payload: Record<string, unknown>, orderId: string): void {
+  if (!orderId) return;
+  payload.raifpayOrderId = orderId;
+  const raw = payload.registrationJson;
+  if (typeof raw !== "string" || !raw) return;
+  try {
+    const reg = JSON.parse(raw) as Record<string, unknown>;
+    reg.raifpayOrderId = orderId;
+    payload.registrationJson = JSON.stringify(reg);
+  } catch {
+    /* registracija ostaje kakva jeste - bolje bez broja nego bez porudžbine */
+  }
 }

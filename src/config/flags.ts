@@ -42,6 +42,23 @@ export const CARD_PAYMENT_ENABLED = CARD_ENABLED_BY_ENV[ENV];
 export const UPLATNICA_PATH = "/hvala";
 
 /**
+ * Kartica: prvo plaćanje u banci, pa porudžbina u Make sa brojem plaćanja
+ * (`raifpayOrderId` u registraciji - Nikolin zahtev, 03.10.2026).
+ *
+ *   false = stari redosled: porudžbina u Make odmah, istovremeno sa
+ *           checkout-om, bez broja plaćanja
+ *
+ * Prvo samo staging: Nikolin checkout ne prima zahteve sa localhost-a, pa
+ * se novi redosled može proveriti samo na vuksanvasic.webflow.io.
+ */
+const CHECKOUT_FIRST_BY_ENV: Record<Env, boolean> = {
+  prod: false,
+  staging: true,
+};
+
+export const CHECKOUT_FIRST = CHECKOUT_FIRST_BY_ENV[ENV];
+
+/**
  * Jezici forme, po okruženju.
  *
  *   ["sr"]             = forma samo na srpskom, bez izbora jezika

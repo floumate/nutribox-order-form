@@ -3,6 +3,9 @@
 // test). Čitaju se jednom - URL se ne menja tokom popunjavanja.
 // =====================================================================
 
+import { PACKAGES } from "../config/packages";
+import type { PackageId } from "../types";
+
 export interface UrlContext {
   affiliate: string;
   discountCode: string;
@@ -25,6 +28,19 @@ export interface UrlContext {
    * Kartica NE ide na banku - nema iznosa koji bi se naplatio.
    */
   agreedPrice: boolean;
+  /**
+   * ?paket=28-dnevni (ili drugi id iz packages.ts) - link sa stranice
+   * jednog paketa. Paket je unapred izabran, korak sa paketima se preskače,
+   * a u pregledu se paket vidi bez "Izmeni". null = kupac bira sam.
+   * Ne važi uz ?ns=year (tamo paketa nema).
+   */
+  fixedPackage: PackageId | null;
+}
+
+function readPackage(p: URLSearchParams): PackageId | null {
+  if (p.get("ns") === "year") return null;
+  const id = p.get("paket") ?? "";
+  return PACKAGES.some((pkg) => pkg.id === id) ? (id as PackageId) : null;
 }
 
 function read(): UrlContext {
@@ -42,6 +58,7 @@ function read(): UrlContext {
     isTest: p.get("testiranje-placanja") === "true",
     ns: p.get("ns") ?? "",
     agreedPrice: p.get("ns") === "year",
+    fixedPackage: readPackage(p),
   };
 }
 

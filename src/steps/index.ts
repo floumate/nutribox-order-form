@@ -250,6 +250,9 @@ function renderPaymentCards(container: HTMLElement): void {
 // ---------------------------------------------------------------------
 
 export function buildSteps(form: HTMLFormElement): StepConfig[] {
+  // ?paket=... - paket je izabran na stranici tog paketa, ne u formi.
+  if (urlContext.fixedPackage) state.paket = urlContext.fixedPackage;
+
   // ----- STEP: Cilj (uvodno pitanje - ne bira plan) -----
   const stepMotivacija = reqEl<HTMLElement>(form, '[data-step="motivacija"]');
   const motivacijaGrid = reqEl<HTMLElement>(stepMotivacija, '[data-grid="motivacija"]');
@@ -444,6 +447,8 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     /** Red za paket - jedini koji se izbacuje na ?ns=year. Labela se
      *  prevodi, pa se red ne može prepoznati po njoj. */
     isPackage?: boolean;
+    /** Vidi se, ali bez "Izmeni" (paket iz ?paket=). */
+    locked?: () => boolean;
     label: () => string;
     kind: "select" | "text" | "date";
     options?: () => { value: string; label: string }[];
@@ -492,6 +497,8 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     },
     {
       isPackage: true,
+      // Link je za tačno taj paket - promena paketa bi ga obesmislila.
+      locked: () => urlContext.fixedPackage !== null,
       label: () => t("sumPackage"),
       kind: "select",
       options: () =>
@@ -554,7 +561,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
         <div class="summary__row" data-srow="${i}">
           <span class="summary__label">${f.label()}</span>
           <span class="summary__value">${escapeHtml(f.display() || "-")}</span>
-          <button type="button" class="summary__edit" data-sedit="${i}">${t("sumEdit")}</button>
+          ${f.locked?.() ? "" : `<button type="button" class="summary__edit" data-sedit="${i}">${t("sumEdit")}</button>`}
         </div>`,
       ).join("") +
       // ?ns=year: nigde se ne ispisuje iznos.
@@ -714,7 +721,8 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       el: stepPaket,
       onEnter: renderPaket,
       // ?ns=year: cena i paket se dogovaraju sa Vuksanom, korak se preskače.
-      skip: () => urlContext.agreedPrice,
+      // ?paket=...: paket je izabran na stranici paketa, korak se preskače.
+      skip: () => urlContext.agreedPrice || urlContext.fixedPackage !== null,
       validate: () => {
         if (!state.paket) {
           showError(stepPaket, t("errPackage"));

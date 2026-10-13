@@ -76,6 +76,7 @@ ne prikazuje na toj kartici.
 | --- | --- |
 | `affiliate` | affiliate cena + prosleđuje se u payload |
 | `discountCode` | discount cena (prioritet nad affiliate) |
+| `discountCode=NUTRI20` | -20% na sve pakete (oba nivoa), npr. `?paket=20-dnevni&discountCode=NUTRI20` |
 | `setter` | prosleđuje se u payload |
 | `plan=custom` + `customPlanName=standard` | custom cena (117.000), najviši prioritet |
 | `testiranje-placanja=true` | Raiffeisen plan = `probni` |

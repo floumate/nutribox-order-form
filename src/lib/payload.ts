@@ -84,6 +84,12 @@ export function buildPayload(): Record<string, unknown> {
   // došla sa ?s=a. Make ovo šalje dalje kao "order".
   payload.visit_id = peekVisitId();
 
+  // Odakle je kupac došao (GHL polje Source) i UTM oznake reklame.
+  payload.source = urlContext.source;
+  payload.utm_source = urlContext.utmSource;
+  payload.utm_medium = urlContext.utmMedium;
+  payload.utm_campaign = urlContext.utmCampaign;
+
   // Gotov Nikolin registration payload (string) — Make HTTP modul ga prosleđuje
   // kao raw body + doda X-API-Key. Prazno kad se ne registruje (custom plan).
   const reg = buildRegistration();

@@ -35,6 +35,29 @@ export interface UrlContext {
    * Ne važi uz ?ns=year (tamo paketa nema).
    */
   fixedPackage: PackageId | null;
+  /** UTM oznake iz linka reklame ("" ako ih nema). */
+  utmSource: string;
+  utmMedium: string;
+  utmCampaign: string;
+  /**
+   * Odakle je kupac došao, jednom rečju - za GHL polje Source.
+   * Redosled: utm_source > reklama bez UTM-a (fbclid/gclid) > AI setter
+   * > affiliate > preporuka > "direktno". Vidi readSource().
+   */
+  source: string;
+}
+
+function readSource(p: URLSearchParams): string {
+  const utm = (p.get("utm_source") ?? "").trim().toLowerCase();
+  if (utm) return utm;
+  if (p.get("fbclid")) return "meta_ads";
+  if (p.get("gclid")) return "google_ads";
+  const setter = p.get("s") ?? "";
+  if (setter === "a") return "ai_setter";
+  if (setter) return "setter_" + setter;
+  if (p.get("affiliate")) return "affiliate";
+  if (p.get("referred_by")) return "preporuka";
+  return "direktno";
 }
 
 function readPackage(p: URLSearchParams): PackageId | null {
@@ -59,6 +82,10 @@ function read(): UrlContext {
     ns: p.get("ns") ?? "",
     agreedPrice: p.get("ns") === "year",
     fixedPackage: readPackage(p),
+    utmSource: p.get("utm_source") ?? "",
+    utmMedium: p.get("utm_medium") ?? "",
+    utmCampaign: p.get("utm_campaign") ?? "",
+    source: readSource(p),
   };
 }
 

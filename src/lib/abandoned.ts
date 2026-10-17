@@ -31,9 +31,10 @@ function sendAbandoned(data: Record<string, unknown>): void {
 const TIMER_MINUTA = 10;
 const SESSION_KEY = "if_abandoned_data";
 const SESSION_START = "if_abandoned_start";
+/** Otisak poslednjeg poslatog abandoned-a - ne briše ga clearSession(). */
+const SESSION_SENT = "if_abandoned_sent";
 
 let formData: Record<string, unknown> = {};
-let abandonedSent = false;
 let abandonedTimer: number | null = null;
 let timerStarted = false;
 let interacted = false;
@@ -95,15 +96,59 @@ function collect(): void {
   saveSession();
 }
 
+/**
+ * Abandoned bez mejla ili telefona nikome ne služi - nema kome da se javi.
+ * Pre ovoga je skoro svaki klik na prvo "Dalje" slao prazan zapis.
+ */
+function hasContact(data: Record<string, unknown>): boolean {
+  const email = String(data.Email ?? "");
+  const phoneDigits = String(data["Broj-telefona"] ?? "").replace(/\D/g, "");
+  return email.includes("@") || phoneDigits.length >= 8;
+}
+
+/** Sve što je kupac popunio, bez polja koja se menjaju sama. */
+function fingerprint(data: Record<string, unknown>): string {
+  const rest: Record<string, unknown> = { ...data };
+  delete rest.form_status;
+  return JSON.stringify(rest);
+}
+
+function alreadySent(sig: string): boolean {
+  try {
+    return sessionStorage.getItem(SESSION_SENT) === sig;
+  } catch {
+    return false;
+  }
+}
+
+function markSent(sig: string): void {
+  try {
+    sessionStorage.setItem(SESSION_SENT, sig);
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Pošalji abandoned samo ako ima kome da se javi i ako se od poslednjeg
+ * slanja nešto promenilo. Ranije je svaki izlazak na drugi tab (poruka,
+ * zaključan telefon) slao isti zapis ponovo, pa se jedan kupac pojavljivao
+ * po nekoliko puta.
+ */
+function trySend(data: Record<string, unknown>): boolean {
+  if (!hasContact(data)) return false;
+  const sig = fingerprint(data);
+  if (alreadySent(sig)) return false;
+  markSent(sig);
+  sendAbandoned({ ...data, form_status: "abandoned" });
+  return true;
+}
+
 function send(): void {
   if (!interacted) return;
   if (runtime.submitted) return;
-  if (abandonedSent) return;
   if (Object.keys(formData).length === 0) return;
-  abandonedSent = true;
-  formData.form_status = "abandoned";
-  sendAbandoned(formData);
-  clearSession();
+  if (trySend(formData)) clearSession();
 }
 
 function startTimer(): void {
@@ -146,8 +191,7 @@ export function initAbandoned(): void {
   // Restore iz prethodne sesije - pošalji abandoned i očisti.
   loadSession();
   if (Object.keys(formData).length > 0) {
-    formData.form_status = "abandoned";
-    sendAbandoned(formData);
+    trySend(formData);
     clearSession();
     formData = {};
   }
@@ -167,11 +211,11 @@ export function initAbandoned(): void {
   });
 
   document.addEventListener("visibilitychange", () => {
+    // Pri povratku na tab ne treba ništa: trySend sam odbija isti zapis,
+    // a pušta ga ako je kupac u međuvremenu nešto dopunio.
     if (document.visibilityState === "hidden") {
       collect();
       send();
-    } else if (!runtime.submitted) {
-      abandonedSent = false;
     }
   });
 

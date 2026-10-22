@@ -4,11 +4,11 @@ import { buildPayload } from "./payload";
 import { bulletproofSubmit } from "./bulletproof";
 import { cancelAbandoned } from "./abandoned";
 import { backupOrder, getWorkingOrderId, markBackupConfirmed } from "./backup";
-import { getPackage } from "../config/packages";
+import { getPackage, raiffeisenCode } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
 import { isMaxPlan } from "../config/plans";
 import { ENDPOINTS } from "../config/endpoints";
-import { CARD_PAYMENT_ENABLED, CHECKOUT_FIRST, SEND_GENDER_GOAL, UPLATNICA_PATH } from "../config/flags";
+import { CARD_PAYMENT_ENABLED, CHECKOUT_FIRST, PRICING_V3, SEND_GENDER_GOAL, UPLATNICA_PATH } from "../config/flags";
 import { POL_MAP, CILJ_MAP } from "./registration";
 import { getPhoneNumber } from "./phone";
 import { EMAIL_REGEX, showError, hideError } from "./validation";
@@ -190,7 +190,7 @@ export function attachSubmit(form: HTMLFormElement): void {
       }
       // Konačna cena (uključuje NutriMax + paket + popust) → TY samo prikaže.
       const tyCena = state.paket
-        ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
+        ? computePrice(state.paket, urlContext, state.plan, state.pol)
         : null;
       if (tyCena != null) tyParams.set("cena", formatPrice(tyCena));
       // /hvala-pouzece na ?ns=year menja rečenicu sa iznosom u "prema dogovoru".
@@ -233,17 +233,16 @@ export function attachSubmit(form: HTMLFormElement): void {
     // Sve ispod ovog bloka je raifpay kod - netaknut, samo nedostižan.
     if (!CARD_PAYMENT_ENABLED) {
       const { delivered } = bulletproofSubmit(payload);
-      const kod = isMaxPlan(state.plan)
-        ? (pkg?.raiffeisenPlanMax ?? "")
-        : (pkg?.raiffeisenPlan ?? "");
+      const kod = pkg ? raiffeisenCode(pkg, isMaxPlan(state.plan)) : "";
       const cena = state.paket
-        ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
+        ? computePrice(state.paket, urlContext, state.plan, state.pol)
         : null;
       const puna = state.paket
         ? computePrice(
             state.paket,
             { affiliate: "", discountCode: "", isCustomPlan: false, customPlanName: "" },
-            isMaxPlan(state.plan),
+            state.plan,
+            state.pol,
           )
         : null;
 
@@ -273,8 +272,7 @@ export function attachSubmit(form: HTMLFormElement): void {
     // ?testiranje-placanja=true → poseban raifpay kod "test" (100 RSD).
     // NE "probni" - to je pravi probni paket (3.500).
     else if (urlContext.isTest) finalPlan = "test";
-    else if (isMaxPlan(state.plan)) finalPlan = pkg?.raiffeisenPlanMax ?? "";
-    else finalPlan = pkg?.raiffeisenPlan ?? "";
+    else finalPlan = pkg ? raiffeisenCode(pkg, isMaxPlan(state.plan)) : "";
 
     const phoneNumber = getPhoneNumber() || state.telefon;
 
@@ -293,6 +291,12 @@ export function attachSubmit(form: HTMLFormElement): void {
     };
     if (urlContext.isCustomPlan) {
       checkoutPayload.customPlanName = urlContext.customPlanName;
+    }
+    // Nutribox 3.0: kodova popusta nema, a novi backend nepoznat kod odbija
+    // (INVALID_DISCOUNT_CODE) - kod iz starog linka ne sme da obori plaćanje.
+    if (PRICING_V3) {
+      delete checkoutPayload.discountCode;
+      delete checkoutPayload.affiliate;
     }
     // Nutribox 3.0: veličinu i iznos Nikolin backend računa iz pola i cilja.
     if (SEND_GENDER_GOAL) {

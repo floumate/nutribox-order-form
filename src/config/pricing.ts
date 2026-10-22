@@ -1,4 +1,37 @@
-import type { Lang, PackageId } from "../types";
+import type { Lang, PackageId, PlanId, Sex } from "../types";
+import { getMacros, isMaxPlan } from "./plans";
+import { PRICING_V3 } from "./flags";
+
+// =====================================================================
+// NUTRIBOX 3.0 (staging dok se ne pusti - flags.ts PRICING_V3).
+//
+// Cena zavisi od PAKETA i VELIČINE, a veličina od kalorija (pol + plan):
+//   XS–M = 1.300–2.000 kcal · L = 2.600 kcal · XL = 3.000 kcal
+// Isti obračun radi Nikolin backend iz `gender` + `goal`, pa forma mora da
+// prikazuje tačno ove iznose. Nema probnog paketa ni kodova popusta.
+// =====================================================================
+
+export type SizeTier = "base" | "L" | "XL";
+
+export function sizeTier(plan: PlanId | null, pol: Sex | null): SizeTier {
+  if (!plan || !pol) return "base";
+  const kcal = getMacros(plan, pol).kcal ?? 0;
+  if (kcal >= 3000) return "XL";
+  if (kcal >= 2600) return "L";
+  return "base";
+}
+
+const PRICES_V3: Partial<Record<PackageId, Record<SizeTier, number>>> = {
+  "28-dnevni": { base: 78400, L: 88400, XL: 98400 },
+  "20-dnevni": { base: 60400, L: 68400, XL: 79400 },
+  "7-dnevni": { base: 22400, L: 24400, XL: 28400 },
+  "5-dnevni": { base: 17400, L: 18400, XL: 22400 },
+};
+
+/** Paketi koji postoje u ovoj verziji cena (3.0 nema probni). */
+export function packageAvailable(id: PackageId): boolean {
+  return !PRICING_V3 || PRICES_V3[id] != null;
+}
 
 // =====================================================================
 // CENE.
@@ -99,19 +132,24 @@ export interface PriceContext {
 
 /**
  * Vrati mašinsku cenu (ceo broj) za paket u datom kontekstu, ili null.
- * `isMax` = true kad je izabran NutriMax plan (poseban cenovni nivo).
+ * Plan i pol određuju cenovni nivo: do 3.0 NutriMax vs ostali, od 3.0
+ * veličinu po kalorijama.
  */
 export function computePrice(
   packageId: PackageId,
   ctx: PriceContext,
-  isMax: boolean,
+  plan: PlanId | null,
+  pol: Sex | null,
 ): number | null {
   // 1) Custom plan ima najviši prioritet.
   if (ctx.isCustomPlan && CUSTOM_PRICES[ctx.customPlanName] != null) {
     return CUSTOM_PRICES[ctx.customPlanName] ?? null;
   }
 
-  const set = (isMax ? PRICES_MAX : PRICES_STANDARD)[packageId];
+  // Nutribox 3.0: samo veličina, bez kodova popusta.
+  if (PRICING_V3) return PRICES_V3[packageId]?.[sizeTier(plan, pol)] ?? null;
+
+  const set = (isMaxPlan(plan) ? PRICES_MAX : PRICES_STANDARD)[packageId];
 
   // 2) discountCode
   if (ctx.discountCode && set.discounts[ctx.discountCode] != null) {

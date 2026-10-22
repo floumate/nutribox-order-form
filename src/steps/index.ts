@@ -13,11 +13,11 @@ import {
 import { saveStep } from "../lib/backup";
 import { getLang, labels, onLangChange, t, tf } from "../lib/i18n";
 import { GOALS } from "../config/goals";
-import { PLANS, getPlan, getMacros, isMaxPlan } from "../config/plans";
+import { PLANS, getPlan, getMacros } from "../config/plans";
 import { DIET_TYPES } from "../config/dietTypes";
 import { getAllergensFor } from "../config/allergens";
 import { PACKAGES, PACKAGE_GROUPS } from "../config/packages";
-import { computePrice, formatPriceDisplay } from "../config/pricing";
+import { computePrice, formatPriceDisplay, packageAvailable } from "../config/pricing";
 import { NASELJA, NASELJA_PO_GRADU } from "../config/delivery";
 import { PAYMENT_OPTIONS } from "../config/payments";
 import type {
@@ -199,10 +199,10 @@ function renderAllergenCards(
     .join("");
 }
 
-function renderPackageCards(container: HTMLElement, isMax: boolean): void {
+function renderPackageCards(container: HTMLElement): void {
   const L = labels();
   const cardHtml = (p: (typeof PACKAGES)[number]): string => {
-    const price = computePrice(p.id, urlContext, isMax);
+    const price = computePrice(p.id, urlContext, state.plan, state.pol);
     const priceHtml =
       price != null
         ? `<span class="card__price">${formatPriceDisplay(price, getLang())} <small>RSD</small></span>`
@@ -220,7 +220,9 @@ function renderPackageCards(container: HTMLElement, isMax: boolean): void {
   };
 
   container.innerHTML = PACKAGE_GROUPS.map((g) => {
-    const cards = PACKAGES.filter((p) => p.group === g.id).map(cardHtml).join("");
+    const inGroup = PACKAGES.filter((p) => p.group === g.id && packageAvailable(p.id));
+    if (!inGroup.length) return ""; // npr. "Dnevni" kad probnog nema (3.0)
+    const cards = inGroup.map(cardHtml).join("");
     return `
     <div class="pkg-group">
       <span class="pkg-group__label">${L.packageGroups[g.id]}</span>
@@ -321,7 +323,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   const stepPaket = reqEl<HTMLElement>(form, '[data-step="paket"]');
   const paketGrid = reqEl<HTMLElement>(stepPaket, '[data-grid="paket"]');
   const renderPaket = () => {
-    renderPackageCards(paketGrid, isMaxPlan(state.plan));
+    renderPackageCards(paketGrid);
     if (state.paket) selectCardInGrid(paketGrid, state.paket);
   };
   renderPaket();
@@ -502,7 +504,10 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       label: () => t("sumPackage"),
       kind: "select",
       options: () =>
-        PACKAGES.map((p) => ({ value: p.id, label: labels().packages[p.id].name })),
+        PACKAGES.filter((p) => packageAvailable(p.id)).map((p) => ({
+          value: p.id,
+          label: labels().packages[p.id].name,
+        })),
       stored: () => state.paket ?? "",
       display: () => (state.paket ? labels().packages[state.paket].name : ""),
       apply: (v) => {
@@ -553,7 +558,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
 
   const renderSummary = () => {
     const price = state.paket
-      ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
+      ? computePrice(state.paket, urlContext, state.plan, state.pol)
       : null;
     summaryEl.innerHTML =
       SUM_FIELDS.map(
@@ -573,7 +578,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   // Osveži samo "Ukupno" (bez re-rendera celog summary-ja, da ne zatvori druge editore).
   const updateTotal = () => {
     const price = state.paket
-      ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
+      ? computePrice(state.paket, urlContext, state.plan, state.pol)
       : null;
     const totalEl = summaryEl.querySelector<HTMLElement>(".summary__total strong");
     if (totalEl) totalEl.textContent = `${formatPriceDisplay(price, getLang())} RSD`;

@@ -1,4 +1,5 @@
 import type { PackageId } from "../types";
+import { PRICING_V3 } from "./flags";
 
 // =====================================================================
 // PAKETI.
@@ -88,4 +89,13 @@ export const PACKAGES: PackageDef[] = [
 
 export function getPackage(id: PackageId): PackageDef | undefined {
   return PACKAGES.find((p) => p.id === id);
+}
+
+/**
+ * Kod paketa za Nikolin checkout i registraciju. Do Nutribox 3.0 NutriMax
+ * ima poseban `_max` kod; od 3.0 ga nema - cenu određuju `gender` + `goal`
+ * (NutriMax žena = "28_day", backend iz pola i cilja zna da je to L).
+ */
+export function raiffeisenCode(pkg: PackageDef, isMax: boolean): string {
+  return isMax && !PRICING_V3 ? pkg.raiffeisenPlanMax : pkg.raiffeisenPlan;
 }

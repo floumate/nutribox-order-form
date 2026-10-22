@@ -4,6 +4,7 @@
 // =====================================================================
 
 import { PACKAGES } from "../config/packages";
+import { packageAvailable } from "../config/pricing";
 import type { PackageId } from "../types";
 
 export interface UrlContext {
@@ -63,7 +64,10 @@ function readSource(p: URLSearchParams): string {
 function readPackage(p: URLSearchParams): PackageId | null {
   if (p.get("ns") === "year") return null;
   const id = p.get("paket") ?? "";
-  return PACKAGES.some((pkg) => pkg.id === id) ? (id as PackageId) : null;
+  // Paket koji u trenutnim cenama ne postoji (probni od 3.0) → kupac bira sam.
+  return PACKAGES.some((pkg) => pkg.id === id) && packageAvailable(id as PackageId)
+    ? (id as PackageId)
+    : null;
 }
 
 function read(): UrlContext {

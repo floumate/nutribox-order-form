@@ -74,6 +74,21 @@ const SEND_GENDER_GOAL_BY_ENV: Record<Env, boolean> = {
 export const SEND_GENDER_GOAL = SEND_GENDER_GOAL_BY_ENV[ENV];
 
 /**
+ * Nutribox 3.0, korak 2: nove cene po veličini paketa (kcal), bez `_max`
+ * kodova, bez probnog paketa i bez kodova popusta (NUTRI20, ONBOARDING10,
+ * affiliate). Odluke: Vuksan 22.10.2026.
+ *
+ * Na prod se uključuje TEK POSLE Nikolinog deploy-a: stari backend bez
+ * `_max` naplati NutriMax kao običan paket.
+ */
+const PRICING_V3_BY_ENV: Record<Env, boolean> = {
+  prod: false,
+  staging: true,
+};
+
+export const PRICING_V3 = PRICING_V3_BY_ENV[ENV];
+
+/**
  * Jezici forme, po okruženju.
  *
  *   ["sr"]             = forma samo na srpskom, bez izbora jezika

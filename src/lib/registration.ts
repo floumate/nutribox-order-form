@@ -1,9 +1,10 @@
 import { state } from "./state";
 import { urlContext } from "./urlParams";
 import { getPhoneNumber } from "./phone";
-import { getPackage } from "../config/packages";
+import { getPackage, raiffeisenCode } from "../config/packages";
 import { computePrice } from "../config/pricing";
 import { isMaxPlan } from "../config/plans";
+import { PRICING_V3 } from "../config/flags";
 import type { PlanId } from "../types";
 
 // =====================================================================
@@ -79,7 +80,7 @@ export function buildRegistration(): Record<string, unknown> | null {
     if (!paketId) return null;
     const pkg = getPackage(paketId);
     if (!pkg) return null;
-    paketKod = isMaxPlan(plan) ? pkg.raiffeisenPlanMax : pkg.raiffeisenPlan;
+    paketKod = raiffeisenCode(pkg, isMaxPlan(plan));
   }
 
   const reg: Record<string, unknown> = {
@@ -107,7 +108,7 @@ export function buildRegistration(): Record<string, unknown> | null {
     reg.cena = AGREED_PRICE_REG.cena;
     reg.nazivPaketa = AGREED_PRICE_REG.nazivPaketa;
   } else if (paketId) {
-    const cena = computePrice(paketId, urlContext, isMaxPlan(plan));
+    const cena = computePrice(paketId, urlContext, plan, pol);
     if (cena != null) reg.cena = cena;
   }
 
@@ -131,7 +132,8 @@ export function buildRegistration(): Record<string, unknown> | null {
 
   // Referral / promo.
   if (urlContext.referredBy) reg.preporucenOd = urlContext.referredBy;
-  if (urlContext.discountCode) reg.promoKod = urlContext.discountCode;
+  // Od Nutribox 3.0 kodova popusta nema - kod iz starog linka se ne šalje.
+  if (urlContext.discountCode && !PRICING_V3) reg.promoKod = urlContext.discountCode;
 
   // Firma (Nikola ne traži emailFirme).
   if (nacin === "Firma") {

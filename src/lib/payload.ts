@@ -1,7 +1,7 @@
 import { state } from "./state";
 import { urlContext } from "./urlParams";
 import { getPhoneNumber } from "./phone";
-import { getPlan, getMacros, isMaxPlan } from "../config/plans";
+import { getPlan, getMacros } from "../config/plans";
 import { getDiet } from "../config/dietTypes";
 import { computePrice } from "../config/pricing";
 import { buildRegistration } from "./registration";
@@ -20,7 +20,7 @@ export function buildPayload(): Record<string, unknown> {
   const macros =
     state.plan && state.pol ? getMacros(state.plan, state.pol) : null;
   const price = state.paket
-    ? computePrice(state.paket, urlContext, isMaxPlan(state.plan))
+    ? computePrice(state.paket, urlContext, state.plan, state.pol)
     : null;
 
   // Imena polja USKLAĐENA sa starom 28-dnevnom formom (da Make/GHL mapiranje

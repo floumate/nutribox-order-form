@@ -36,6 +36,12 @@ export interface UrlContext {
    * Ne važi uz ?ns=year (tamo paketa nema).
    */
   fixedPackage: PackageId | null;
+  /**
+   * ?partner=1 - kupac je partner postojećeg kupca (ista adresa) i dobija
+   * partner cenu. Ne važi uz ?ns=year i custom plan. Da li se uopšte
+   * primenjuje odlučuje PARTNER_ENABLED (vidi isPartnerOrder u pricing.ts).
+   */
+  partner: boolean;
   /** UTM oznake iz linka reklame ("" ako ih nema). */
   utmSource: string;
   utmMedium: string;
@@ -70,10 +76,17 @@ function readPackage(p: URLSearchParams): PackageId | null {
     : null;
 }
 
+function readPartner(p: URLSearchParams, isCustomPlan: boolean): boolean {
+  if (p.get("ns") === "year" || isCustomPlan) return false;
+  const v = (p.get("partner") ?? "").trim().toLowerCase();
+  return v !== "" && v !== "0" && v !== "false" && v !== "ne";
+}
+
 function read(): UrlContext {
   const p = new URLSearchParams(window.location.search);
   const plan = p.get("plan") ?? "";
   const customPlanName = p.get("customPlanName") ?? "";
+  const isCustomPlan = plan === "custom" && customPlanName === "standard";
   return {
     affiliate: p.get("affiliate") ?? "",
     discountCode: p.get("discountCode") ?? "",
@@ -81,11 +94,12 @@ function read(): UrlContext {
     referredBy: p.get("referred_by") ?? "",
     plan,
     customPlanName,
-    isCustomPlan: plan === "custom" && customPlanName === "standard",
+    isCustomPlan,
     isTest: p.get("testiranje-placanja") === "true",
     ns: p.get("ns") ?? "",
     agreedPrice: p.get("ns") === "year",
     fixedPackage: readPackage(p),
+    partner: readPartner(p, isCustomPlan),
     utmSource: p.get("utm_source") ?? "",
     utmMedium: p.get("utm_medium") ?? "",
     utmCampaign: p.get("utm_campaign") ?? "",

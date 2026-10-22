@@ -2,7 +2,7 @@ import { state } from "./state";
 import { urlContext } from "./urlParams";
 import { getPhoneNumber } from "./phone";
 import { getPackage, raiffeisenCode } from "../config/packages";
-import { computePrice } from "../config/pricing";
+import { computePrice, isPartnerOrder } from "../config/pricing";
 import { isMaxPlan } from "../config/plans";
 import { PRICING_V3 } from "../config/flags";
 import type { PlanId } from "../types";
@@ -107,6 +107,10 @@ export function buildRegistration(): Record<string, unknown> | null {
     reg.brojDostava = AGREED_PRICE_REG.brojDostava;
     reg.cena = AGREED_PRICE_REG.cena;
     reg.nazivPaketa = AGREED_PRICE_REG.nazivPaketa;
+  } else if (isPartnerOrder(urlContext)) {
+    // Partner: Nikola `cena` prihvata bez provere, a bez nje sam uzme
+    // partner cenu - pa je ne šaljemo, da pogrešan iznos ne prođe tiho.
+    reg.partner = true;
   } else if (paketId) {
     const cena = computePrice(paketId, urlContext, plan, pol);
     if (cena != null) reg.cena = cena;

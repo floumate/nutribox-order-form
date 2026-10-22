@@ -1,6 +1,6 @@
 import type { Lang, PackageId, PlanId, Sex } from "../types";
 import { getMacros, isMaxPlan } from "./plans";
-import { PRICING_V3 } from "./flags";
+import { PARTNER_ENABLED, PRICING_V3 } from "./flags";
 
 // =====================================================================
 // NUTRIBOX 3.0 (staging dok se ne pusti - flags.ts PRICING_V3).
@@ -27,6 +27,23 @@ const PRICES_V3: Partial<Record<PackageId, Record<SizeTier, number>>> = {
   "7-dnevni": { base: 22400, L: 24400, XL: 28400 },
   "5-dnevni": { base: 17400, L: 18400, XL: 22400 },
 };
+
+/**
+ * Partner popust (umanjena cena dostave - partner je na istoj adresi), isti
+ * iznos za sve veličine. 28 i 20 dana iz Nikolinog dokumenta; 5 i 7 dana je
+ * Ružičin iznos - proveriti na stagingu da banka naplati isto.
+ */
+const PARTNER_DISCOUNT: Partial<Record<PackageId, number>> = {
+  "28-dnevni": 8400,
+  "20-dnevni": 6000,
+  "7-dnevni": 2100,
+  "5-dnevni": 1500,
+};
+
+/** Porudžbina preko partner linka, kad je partner uključen (flags.ts). */
+export function isPartnerOrder(ctx: { partner?: boolean }): boolean {
+  return PARTNER_ENABLED && ctx.partner === true;
+}
 
 /** Paketi koji postoje u ovoj verziji cena (3.0 nema probni). */
 export function packageAvailable(id: PackageId): boolean {
@@ -128,6 +145,8 @@ export interface PriceContext {
   discountCode: string;
   isCustomPlan: boolean;
   customPlanName: string;
+  /** ?partner=1 (Nutribox 3.0). */
+  partner?: boolean;
 }
 
 /**
@@ -146,8 +165,12 @@ export function computePrice(
     return CUSTOM_PRICES[ctx.customPlanName] ?? null;
   }
 
-  // Nutribox 3.0: samo veličina, bez kodova popusta.
-  if (PRICING_V3) return PRICES_V3[packageId]?.[sizeTier(plan, pol)] ?? null;
+  // Nutribox 3.0: samo veličina, bez kodova popusta; partner - popust.
+  if (PRICING_V3) {
+    const full = PRICES_V3[packageId]?.[sizeTier(plan, pol)];
+    if (full == null) return null;
+    return isPartnerOrder(ctx) ? full - (PARTNER_DISCOUNT[packageId] ?? 0) : full;
+  }
 
   const set = (isMaxPlan(plan) ? PRICES_MAX : PRICES_STANDARD)[packageId];
 

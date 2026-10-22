@@ -103,6 +103,7 @@ const SR_UI = {
   sumEdit: "Izmeni",
   sumSave: "Sačuvaj",
   sumTotal: "Ukupno",
+  partnerPrice: "Partnerska cena",
 
   // Greške
   errGoal: "Molimo izaberite cilj.",
@@ -218,6 +219,7 @@ const EN_UI: Record<UiKey, string> = {
   sumEdit: "Edit",
   sumSave: "Save",
   sumTotal: "Total",
+  partnerPrice: "Partner price",
 
   errGoal: "Please choose a goal.",
   errSex: "Please choose who the package is for.",
@@ -327,6 +329,7 @@ const RU_UI: Record<UiKey, string> = {
   sumEdit: "Изменить",
   sumSave: "Сохранить",
   sumTotal: "Итого",
+  partnerPrice: "Партнёрская цена",
 
   errGoal: "Пожалуйста, выберите цель.",
   errSex: "Пожалуйста, выберите, для кого пакет.",

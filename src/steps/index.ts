@@ -17,7 +17,7 @@ import { PLANS, getPlan, getMacros } from "../config/plans";
 import { DIET_TYPES } from "../config/dietTypes";
 import { getAllergensFor } from "../config/allergens";
 import { PACKAGES, PACKAGE_GROUPS } from "../config/packages";
-import { computePrice, formatPriceDisplay, packageAvailable } from "../config/pricing";
+import { computePrice, formatPriceDisplay, isPartnerOrder, packageAvailable } from "../config/pricing";
 import { NASELJA, NASELJA_PO_GRADU } from "../config/delivery";
 import { PAYMENT_OPTIONS } from "../config/payments";
 import type {
@@ -201,11 +201,22 @@ function renderAllergenCards(
 
 function renderPackageCards(container: HTMLElement): void {
   const L = labels();
+  const partner = isPartnerOrder(urlContext);
   const cardHtml = (p: (typeof PACKAGES)[number]): string => {
     const price = computePrice(p.id, urlContext, state.plan, state.pol);
+    // Partner link: precrtana puna cena + oznaka, da se vidi popust.
+    const full = partner
+      ? computePrice(p.id, { ...urlContext, partner: false }, state.plan, state.pol)
+      : null;
     const priceHtml =
       price != null
-        ? `<span class="card__price">${formatPriceDisplay(price, getLang())} <small>RSD</small></span>`
+        ? `<span class="card__price">${
+            full != null && full !== price
+              ? `<s class="card__price-old">${formatPriceDisplay(full, getLang())}</s>`
+              : ""
+          }${formatPriceDisplay(price, getLang())} <small>RSD</small>${
+            partner ? `<span class="card__partner">${t("partnerPrice")}</span>` : ""
+          }</span>`
         : "";
     const badge = p.badge ? `<span class="card__badge">${p.badge}</span>` : "";
     return `
@@ -572,7 +583,9 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       // ?ns=year: nigde se ne ispisuje iznos.
       (urlContext.agreedPrice
         ? ""
-        : `<div class="summary__row summary__total"><span class="summary__label">${t("sumTotal")}</span><strong>${formatPriceDisplay(price, getLang())} RSD</strong></div>`);
+        : `<div class="summary__row summary__total"><span class="summary__label">${t("sumTotal")}${
+            isPartnerOrder(urlContext) ? ` <small class="summary__partner">(${t("partnerPrice")})</small>` : ""
+          }</span><strong>${formatPriceDisplay(price, getLang())} RSD</strong></div>`);
   };
 
   // Osveži samo "Ukupno" (bez re-rendera celog summary-ja, da ne zatvori druge editore).

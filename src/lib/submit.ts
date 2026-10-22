@@ -5,7 +5,7 @@ import { bulletproofSubmit } from "./bulletproof";
 import { cancelAbandoned } from "./abandoned";
 import { backupOrder, getWorkingOrderId, markBackupConfirmed } from "./backup";
 import { getPackage, raiffeisenCode } from "../config/packages";
-import { computePrice, formatPrice } from "../config/pricing";
+import { computePrice, formatPrice, isPartnerOrder } from "../config/pricing";
 import { isMaxPlan } from "../config/plans";
 import { ENDPOINTS } from "../config/endpoints";
 import { CARD_PAYMENT_ENABLED, CHECKOUT_FIRST, PRICING_V3, SEND_GENDER_GOAL, UPLATNICA_PATH } from "../config/flags";
@@ -298,6 +298,8 @@ export function attachSubmit(form: HTMLFormElement): void {
       delete checkoutPayload.discountCode;
       delete checkoutPayload.affiliate;
     }
+    // Partner: iznos računa backend iz paketa, veličine i ove oznake.
+    if (isPartnerOrder(urlContext)) checkoutPayload.partner = true;
     // Nutribox 3.0: veličinu i iznos Nikolin backend računa iz pola i cilja.
     if (SEND_GENDER_GOAL) {
       if (state.pol && POL_MAP[state.pol]) checkoutPayload.gender = POL_MAP[state.pol];

@@ -89,6 +89,21 @@ const PRICING_V3_BY_ENV: Record<Env, boolean> = {
 export const PRICING_V3 = PRICING_V3_BY_ENV[ENV];
 
 /**
+ * Nutribox 3.0, korak 3: partner popust preko linka `?partner=1` - forma
+ * prikaže partnersku cenu i pošalje `partner: true` u plaćanje karticom i u
+ * registraciju. Radi samo uz nove cene (PRICING_V3).
+ *
+ * Na prod TEK POSLE Nikolinog deploy-a: do tada registracija odbija polje
+ * `partner` (ide na ručnu proveru), a kartica ga ignoriše i naplati punu cenu.
+ */
+const PARTNER_BY_ENV: Record<Env, boolean> = {
+  prod: false,
+  staging: true,
+};
+
+export const PARTNER_ENABLED = PARTNER_BY_ENV[ENV] && PRICING_V3;
+
+/**
  * Jezici forme, po okruženju.
  *
  *   ["sr"]             = forma samo na srpskom, bez izbora jezika

@@ -3,7 +3,7 @@ import { urlContext } from "./urlParams";
 import { getPhoneNumber } from "./phone";
 import { getPlan, getMacros } from "../config/plans";
 import { getDiet } from "../config/dietTypes";
-import { computePrice } from "../config/pricing";
+import { computePrice, isPartnerOrder } from "../config/pricing";
 import { buildRegistration } from "./registration";
 import { ENV } from "../config/env";
 import { peekVisitId } from "./setterTracking";
@@ -83,6 +83,10 @@ export function buildPayload(): Record<string, unknown> {
   // Vezuje porudžbinu za dolazak preko AI settera. Prazno kad poseta nije
   // došla sa ?s=a. Make ovo šalje dalje kao "order".
   payload.visit_id = peekVisitId();
+
+  // "da" kad je porudžbina preko partner linka (Nutribox 3.0), da tim vidi
+  // zašto je cena niža. Prazno inače.
+  payload.partner = isPartnerOrder(urlContext) ? "da" : "";
 
   // Odakle je kupac došao (GHL polje Source) i UTM oznake reklame.
   payload.source = urlContext.source;

@@ -8,7 +8,8 @@ import { getPackage } from "../config/packages";
 import { computePrice, formatPrice } from "../config/pricing";
 import { isMaxPlan } from "../config/plans";
 import { ENDPOINTS } from "../config/endpoints";
-import { CARD_PAYMENT_ENABLED, CHECKOUT_FIRST, UPLATNICA_PATH } from "../config/flags";
+import { CARD_PAYMENT_ENABLED, CHECKOUT_FIRST, SEND_GENDER_GOAL, UPLATNICA_PATH } from "../config/flags";
+import { POL_MAP, CILJ_MAP } from "./registration";
 import { getPhoneNumber } from "./phone";
 import { EMAIL_REGEX, showError, hideError } from "./validation";
 import { localizedPath, t } from "./i18n";
@@ -292,6 +293,11 @@ export function attachSubmit(form: HTMLFormElement): void {
     };
     if (urlContext.isCustomPlan) {
       checkoutPayload.customPlanName = urlContext.customPlanName;
+    }
+    // Nutribox 3.0: veličinu i iznos Nikolin backend računa iz pola i cilja.
+    if (SEND_GENDER_GOAL) {
+      if (state.pol && POL_MAP[state.pol]) checkoutPayload.gender = POL_MAP[state.pol];
+      if (state.plan) checkoutPayload.goal = CILJ_MAP[state.plan];
     }
 
     // Redosled (Nikolin zahtev, 03.10.2026): prvo plaćanje u banci, pa

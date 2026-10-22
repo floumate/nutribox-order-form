@@ -59,6 +59,21 @@ const CHECKOUT_FIRST_BY_ENV: Record<Env, boolean> = {
 export const CHECKOUT_FIRST = CHECKOUT_FIRST_BY_ENV[ENV];
 
 /**
+ * Nutribox 3.0, korak 1: pol i cilj (`gender`, `goal`) u zahtevu za
+ * plaćanje karticom. Nikolin novi backend iz njih računa veličinu paketa i
+ * iznos, a bez njih vraća 400.
+ *
+ * Na prod ide PRE Nikolinog deploy-a, na dan koji se dogovori. Trenutni
+ * backend ova polja ignoriše, pa je bezbedno da izađe ranije od ostalog.
+ */
+const SEND_GENDER_GOAL_BY_ENV: Record<Env, boolean> = {
+  prod: false,
+  staging: true,
+};
+
+export const SEND_GENDER_GOAL = SEND_GENDER_GOAL_BY_ENV[ENV];
+
+/**
  * Jezici forme, po okruženju.
  *
  *   ["sr"]             = forma samo na srpskom, bez izbora jezika

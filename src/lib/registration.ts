@@ -13,12 +13,13 @@ import type { PlanId } from "../types";
 // (TS, testabilno) umesto u krhkim Make if()/switch izrazima.
 // =====================================================================
 
-const POL_MAP: Record<string, "male" | "female"> = {
+// Iste vrednosti idu i u zahtev za plaćanje karticom (gender/goal, submit.ts).
+export const POL_MAP: Record<string, "male" | "female"> = {
   Muški: "male",
   Ženski: "female",
 };
 
-const CILJ_MAP: Record<PlanId, "slim" | "balance" | "pump" | "max"> = {
+export const CILJ_MAP: Record<PlanId, "slim" | "balance" | "pump" | "max"> = {
   nutrislim: "slim",
   nutribalance: "balance",
   nutripump: "pump",

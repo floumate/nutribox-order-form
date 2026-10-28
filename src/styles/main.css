@@ -526,19 +526,15 @@ body {
   font-weight: 500;
   color: var(--muted);
 }
-/* Partner link (Nutribox 3.0): puna cena precrtana iznad, oznaka ispod. */
+/* Partner link (Nutribox 3.0): puna cena precrtana iznad nove, centrirane. */
+.card__price--discounted {
+  text-align: center;
+}
 .card__price-old {
   display: block;
   font-size: 13px;
   font-weight: 500;
   color: var(--muted);
-}
-.card__partner {
-  display: block;
-  margin-top: 2px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--green);
 }
 .summary__partner {
   font-weight: 500;

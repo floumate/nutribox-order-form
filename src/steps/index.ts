@@ -204,19 +204,18 @@ function renderPackageCards(container: HTMLElement): void {
   const partner = isPartnerOrder(urlContext);
   const cardHtml = (p: (typeof PACKAGES)[number]): string => {
     const price = computePrice(p.id, urlContext, state.plan, state.pol);
-    // Partner link: precrtana puna cena + oznaka, da se vidi popust.
+    // Partner link: precrtana puna cena iznad nove, da se vidi popust.
     const full = partner
       ? computePrice(p.id, { ...urlContext, partner: false }, state.plan, state.pol)
       : null;
+    const discounted = price != null && full != null && full !== price;
     const priceHtml =
       price != null
-        ? `<span class="card__price">${
-            full != null && full !== price
+        ? `<span class="card__price${discounted ? " card__price--discounted" : ""}">${
+            discounted
               ? `<s class="card__price-old">${formatPriceDisplay(full, getLang())}</s>`
               : ""
-          }${formatPriceDisplay(price, getLang())} <small>RSD</small>${
-            partner ? `<span class="card__partner">${t("partnerPrice")}</span>` : ""
-          }</span>`
+          }${formatPriceDisplay(price, getLang())} <small>RSD</small></span>`
         : "";
     const badge = p.badge ? `<span class="card__badge">${p.badge}</span>` : "";
     return `

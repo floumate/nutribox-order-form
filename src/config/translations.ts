@@ -115,16 +115,17 @@ const SR_UI = {
   sumTotal: "Ukupno",
   partnerPrice: "Partnerska cena",
 
-  // Paket sa 2 obroka i dodatak (Nutribox 3.0)
-  kindFull: "Ceo dan",
-  kindFullSub: "Svi obroci u danu",
-  kindPartial: "2 obroka",
-  kindPartialSub: "2 glavna obroka + užina",
-  mealsTitle: "Izaberi 2 obroka (užina je uključena):",
+  // Downsell (2 obroka) i dodatak (Nutribox 3.0)
+  mealsTitle: "Izaberi dva obroka",
+  mealsSubtitle: "Parcijalni paket: dva glavna obroka dnevno. Klikni dva koja želiš.",
   mealSnack: "užina",
   errMeals: "Molimo izaberite tačno 2 obroka.",
-  addOnTitle: "Dodaj nešto uz paket?",
-  addOnSubtitle: "Dodatak dobijaš svakog dana paketa. Cena je za ceo paket.",
+  addOnTitle: "Dodaj uz svoj plan",
+  addOnSubtitle: "Izaberi dodatak ili nastavi bez njega.",
+  addOnDaily: "Svaki dan uz tvoje obroke, uz {days}-dnevni plan",
+  addOnCombo: "Oba dodatka, uz uštedu, uz {days}-dnevni plan",
+  addOnNoneTitle: "Ne, hvala",
+  addOnNoneSub: "Nastavi bez dodatka",
   addOnNone: "Bez dodatka",
   sumAddOn: "Dodatak",
 
@@ -244,15 +245,16 @@ const EN_UI: Record<UiKey, string> = {
   sumTotal: "Total",
   partnerPrice: "Partner price",
 
-  kindFull: "Full day",
-  kindFullSub: "All meals of the day",
-  kindPartial: "2 meals",
-  kindPartialSub: "2 main meals + a snack",
-  mealsTitle: "Choose 2 meals (a snack is included):",
+  mealsTitle: "Choose two meals",
+  mealsSubtitle: "Partial plan: two main meals a day. Tap the two you want.",
   mealSnack: "snack",
   errMeals: "Please choose exactly 2 meals.",
-  addOnTitle: "Add something to your plan?",
-  addOnSubtitle: "You get the add-on every day of your plan. The price is for the whole plan.",
+  addOnTitle: "Add to your plan",
+  addOnSubtitle: "Choose an add-on or continue without one.",
+  addOnDaily: "Every day with your meals, with the {days}-day plan",
+  addOnCombo: "Both add-ons, at a saving, with the {days}-day plan",
+  addOnNoneTitle: "No, thanks",
+  addOnNoneSub: "Continue without an add-on",
   addOnNone: "No add-on",
   sumAddOn: "Add-on",
 
@@ -366,15 +368,16 @@ const RU_UI: Record<UiKey, string> = {
   sumTotal: "Итого",
   partnerPrice: "Партнёрская цена",
 
-  kindFull: "Весь день",
-  kindFullSub: "Все приёмы пищи за день",
-  kindPartial: "2 приёма пищи",
-  kindPartialSub: "2 основных приёма пищи + перекус",
-  mealsTitle: "Выберите 2 приёма пищи (перекус включён):",
+  mealsTitle: "Выберите два приёма пищи",
+  mealsSubtitle: "Частичный план: два основных приёма пищи в день. Нажмите на два, которые хотите.",
   mealSnack: "перекус",
   errMeals: "Пожалуйста, выберите ровно 2 приёма пищи.",
-  addOnTitle: "Добавить что-нибудь к плану?",
-  addOnSubtitle: "Добавка будет каждый день плана. Цена указана за весь план.",
+  addOnTitle: "Добавьте к своему плану",
+  addOnSubtitle: "Выберите добавку или продолжите без неё.",
+  addOnDaily: "Каждый день к вашим блюдам, к плану на {days} дней",
+  addOnCombo: "Обе добавки, с экономией, к плану на {days} дней",
+  addOnNoneTitle: "Нет, спасибо",
+  addOnNoneSub: "Продолжить без добавки",
   addOnNone: "Без добавки",
   sumAddOn: "Добавка",
 
@@ -513,9 +516,9 @@ const EN_DATA: DataLabels = {
   packageGroups: { mesecni: "Monthly", nedeljni: "Weekly", probni: "Daily" },
   meals: { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner" },
   addOns: {
-    soup: "Seasonal soup or potage",
+    soup: "Seasonal vegetable potage or soup",
     snack: "Extra snack",
-    soup_snack: "Seasonal soup and extra snack",
+    soup_snack: "Soup + snack combo",
   },
   payments: {
     Kartica: {
@@ -583,9 +586,9 @@ const RU_DATA: DataLabels = {
   packageGroups: { mesecni: "На месяц", nedeljni: "На неделю", probni: "На день" },
   meals: { breakfast: "Завтрак", lunch: "Обед", dinner: "Ужин" },
   addOns: {
-    soup: "Сезонный суп или крем-суп",
+    soup: "Сезонный овощной крем-суп или суп",
     snack: "Дополнительный перекус",
-    soup_snack: "Сезонный суп и дополнительный перекус",
+    soup_snack: "Комплект суп + перекус",
   },
   payments: {
     Kartica: {

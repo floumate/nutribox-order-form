@@ -42,6 +42,12 @@ export interface UrlContext {
    * primenjuje odlučuje PARTNER_ENABLED (vidi isPartnerOrder u pricing.ts).
    */
   partner: boolean;
+  /**
+   * ?brojobroka=2 - downsell forma: paket sa 2 glavna obroka, bez cilja,
+   * pola i kalorija. Ne važi uz ?ns=year i custom plan. Da li se uopšte
+   * primenjuje odlučuje EXTRAS_ENABLED (vidi isDownsell u order.ts).
+   */
+  twoMeals: boolean;
   /** UTM oznake iz linka reklame ("" ako ih nema). */
   utmSource: string;
   utmMedium: string;
@@ -100,6 +106,7 @@ function read(): UrlContext {
     agreedPrice: p.get("ns") === "year",
     fixedPackage: readPackage(p),
     partner: readPartner(p, isCustomPlan),
+    twoMeals: p.get("ns") !== "year" && !isCustomPlan && p.get("brojobroka") === "2",
     utmSource: p.get("utm_source") ?? "",
     utmMedium: p.get("utm_medium") ?? "",
     utmCampaign: p.get("utm_campaign") ?? "",

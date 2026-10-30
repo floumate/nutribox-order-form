@@ -17,17 +17,17 @@ import {
   activeAddOn,
   addOnAmount,
   extrasOffered,
+  isDownsell,
   orderKind,
   orderTotal,
   partnerActive,
   selectedMeals,
 } from "../lib/order";
-import { MEAL_SLOTS, addOnPrice, addOnsFor, loadAddOnPrices } from "../config/extras";
-import { EXTRAS_ENABLED } from "../config/flags";
+import { MEAL_SLOTS, addOnPrice, addOnsFor, packageDays } from "../config/extras";
 import { GOALS } from "../config/goals";
 import { PLANS, getPlan, getMacros } from "../config/plans";
 import { DIET_TYPES } from "../config/dietTypes";
-import { getAllergensFor } from "../config/allergens";
+import { getAllergensFor, isExcludeBlocked } from "../config/allergens";
 import { PACKAGES, PACKAGE_GROUPS } from "../config/packages";
 import { computePrice, formatPriceDisplay, isPartnerOrder, packageAvailable } from "../config/pricing";
 import { NASELJA, NASELJA_PO_GRADU } from "../config/delivery";
@@ -38,7 +38,6 @@ import type {
   FirmaData,
   MealSlot,
   PackageId,
-  PackageKind,
   PaymentMethod,
   PlanId,
   Sex,
@@ -196,13 +195,13 @@ function renderAllergenCards(
   container: HTMLElement,
   options: string[],
   selected: string[],
-  atLimit: boolean,
+  blocked: (label: string) => boolean,
 ): void {
   const L = labels();
   container.innerHTML = options
     .map((label) => {
       const isSel = selected.includes(label);
-      const disabled = atLimit && !isSel; // dostignut limit → ostale zaključaj
+      const disabled = blocked(label); // limit ili zabranjen par → zaključaj
       return `
     <button type="button"${disabled ? " disabled" : ""} class="card card--choice card--allergen${
       isSel ? " card--selected" : ""
@@ -211,23 +210,6 @@ function renderAllergenCards(
       <span class="card__title">${escapeHtml(L.allergens[label] ?? label)}</span>
     </button>`;
     })
-    .join("");
-}
-
-/** Ceo dan / 2 obroka (Nutribox 3.0). */
-function renderKindCards(container: HTMLElement): void {
-  const opcije: { kind: PackageKind; title: UiKey; sub: UiKey }[] = [
-    { kind: "full", title: "kindFull", sub: "kindFullSub" },
-    { kind: "partial", title: "kindPartial", sub: "kindPartialSub" },
-  ];
-  container.innerHTML = opcije
-    .map(
-      (o) => `
-    <button type="button" class="card card--choice card--kind" data-choice="${o.kind}">
-      <span class="card__title">${t(o.title)}</span>
-      <span class="card__desc">${t(o.sub)}</span>
-    </button>`,
-    )
     .join("");
 }
 
@@ -248,26 +230,29 @@ function renderMealCards(container: HTMLElement): void {
   }).join("");
 }
 
-/** Dodaci uz izabrani paket; prva opcija je "Bez dodatka". */
+/** Dodaci uz izabrani paket; poslednja opcija je "Ne, hvala". */
 function renderAddOnCards(container: HTMLElement): void {
   const L = labels();
   const codes = state.paket ? addOnsFor(state.paket) : [];
+  const days = String((state.paket && packageDays(state.paket)) ?? "");
   const none = `
-    <button type="button" class="card card--pkg card--addon" data-choice="none">
-      <span class="card__info"><span class="card__title">${t("addOnNone")}</span></span>
+    <button type="button" class="card card--choice card--addon" data-choice="none">
+      <span class="card__title">${t("addOnNoneTitle")}</span>
+      <span class="card__desc">${t("addOnNoneSub")}</span>
     </button>`;
   container.innerHTML =
-    none +
     codes
       .map((code) => {
         const price = state.paket ? addOnPrice(state.paket, code) : null;
+        const desc: UiKey = code === "soup_snack" ? "addOnCombo" : "addOnDaily";
         return `
-    <button type="button" class="card card--pkg card--addon" data-choice="${code}">
-      <span class="card__info"><span class="card__title">${L.addOns[code]}</span></span>
-      <span class="card__price">+${formatPriceDisplay(price, getLang())} <small>RSD</small></span>
+    <button type="button" class="card card--choice card--addon" data-choice="${code}">
+      <span class="card__title">${L.addOns[code]}</span>
+      <span class="card__desc">${tf(desc, { days })}</span>
+      <span class="card__price">+ ${formatPriceDisplay(price, getLang())} <small>RSD</small></span>
     </button>`;
       })
-      .join("");
+      .join("") + none;
 }
 
 function renderPackageCards(container: HTMLElement): void {
@@ -365,15 +350,17 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   const namirniceGrid = reqEl<HTMLElement>(stepDiet, '[data-grid="namirnice"]');
   renderDietCards(dietGrid);
 
-  // Ograničenje: najviše 2 izbačene namirnice.
-  const MAX_EXCLUDE = 2;
+  const allergenBlock = reqEl<HTMLElement>(stepDiet, "[data-allergen-block]");
 
   // Prikaži namirnice za trenutni jelovnik; odbaci selekcije koje mu ne pripadaju.
+  // Jelovnik bez izmena (veganski od 3.0) → bez bloka.
   const renderNamirnice = () => {
     const options = getAllergensFor(state.tipIshrane);
     state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => options.includes(v));
-    const atLimit = state.izuzeteNamirnice.length >= MAX_EXCLUDE;
-    renderAllergenCards(namirniceGrid, options, state.izuzeteNamirnice, atLimit);
+    allergenBlock.hidden = options.length === 0;
+    renderAllergenCards(namirniceGrid, options, state.izuzeteNamirnice, (label) =>
+      isExcludeBlocked(state.tipIshrane, state.izuzeteNamirnice, label),
+    );
   };
 
   // Izbor jelovnika: postavi tip + osveži namirnice ISPOD (bez auto-next).
@@ -386,7 +373,8 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
 
   wireMultiToggle(namirniceGrid, (value, selected) => {
     if (selected) {
-      if (state.izuzeteNamirnice.length >= MAX_EXCLUDE) return; // preko limita (kartice su i disabled)
+      // Preko limita ili zabranjen par (kartice su i disabled).
+      if (isExcludeBlocked(state.tipIshrane, state.izuzeteNamirnice, value)) return;
       if (!state.izuzeteNamirnice.includes(value)) state.izuzeteNamirnice.push(value);
     } else {
       state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => v !== value);
@@ -401,29 +389,10 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     renderNamirnice();
   };
 
-  // ----- STEP: Plan trajanja -----
-  const stepPaket = reqEl<HTMLElement>(form, '[data-step="paket"]');
-  const paketGrid = reqEl<HTMLElement>(stepPaket, '[data-grid="paket"]');
-  const kindWrap = reqEl<HTMLElement>(stepPaket, "[data-pkg-kind]");
-  const kindGrid = reqEl<HTMLElement>(stepPaket, '[data-grid="vrsta"]');
-  const mealPick = reqEl<HTMLElement>(stepPaket, "[data-meal-pick]");
-  const mealGrid = reqEl<HTMLElement>(stepPaket, '[data-grid="obroci"]');
-  const renderPaket = () => {
-    // Ceo dan / 2 obroka: obroci se biraju PRE kartice, jer klik na
-    // karticu odmah vodi dalje.
-    kindWrap.hidden = !extrasOffered();
-    renderKindCards(kindGrid);
-    selectCardInGrid(kindGrid, orderKind());
-    mealPick.hidden = orderKind() !== "partial";
-    renderMealCards(mealGrid);
-    renderPackageCards(paketGrid);
-    if (state.paket) selectCardInGrid(paketGrid, state.paket);
-  };
-  renderPaket();
-  wireChoiceGrid(kindGrid, (v) => {
-    state.tipPaketa = v as PackageKind;
-    renderPaket(); // druge cene na karticama + izbor obroka
-  });
+  // ----- STEP: Izbor 2 obroka (downsell) -----
+  const stepObroci = reqEl<HTMLElement>(form, '[data-step="obroci"]');
+  const mealGrid = reqEl<HTMLElement>(stepObroci, '[data-grid="obroci"]');
+  const renderObroci = () => renderMealCards(mealGrid);
   wireMultiToggle(mealGrid, (value, selected) => {
     const id = value as MealSlot;
     if (selected) {
@@ -434,27 +403,35 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     }
     renderMealCards(mealGrid); // osveži zaključavanje trećeg
   });
+
+  // ----- STEP: Plan trajanja -----
+  const stepPaket = reqEl<HTMLElement>(form, '[data-step="paket"]');
+  const paketGrid = reqEl<HTMLElement>(stepPaket, '[data-grid="paket"]');
+  const renderPaket = () => {
+    renderPackageCards(paketGrid);
+    if (state.paket) selectCardInGrid(paketGrid, state.paket);
+  };
+  renderPaket();
   wireChoiceGrid(paketGrid, (v) => (state.paket = v as PackageId), true);
 
-  // ----- STEP: Dodatak uz pun paket -----
+  // ----- STEP: Dodatak uz plan (pre plaćanja) -----
   const stepDodatak = reqEl<HTMLElement>(form, '[data-step="dodatak"]');
   const dodatakGrid = reqEl<HTMLElement>(stepDodatak, '[data-grid="dodatak"]');
+  // "Ne, hvala" se označi tek kad ga kupac izabere (kao u prototipu);
+  // "Dalje" bez izbora = bez dodatka.
+  let addOnChosen = false;
   const renderDodatak = () => {
     renderAddOnCards(dodatakGrid);
-    selectCardInGrid(dodatakGrid, activeAddOn() ?? "none");
+    selectCardInGrid(dodatakGrid, activeAddOn() ?? (addOnChosen ? "none" : ""));
   };
   wireChoiceGrid(
     dodatakGrid,
-    (v) => (state.dodatak = v === "none" ? null : (v as AddOnCode)),
+    (v) => {
+      addOnChosen = true;
+      state.dodatak = v === "none" ? null : (v as AddOnCode);
+    },
     true,
   );
-  // Cene dodataka sa Nikolinog API-ja; do tada (i ako ne odgovori) važe
-  // cene iz extras.ts.
-  if (EXTRAS_ENABLED) {
-    void loadAddOnPrices().then((ok) => {
-      if (ok) renderDodatak();
-    });
-  }
 
   // ----- STEP: Lične informacije -----
   const stepLicneInfo = reqEl<HTMLElement>(form, '[data-step="licneInformacije"]');
@@ -592,6 +569,8 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
 
   const SVA_POLJA: SumField[] = [
     {
+      // Downsell nema plan (NutriSlim...) ni pol.
+      visible: () => !isDownsell(),
       label: () => t("sumPlan"),
       kind: "select",
       options: () => PLANS.map((p) => ({ value: p.id, label: p.name })),
@@ -603,6 +582,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       },
     },
     {
+      visible: () => !isDownsell(),
       label: () => t("sumSex"),
       kind: "select",
       options: () => SEXES.map((s) => ({ value: s, label: labels().sex[s] })),
@@ -652,12 +632,9 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       },
     },
     {
-      // Dodatak se bira samo uz pun paket koji ga ima.
+      // Dodatak postoji samo uz paket koji ga ima.
       visible: () =>
-        extrasOffered() &&
-        orderKind() === "full" &&
-        state.paket !== null &&
-        addOnsFor(state.paket).length > 0,
+        extrasOffered() && state.paket !== null && addOnsFor(state.paket).length > 0,
       label: () => t("sumAddOn"),
       kind: "select",
       options: () => [
@@ -716,7 +693,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     // redni broj reda iz istog niza.
   ];
   // Redovi koji se trenutno vide - bira se pri svakom iscrtavanju, jer
-  // dodatak postoji samo uz pun paket.
+  // dodatak postoji samo uz neke pakete.
   let SUM_FIELDS: SumField[] = [];
 
   const renderSummary = () => {
@@ -810,11 +787,12 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     stepPlan,
     stepPol,
     stepDiet,
+    stepObroci,
     stepPaket,
-    stepDodatak,
     stepLicneInfo,
     stepDatum,
     stepAdresa,
+    stepDodatak,
     stepPay,
   ];
 
@@ -835,6 +813,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     renderDietCards(dietGrid);
     if (state.tipIshrane) selectCardInGrid(dietGrid, state.tipIshrane);
     renderNamirnice();
+    renderObroci();
     renderPaket();
     renderDodatak();
     renderZones();
@@ -851,6 +830,8 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     {
       id: "motivacija",
       el: stepMotivacija,
+      // Downsell: bez cilja, pola i plana - prvi korak je jelovnik.
+      skip: isDownsell,
       validate: () => {
         if (!state.cilj) {
           showError(stepMotivacija, t("errGoal"));
@@ -862,6 +843,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     {
       id: "pol",
       el: stepPol,
+      skip: isDownsell,
       validate: () => {
         if (!state.pol) {
           showError(stepPol, t("errSex"));
@@ -874,6 +856,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       id: "plan",
       el: stepPlan,
       onEnter: renderPlan,
+      skip: isDownsell,
       validate: () => {
         if (!state.plan) {
           showError(stepPlan, t("errPlan"));
@@ -895,6 +878,19 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       },
     },
     {
+      id: "obroci",
+      el: stepObroci,
+      onEnter: renderObroci,
+      skip: () => orderKind() !== "partial",
+      validate: () => {
+        if (selectedMeals().length !== 2) {
+          showError(stepObroci, t("errMeals"));
+          return false;
+        }
+        return true;
+      },
+    },
+    {
       id: "paket",
       el: stepPaket,
       onEnter: renderPaket,
@@ -902,28 +898,12 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       // ?paket=...: paket je izabran na stranici paketa, korak se preskače.
       skip: () => urlContext.agreedPrice || urlContext.fixedPackage !== null,
       validate: () => {
-        if (orderKind() === "partial" && selectedMeals().length !== 2) {
-          showError(stepPaket, t("errMeals"));
-          return false;
-        }
         if (!state.paket) {
           showError(stepPaket, t("errPackage"));
           return false;
         }
         return true;
       },
-    },
-    {
-      id: "dodatak",
-      el: stepDodatak,
-      onEnter: renderDodatak,
-      // Samo uz pun paket koji ima dodatke (ne uz 2 obroka, ?ns=year,
-      // ?paket= i custom).
-      skip: () =>
-        !extrasOffered() ||
-        orderKind() !== "full" ||
-        state.paket === null ||
-        addOnsFor(state.paket).length === 0,
     },
     {
       id: "licneInformacije",
@@ -990,6 +970,15 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
         }
         return true;
       },
+    },
+    {
+      id: "dodatak",
+      el: stepDodatak,
+      onEnter: renderDodatak,
+      // Samo uz paket koji ima dodatke (ne uz ?ns=year, ?paket= i custom).
+      // Dok paket nije izabran korak se broji, da progress ne skoči.
+      skip: () =>
+        !extrasOffered() || (state.paket !== null && addOnsFor(state.paket).length === 0),
     },
     {
       id: "placanje",

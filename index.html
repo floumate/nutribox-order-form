@@ -80,18 +80,11 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 5: Plan trajanja (grupisani accordion) ============ -->
-        <section class="step" data-step="paket">
-          <h2 class="step__title" data-i18n="packageTitle">Izaberi plan koji ti najviše odgovara</h2>
-          <!-- Ceo dan / 2 obroka + izbor obroka (Nutribox 3.0, EXTRAS_ENABLED) -->
-          <div class="pkg-kind" data-pkg-kind hidden>
-            <div class="pkg-kind__switch" data-grid="vrsta"></div>
-            <div class="meal-pick" data-meal-pick hidden>
-              <p class="meal-pick__title" data-i18n="mealsTitle">Izaberi 2 obroka (užina je uključena):</p>
-              <div class="card-grid card-grid--3" data-grid="obroci"></div>
-            </div>
-          </div>
-          <div class="pkg-groups" data-grid="paket"></div>
+        <!-- ============ STEP 4b: Izbor 2 obroka (downsell, ?brojobroka=2) ============ -->
+        <section class="step" data-step="obroci">
+          <h2 class="step__title" data-i18n="mealsTitle">Izaberi dva obroka</h2>
+          <p class="step__subtitle" data-i18n="mealsSubtitle">Parcijalni paket: dva glavna obroka dnevno. Klikni dva koja želiš.</p>
+          <div class="card-grid card-grid--3 meal-grid" data-grid="obroci"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
             <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>
@@ -99,11 +92,10 @@
           </footer>
         </section>
 
-        <!-- ============ STEP 5b: Dodatak uz pun paket (Nutribox 3.0) ============ -->
-        <section class="step" data-step="dodatak">
-          <h2 class="step__title" data-i18n="addOnTitle">Dodaj nešto uz paket?</h2>
-          <p class="step__subtitle" data-i18n="addOnSubtitle">Dodatak dobijaš svakog dana paketa. Cena je za ceo paket.</p>
-          <div class="pkg-group__cards" data-grid="dodatak"></div>
+        <!-- ============ STEP 5: Plan trajanja (grupisani accordion) ============ -->
+        <section class="step" data-step="paket">
+          <h2 class="step__title" data-i18n="packageTitle">Izaberi plan koji ti najviše odgovara</h2>
+          <div class="pkg-groups" data-grid="paket"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
             <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>
@@ -260,6 +252,18 @@
             kontaktirati pre dolaska. Za beskontaktne isporuke, obroci se mogu
             ostaviti prema vašim uputstvima.
           </p>
+          <div class="error-message"><span class="error-message__text"></span></div>
+          <footer class="step__nav">
+            <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>
+            <button type="button" class="btn btn--primary" data-nav="next" data-i18n="navNext">Dalje</button>
+          </footer>
+        </section>
+
+        <!-- ============ STEP 10b: Dodatak uz plan (Nutribox 3.0, pre plaćanja) ============ -->
+        <section class="step" data-step="dodatak">
+          <h2 class="step__title" data-i18n="addOnTitle">Dodaj uz svoj plan</h2>
+          <p class="step__subtitle" data-i18n="addOnSubtitle">Izaberi dodatak ili nastavi bez njega.</p>
+          <div class="card-grid card-grid--2" data-grid="dodatak"></div>
           <div class="error-message"><span class="error-message__text"></span></div>
           <footer class="step__nav">
             <button type="button" class="btn btn--ghost" data-nav="prev" data-i18n="navBack">Nazad</button>

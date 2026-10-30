@@ -11,7 +11,12 @@ import type { AddOnCode, MealSlot, PackageKind } from "../types";
 // četiri uvek kažu isto (Nikola: razlika = ručna provera).
 // =====================================================================
 
-/** Bira li kupac vrstu paketa i dodatak. Ne uz ?ns=year, ?paket= i custom. */
+/** Downsell forma (?brojobroka=2): paket sa 2 obroka, bez cilja/pola/plana. */
+export function isDownsell(): boolean {
+  return EXTRAS_ENABLED && urlContext.twoMeals;
+}
+
+/** Nudi li se dodatak. Ne uz ?ns=year, ?paket= i custom. */
 export function extrasOffered(): boolean {
   return (
     EXTRAS_ENABLED &&
@@ -22,7 +27,7 @@ export function extrasOffered(): boolean {
 }
 
 export function orderKind(): PackageKind {
-  return extrasOffered() && state.tipPaketa === "partial" ? "partial" : "full";
+  return isDownsell() ? "partial" : "full";
 }
 
 /** Partner popust - za sada samo uz pun paket. */
@@ -30,7 +35,7 @@ export function partnerActive(): boolean {
   return isPartnerOrder(urlContext) && orderKind() === "full";
 }
 
-/** Izabrani obroci redom doručak → večera (samo uz paket sa 2 obroka). */
+/** Izabrani obroci redom doručak → večera (samo downsell). */
 export function selectedMeals(): MealSlot[] {
   if (orderKind() !== "partial") return [];
   return MEAL_SLOTS.map((m) => m.id).filter((id) => state.obroci.includes(id));
@@ -38,8 +43,7 @@ export function selectedMeals(): MealSlot[] {
 
 /** Dodatak koji važi za izabrani paket, ili null. */
 export function activeAddOn(): AddOnCode | null {
-  if (!extrasOffered() || orderKind() !== "full") return null;
-  if (!state.paket || !state.dodatak) return null;
+  if (!extrasOffered() || !state.paket || !state.dodatak) return null;
   return addOnPrice(state.paket, state.dodatak) != null ? state.dodatak : null;
 }
 

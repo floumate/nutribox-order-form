@@ -71,7 +71,10 @@ export function buildRegistration(): Record<string, unknown> | null {
   const pol = state.pol;
   const tip = state.tipIshrane;
   const nacin = state.nacinPlacanja;
-  if (!plan || !pol || !tip || !nacin) return null;
+  if (!tip || !nacin) return null;
+  // Downsell nema plan ni pol (Nikola: pol/cilj su opcioni uz partial_*).
+  const partial = orderKind() === "partial";
+  if (!partial && (!plan || !pol)) return null;
 
   let paketKod: string;
   if (agreed) {
@@ -89,8 +92,6 @@ export function buildRegistration(): Record<string, unknown> | null {
     datumRodjenja: state.datumRodjenja,
     email: state.email,
     brojTelefona: getPhoneNumber() || state.telefon,
-    pol: POL_MAP[pol],
-    cilj: CILJ_MAP[plan],
     tipIshrane: tip, // diet id = balance | fish | vegan | vegetarian
     paket: paketKod,
     datumPocetka: state.datumDostave,
@@ -99,6 +100,8 @@ export function buildRegistration(): Record<string, unknown> | null {
     kucniBroj: state.dostava.kucniBroj,
     nacinPlacanja: PLACANJE_MAP[nacin],
   };
+  if (pol) reg.pol = POL_MAP[pol];
+  if (plan) reg.cilj = CILJ_MAP[plan];
 
   // Iznos koji mušterija stvarno plaća - sa primenjenim popustom
   // (promo kod / affiliate) i NutriMax nivoom. Ceo broj RSD, npr. 70560.

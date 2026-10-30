@@ -104,12 +104,15 @@ const PARTNER_BY_ENV: Record<Env, boolean> = {
 export const PARTNER_ENABLED = PARTNER_BY_ENV[ENV] && PRICING_V3;
 
 /**
- * Nutribox 3.0, Nikolin dodatak (30.10.2026):
- *   - paket sa 2 glavna obroka + užina (`partial_*`), ista cena za sve
- *     veličine, kupac bira tačno 2 obroka (`obroci` / `mealSlots`);
- *   - dodatak uz pun paket: supa, užina ili oba (`dodatak` / `addOn`),
- *     cene sa Nikolinog API-ja (extras.ts).
- * Ne važi uz ?ns=year, ?paket= i custom plan. Radi samo uz nove cene.
+ * Nutribox 3.0, Nikolin dodatak (30.10.2026) + Dušanov prototip (30.10.2026):
+ *   - downsell forma (?brojobroka=2): paket sa 2 glavna obroka
+ *     (`partial_*`), bez cilja, pola i kalorija, ista cena za sve
+ *     kombinacije; kupac bira tačno 2 obroka (`obroci` / `mealSlots`);
+ *   - korak "Dodaj uz svoj plan" pre plaćanja, u obe forme: supa, užina
+ *     ili komplet (`dodatak` / `addOn`), cene iz prototipa (extras.ts);
+ *   - nova pravila za izbacivanje namirnica po jelovniku (allergens.ts).
+ * Dodatak se ne nudi uz ?ns=year, ?paket= i custom plan. Radi samo uz
+ * nove cene.
  *
  * Na prod TEK POSLE Nikolinog deploy-a: stari backend ne zna ni partial
  * kodove ni dodatke.

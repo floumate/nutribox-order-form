@@ -70,7 +70,10 @@ export class StepEngine {
       }
     });
 
-    this.show(0);
+    // Prvi korak koji se ne preskače (downsell počinje od jelovnika).
+    let first = 0;
+    while (first < this.steps.length - 1 && this.isSkipped(first)) first++;
+    this.show(first);
   }
 
   private isSkipped(i: number): boolean {
@@ -88,6 +91,13 @@ export class StepEngine {
     });
     const step = this.steps[i];
     if (step) {
+      // Nema koraka pre ovog (npr. jelovnik u downsell-u) → bez "Nazad".
+      const prevBtn = step.el.querySelector<HTMLElement>('[data-nav="prev"]');
+      if (prevBtn) {
+        const hasPrev = this.steps.some((_, k) => k < i && !this.isSkipped(k));
+        prevBtn.hidden = !hasPrev;
+        prevBtn.parentElement?.classList.toggle("step__nav--single", !hasPrev);
+      }
       runtime.currentStepId = step.id;
       step.onEnter?.();
     }

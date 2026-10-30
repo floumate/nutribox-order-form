@@ -377,47 +377,29 @@ body {
   gap: 12px;
 }
 
-/* ---------- Ceo dan / 2 obroka + dodatak (Nutribox 3.0) ---------- */
-.pkg-kind {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-bottom: 26px;
-}
-.pkg-kind[hidden],
-.meal-pick[hidden] {
-  display: none;
-}
-.pkg-kind__switch {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-.card--kind {
-  gap: 4px;
-  padding: 16px 14px;
-}
-.card--kind .card__desc {
-  font-size: 13px;
-  color: var(--muted);
-}
+/* ---------- Downsell obroci + dodatak (Nutribox 3.0) ---------- */
 /* 3 obroka u jednom redu i na tabletu (ne 2 + 1); na telefonu jedan ispod drugog. */
-.meal-pick .card-grid--3 {
+.meal-grid.card-grid--3 {
   grid-template-columns: repeat(3, 1fr);
 }
 @media (max-width: 480px) {
-  .meal-pick .card-grid--3 {
+  .meal-grid.card-grid--3 {
     grid-template-columns: 1fr;
   }
 }
-.meal-pick__title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink);
-  margin: 0 0 12px;
-}
+/* Dodatak: naslov, opis i cena centrirani, cena odmah ispod opisa. */
 .card--addon {
-  padding: 18px 24px;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 26px 24px;
+}
+.card--addon .card__price {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 24px;
+}
+.allergen-block[hidden] {
+  display: none;
 }
 
 /* ---------- Isključivanje namirnica (ispod jelovnika) ---------- */

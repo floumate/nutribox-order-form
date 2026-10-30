@@ -74,11 +74,9 @@ export interface FormState {
   /** Namirnice izabrane za isključivanje (zavisi od tipa ishrane). */
   izuzeteNamirnice: string[];
   paket: PackageId | null;
-  /** Ceo dan ili 2 obroka + užina (samo uz EXTRAS_ENABLED). */
-  tipPaketa: PackageKind;
-  /** Izabrana 2 glavna obroka kad je tipPaketa "partial". */
+  /** Izabrana 2 glavna obroka (samo downsell, ?brojobroka=2). */
   obroci: MealSlot[];
-  /** Dodatak uz pun paket, null = bez dodatka. */
+  /** Dodatak uz paket, null = bez dodatka. */
   dodatak: AddOnCode | null;
   datumDostave: string; // d.m.Y (flatpickr)
   dostava: DostavaData;
@@ -100,7 +98,6 @@ export function createInitialState(): FormState {
     tipIshrane: null,
     izuzeteNamirnice: [],
     paket: null,
-    tipPaketa: "full",
     obroci: [],
     dodatak: null,
     datumDostave: "",

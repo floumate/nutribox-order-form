@@ -393,6 +393,10 @@ body {
   gap: 6px;
   padding: 26px 24px;
 }
+/* "Ne, hvala" nema cenu - tekst na sredini kartice. */
+.card--addon[data-choice="none"] {
+  justify-content: center;
+}
 .card--addon .card__price {
   margin: 10px 0 0;
   text-align: center;

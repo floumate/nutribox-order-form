@@ -30,9 +30,9 @@ export function orderKind(): PackageKind {
   return isDownsell() ? "partial" : "full";
 }
 
-/** Partner popust - za sada samo uz pun paket. */
+/** Partner popust - uz pun paket i uz paket sa 2 obroka (ne na dodatak). */
 export function partnerActive(): boolean {
-  return isPartnerOrder(urlContext) && orderKind() === "full";
+  return isPartnerOrder(urlContext);
 }
 
 /** Izabrani obroci redom doručak → večera (samo downsell). */

@@ -29,9 +29,10 @@ const PRICES_V3: Partial<Record<PackageId, Record<SizeTier, number>>> = {
 };
 
 /**
- * Partner popust (umanjena cena dostave - partner je na istoj adresi), isti
- * iznos za sve veličine. 28 i 20 dana iz Nikolinog dokumenta; 5 i 7 dana je
- * Ružičin iznos - proveriti na stagingu da banka naplati isto.
+ * Partner popust = cena dostave (partner je na istoj adresi), isti iznos za
+ * sve veličine i za paket sa 2 obroka (Nikola, 30.10.2026). Na dodatke ne
+ * važi. 28 i 20 dana iz Nikolinog dokumenta; 5 i 7 dana je Ružičin iznos -
+ * proveriti na stagingu da banka naplati isto.
  */
 const PARTNER_DISCOUNT: Partial<Record<PackageId, number>> = {
   "28-dnevni": 8400,
@@ -42,8 +43,7 @@ const PARTNER_DISCOUNT: Partial<Record<PackageId, number>> = {
 
 /**
  * Paket sa 2 glavna obroka + užina (Nikola, 30.10.2026): ista cena za sve
- * veličine, porcija je najviše M. Partner popust za njega za sada ne važi
- * (čeka se odgovor Vuksana/Nikole).
+ * veličine, porcija je najviše M.
  */
 const PARTIAL_PRICES: Partial<Record<PackageId, number>> = {
   "28-dnevni": 58400,
@@ -181,8 +181,8 @@ export function computePrice(
 
   // Nutribox 3.0: samo veličina, bez kodova popusta; partner - popust.
   if (PRICING_V3) {
-    if (kind === "partial") return PARTIAL_PRICES[packageId] ?? null;
-    const full = PRICES_V3[packageId]?.[sizeTier(plan, pol)];
+    const full =
+      kind === "partial" ? PARTIAL_PRICES[packageId] : PRICES_V3[packageId]?.[sizeTier(plan, pol)];
     if (full == null) return null;
     return isPartnerOrder(ctx) ? full - (PARTNER_DISCOUNT[packageId] ?? 0) : full;
   }

@@ -351,13 +351,20 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   renderDietCards(dietGrid);
 
   const allergenBlock = reqEl<HTMLElement>(stepDiet, "[data-allergen-block]");
+  const allergenNone = reqEl<HTMLElement>(stepDiet, "[data-allergen-none]");
 
   // Prikaži namirnice za trenutni jelovnik; odbaci selekcije koje mu ne pripadaju.
-  // Jelovnik bez izmena (veganski od 3.0) → bez bloka.
+  // Jelovnik bez izmena (veganski od 3.0) → umesto bloka "... nema izmena."
   const renderNamirnice = () => {
     const options = getAllergensFor(state.tipIshrane);
     state.izuzeteNamirnice = state.izuzeteNamirnice.filter((v) => options.includes(v));
+    const none = state.tipIshrane !== null && options.length === 0;
     allergenBlock.hidden = options.length === 0;
+    allergenNone.hidden = !none;
+    allergenNone.textContent =
+      none && state.tipIshrane
+        ? tf("excludeNone", { diet: labels().diets[state.tipIshrane].label })
+        : "";
     renderAllergenCards(namirniceGrid, options, state.izuzeteNamirnice, (label) =>
       isExcludeBlocked(state.tipIshrane, state.izuzeteNamirnice, label),
     );

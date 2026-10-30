@@ -4,8 +4,9 @@ import { buildPayload } from "./payload";
 import { bulletproofSubmit } from "./bulletproof";
 import { cancelAbandoned } from "./abandoned";
 import { backupOrder, getWorkingOrderId, markBackupConfirmed } from "./backup";
-import { getPackage, raiffeisenCode } from "../config/packages";
-import { computePrice, formatPrice, isPartnerOrder } from "../config/pricing";
+import { getPackage, packageCode, raiffeisenCode } from "../config/packages";
+import { computePrice, formatPrice } from "../config/pricing";
+import { activeAddOn, orderKind, orderTotal, partnerActive, selectedMeals } from "./order";
 import { isMaxPlan } from "../config/plans";
 import { ENDPOINTS } from "../config/endpoints";
 import { CARD_PAYMENT_ENABLED, CHECKOUT_FIRST, PRICING_V3, SEND_GENDER_GOAL, UPLATNICA_PATH } from "../config/flags";
@@ -188,10 +189,8 @@ export function attachSubmit(form: HTMLFormElement): void {
         tyParams.set("plan", "custom");
         tyParams.set("customPlanName", urlContext.customPlanName);
       }
-      // Konačna cena (uključuje NutriMax + paket + popust) → TY samo prikaže.
-      const tyCena = state.paket
-        ? computePrice(state.paket, urlContext, state.plan, state.pol)
-        : null;
+      // Konačna cena (paket + popust + dodatak) → TY samo prikaže.
+      const tyCena = orderTotal();
       if (tyCena != null) tyParams.set("cena", formatPrice(tyCena));
       // /hvala-pouzece na ?ns=year menja rečenicu sa iznosom u "prema dogovoru".
       if (urlContext.agreedPrice) tyParams.set("ns", urlContext.ns);
@@ -272,7 +271,7 @@ export function attachSubmit(form: HTMLFormElement): void {
     // ?testiranje-placanja=true → poseban raifpay kod "test" (100 RSD).
     // NE "probni" - to je pravi probni paket (3.500).
     else if (urlContext.isTest) finalPlan = "test";
-    else finalPlan = pkg ? raiffeisenCode(pkg, isMaxPlan(state.plan)) : "";
+    else finalPlan = pkg ? packageCode(pkg, isMaxPlan(state.plan), orderKind()) : "";
 
     const phoneNumber = getPhoneNumber() || state.telefon;
 
@@ -299,7 +298,12 @@ export function attachSubmit(form: HTMLFormElement): void {
       delete checkoutPayload.affiliate;
     }
     // Partner: iznos računa backend iz paketa, veličine i ove oznake.
-    if (isPartnerOrder(urlContext)) checkoutPayload.partner = true;
+    if (partnerActive()) checkoutPayload.partner = true;
+    // Isti obroci i dodatak kao u registraciji - inače ručna provera.
+    const mealSlots = selectedMeals();
+    if (mealSlots.length > 0) checkoutPayload.mealSlots = mealSlots;
+    const addOn = activeAddOn();
+    if (addOn) checkoutPayload.addOn = addOn;
     // Nutribox 3.0: veličinu i iznos Nikolin backend računa iz pola i cilja.
     if (SEND_GENDER_GOAL) {
       if (state.pol && POL_MAP[state.pol]) checkoutPayload.gender = POL_MAP[state.pol];

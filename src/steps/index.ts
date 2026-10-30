@@ -12,6 +12,18 @@ import {
 } from "../lib/validation";
 import { saveStep } from "../lib/backup";
 import { getLang, labels, onLangChange, t, tf } from "../lib/i18n";
+import type { UiKey } from "../config/translations";
+import {
+  activeAddOn,
+  addOnAmount,
+  extrasOffered,
+  orderKind,
+  orderTotal,
+  partnerActive,
+  selectedMeals,
+} from "../lib/order";
+import { MEAL_SLOTS, addOnPrice, addOnsFor, loadAddOnPrices } from "../config/extras";
+import { EXTRAS_ENABLED } from "../config/flags";
 import { GOALS } from "../config/goals";
 import { PLANS, getPlan, getMacros } from "../config/plans";
 import { DIET_TYPES } from "../config/dietTypes";
@@ -21,9 +33,12 @@ import { computePrice, formatPriceDisplay, isPartnerOrder, packageAvailable } fr
 import { NASELJA, NASELJA_PO_GRADU } from "../config/delivery";
 import { PAYMENT_OPTIONS } from "../config/payments";
 import type {
+  AddOnCode,
   DietId,
   FirmaData,
+  MealSlot,
   PackageId,
+  PackageKind,
   PaymentMethod,
   PlanId,
   Sex,
@@ -199,14 +214,71 @@ function renderAllergenCards(
     .join("");
 }
 
+/** Ceo dan / 2 obroka (Nutribox 3.0). */
+function renderKindCards(container: HTMLElement): void {
+  const opcije: { kind: PackageKind; title: UiKey; sub: UiKey }[] = [
+    { kind: "full", title: "kindFull", sub: "kindFullSub" },
+    { kind: "partial", title: "kindPartial", sub: "kindPartialSub" },
+  ];
+  container.innerHTML = opcije
+    .map(
+      (o) => `
+    <button type="button" class="card card--choice card--kind" data-choice="${o.kind}">
+      <span class="card__title">${t(o.title)}</span>
+      <span class="card__desc">${t(o.sub)}</span>
+    </button>`,
+    )
+    .join("");
+}
+
+/** Izbor tačno 2 glavna obroka - kad su 2 izabrana, treći se zaključa. */
+function renderMealCards(container: HTMLElement): void {
+  const L = labels();
+  const atLimit = state.obroci.length >= 2;
+  container.innerHTML = MEAL_SLOTS.map((m) => {
+    const isSel = state.obroci.includes(m.id);
+    const disabled = atLimit && !isSel;
+    return `
+    <button type="button"${disabled ? " disabled" : ""} class="card card--choice card--allergen${
+      isSel ? " card--selected" : ""
+    }${disabled ? " card--disabled" : ""}" data-choice="${m.id}">
+      <span class="allergen-check" aria-hidden="true"></span>
+      <span class="card__title">${L.meals[m.id]}</span>
+    </button>`;
+  }).join("");
+}
+
+/** Dodaci uz izabrani paket; prva opcija je "Bez dodatka". */
+function renderAddOnCards(container: HTMLElement): void {
+  const L = labels();
+  const codes = state.paket ? addOnsFor(state.paket) : [];
+  const none = `
+    <button type="button" class="card card--pkg card--addon" data-choice="none">
+      <span class="card__info"><span class="card__title">${t("addOnNone")}</span></span>
+    </button>`;
+  container.innerHTML =
+    none +
+    codes
+      .map((code) => {
+        const price = state.paket ? addOnPrice(state.paket, code) : null;
+        return `
+    <button type="button" class="card card--pkg card--addon" data-choice="${code}">
+      <span class="card__info"><span class="card__title">${L.addOns[code]}</span></span>
+      <span class="card__price">+${formatPriceDisplay(price, getLang())} <small>RSD</small></span>
+    </button>`;
+      })
+      .join("");
+}
+
 function renderPackageCards(container: HTMLElement): void {
   const L = labels();
   const partner = isPartnerOrder(urlContext);
+  const kind = orderKind();
   const cardHtml = (p: (typeof PACKAGES)[number]): string => {
-    const price = computePrice(p.id, urlContext, state.plan, state.pol);
+    const price = computePrice(p.id, urlContext, state.plan, state.pol, kind);
     // Partner link: precrtana puna cena iznad nove, da se vidi popust.
     const full = partner
-      ? computePrice(p.id, { ...urlContext, partner: false }, state.plan, state.pol)
+      ? computePrice(p.id, { ...urlContext, partner: false }, state.plan, state.pol, kind)
       : null;
     const discounted = price != null && full != null && full !== price;
     const priceHtml =
@@ -332,12 +404,57 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
   // ----- STEP: Plan trajanja -----
   const stepPaket = reqEl<HTMLElement>(form, '[data-step="paket"]');
   const paketGrid = reqEl<HTMLElement>(stepPaket, '[data-grid="paket"]');
+  const kindWrap = reqEl<HTMLElement>(stepPaket, "[data-pkg-kind]");
+  const kindGrid = reqEl<HTMLElement>(stepPaket, '[data-grid="vrsta"]');
+  const mealPick = reqEl<HTMLElement>(stepPaket, "[data-meal-pick]");
+  const mealGrid = reqEl<HTMLElement>(stepPaket, '[data-grid="obroci"]');
   const renderPaket = () => {
+    // Ceo dan / 2 obroka: obroci se biraju PRE kartice, jer klik na
+    // karticu odmah vodi dalje.
+    kindWrap.hidden = !extrasOffered();
+    renderKindCards(kindGrid);
+    selectCardInGrid(kindGrid, orderKind());
+    mealPick.hidden = orderKind() !== "partial";
+    renderMealCards(mealGrid);
     renderPackageCards(paketGrid);
     if (state.paket) selectCardInGrid(paketGrid, state.paket);
   };
   renderPaket();
+  wireChoiceGrid(kindGrid, (v) => {
+    state.tipPaketa = v as PackageKind;
+    renderPaket(); // druge cene na karticama + izbor obroka
+  });
+  wireMultiToggle(mealGrid, (value, selected) => {
+    const id = value as MealSlot;
+    if (selected) {
+      if (state.obroci.length >= 2) return; // treći je i disabled
+      if (!state.obroci.includes(id)) state.obroci.push(id);
+    } else {
+      state.obroci = state.obroci.filter((o) => o !== id);
+    }
+    renderMealCards(mealGrid); // osveži zaključavanje trećeg
+  });
   wireChoiceGrid(paketGrid, (v) => (state.paket = v as PackageId), true);
+
+  // ----- STEP: Dodatak uz pun paket -----
+  const stepDodatak = reqEl<HTMLElement>(form, '[data-step="dodatak"]');
+  const dodatakGrid = reqEl<HTMLElement>(stepDodatak, '[data-grid="dodatak"]');
+  const renderDodatak = () => {
+    renderAddOnCards(dodatakGrid);
+    selectCardInGrid(dodatakGrid, activeAddOn() ?? "none");
+  };
+  wireChoiceGrid(
+    dodatakGrid,
+    (v) => (state.dodatak = v === "none" ? null : (v as AddOnCode)),
+    true,
+  );
+  // Cene dodataka sa Nikolinog API-ja; do tada (i ako ne odgovori) važe
+  // cene iz extras.ts.
+  if (EXTRAS_ENABLED) {
+    void loadAddOnPrices().then((ok) => {
+      if (ok) renderDodatak();
+    });
+  }
 
   // ----- STEP: Lične informacije -----
   const stepLicneInfo = reqEl<HTMLElement>(form, '[data-step="licneInformacije"]');
@@ -461,6 +578,8 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     isPackage?: boolean;
     /** Vidi se, ali bez "Izmeni" (paket iz ?paket=). */
     locked?: () => boolean;
+    /** Red postoji samo kad vrati true (npr. dodatak). */
+    visible?: () => boolean;
     label: () => string;
     kind: "select" | "text" | "date";
     options?: () => { value: string; label: string }[];
@@ -519,10 +638,44 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
           label: labels().packages[p.id].name,
         })),
       stored: () => state.paket ?? "",
-      display: () => (state.paket ? labels().packages[state.paket].name : ""),
+      display: () => {
+        if (!state.paket) return "";
+        const name = labels().packages[state.paket].name;
+        // Paket sa 2 obroka: "28-dnevni plan · Ručak + Večera + užina".
+        const meals = selectedMeals();
+        if (orderKind() !== "partial") return name;
+        return `${name} · ${[...meals.map((m) => labels().meals[m]), t("mealSnack")].join(" + ")}`;
+      },
       apply: (v) => {
         state.paket = v as PackageId;
         selectCardInGrid(paketGrid, v);
+      },
+    },
+    {
+      // Dodatak se bira samo uz pun paket koji ga ima.
+      visible: () =>
+        extrasOffered() &&
+        orderKind() === "full" &&
+        state.paket !== null &&
+        addOnsFor(state.paket).length > 0,
+      label: () => t("sumAddOn"),
+      kind: "select",
+      options: () => [
+        { value: "none", label: t("addOnNone") },
+        ...(state.paket ? addOnsFor(state.paket) : []).map((c) => ({
+          value: c,
+          label: labels().addOns[c],
+        })),
+      ],
+      stored: () => activeAddOn() ?? "none",
+      display: () => {
+        const code = activeAddOn();
+        if (!code) return t("addOnNone");
+        return `${labels().addOns[code]} (+${formatPriceDisplay(addOnAmount(), getLang())} RSD)`;
+      },
+      apply: (v) => {
+        state.dodatak = v === "none" ? null : (v as AddOnCode);
+        selectCardInGrid(dodatakGrid, v);
       },
     },
     {
@@ -562,14 +715,15 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     // Filtrira se ovde, na jednom mestu, jer i crtanje i "Izmeni" koriste
     // redni broj reda iz istog niza.
   ];
-  const SUM_FIELDS = SVA_POLJA.filter(
-    (f) => !(urlContext.agreedPrice && f.isPackage),
-  );
+  // Redovi koji se trenutno vide - bira se pri svakom iscrtavanju, jer
+  // dodatak postoji samo uz pun paket.
+  let SUM_FIELDS: SumField[] = [];
 
   const renderSummary = () => {
-    const price = state.paket
-      ? computePrice(state.paket, urlContext, state.plan, state.pol)
-      : null;
+    SUM_FIELDS = SVA_POLJA.filter(
+      (f) => !(urlContext.agreedPrice && f.isPackage) && (f.visible?.() ?? true),
+    );
+    const price = orderTotal();
     summaryEl.innerHTML =
       SUM_FIELDS.map(
         (f, i) => `
@@ -583,17 +737,22 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       (urlContext.agreedPrice
         ? ""
         : `<div class="summary__row summary__total"><span class="summary__label">${t("sumTotal")}${
-            isPartnerOrder(urlContext) ? ` <small class="summary__partner">(${t("partnerPrice")})</small>` : ""
+            partnerActive() ? ` <small class="summary__partner">(${t("partnerPrice")})</small>` : ""
           }</span><strong>${formatPriceDisplay(price, getLang())} RSD</strong></div>`);
   };
 
   // Osveži samo "Ukupno" (bez re-rendera celog summary-ja, da ne zatvori druge editore).
+  // Uz njega i tekst ostalih zatvorenih redova: cena dodatka zavisi od paketa.
   const updateTotal = () => {
-    const price = state.paket
-      ? computePrice(state.paket, urlContext, state.plan, state.pol)
-      : null;
+    const price = orderTotal();
     const totalEl = summaryEl.querySelector<HTMLElement>(".summary__total strong");
     if (totalEl) totalEl.textContent = `${formatPriceDisplay(price, getLang())} RSD`;
+    SUM_FIELDS.forEach((f, i) => {
+      const row = summaryEl.querySelector<HTMLElement>(`[data-srow="${i}"]`);
+      if (!row || row.querySelector(".summary__editor")) return;
+      const valueSpan = row.querySelector<HTMLElement>(".summary__value");
+      if (valueSpan) valueSpan.textContent = f.display() || "-";
+    });
   };
 
   summaryEl.addEventListener("click", (e) => {
@@ -652,6 +811,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     stepPol,
     stepDiet,
     stepPaket,
+    stepDodatak,
     stepLicneInfo,
     stepDatum,
     stepAdresa,
@@ -676,6 +836,7 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
     if (state.tipIshrane) selectCardInGrid(dietGrid, state.tipIshrane);
     renderNamirnice();
     renderPaket();
+    renderDodatak();
     renderZones();
     renderPaymentCards(payGrid);
     if (state.nacinPlacanja) selectCardInGrid(payGrid, state.nacinPlacanja);
@@ -741,12 +902,28 @@ export function buildSteps(form: HTMLFormElement): StepConfig[] {
       // ?paket=...: paket je izabran na stranici paketa, korak se preskače.
       skip: () => urlContext.agreedPrice || urlContext.fixedPackage !== null,
       validate: () => {
+        if (orderKind() === "partial" && selectedMeals().length !== 2) {
+          showError(stepPaket, t("errMeals"));
+          return false;
+        }
         if (!state.paket) {
           showError(stepPaket, t("errPackage"));
           return false;
         }
         return true;
       },
+    },
+    {
+      id: "dodatak",
+      el: stepDodatak,
+      onEnter: renderDodatak,
+      // Samo uz pun paket koji ima dodatke (ne uz 2 obroka, ?ns=year,
+      // ?paket= i custom).
+      skip: () =>
+        !extrasOffered() ||
+        orderKind() !== "full" ||
+        state.paket === null ||
+        addOnsFor(state.paket).length === 0,
     },
     {
       id: "licneInformacije",

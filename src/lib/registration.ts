@@ -1,9 +1,9 @@
 import { state } from "./state";
 import { urlContext } from "./urlParams";
 import { getPhoneNumber } from "./phone";
-import { getPackage, raiffeisenCode } from "../config/packages";
-import { computePrice, isPartnerOrder } from "../config/pricing";
+import { getPackage, packageCode } from "../config/packages";
 import { isMaxPlan } from "../config/plans";
+import { activeAddOn, orderKind, orderTotal, partnerActive, selectedMeals } from "./order";
 import { PRICING_V3 } from "../config/flags";
 import type { PlanId } from "../types";
 
@@ -80,7 +80,7 @@ export function buildRegistration(): Record<string, unknown> | null {
     if (!paketId) return null;
     const pkg = getPackage(paketId);
     if (!pkg) return null;
-    paketKod = raiffeisenCode(pkg, isMaxPlan(plan));
+    paketKod = packageCode(pkg, isMaxPlan(plan), orderKind());
   }
 
   const reg: Record<string, unknown> = {
@@ -107,14 +107,22 @@ export function buildRegistration(): Record<string, unknown> | null {
     reg.brojDostava = AGREED_PRICE_REG.brojDostava;
     reg.cena = AGREED_PRICE_REG.cena;
     reg.nazivPaketa = AGREED_PRICE_REG.nazivPaketa;
-  } else if (isPartnerOrder(urlContext)) {
+  } else if (partnerActive()) {
     // Partner: Nikola `cena` prihvata bez provere, a bez nje sam uzme
     // partner cenu - pa je ne šaljemo, da pogrešan iznos ne prođe tiho.
     reg.partner = true;
   } else if (paketId) {
-    const cena = computePrice(paketId, urlContext, plan, pol);
+    // Ukupno: paket + dodatak (Nikola: `cena` je ukupna cena).
+    const cena = orderTotal();
     if (cena != null) reg.cena = cena;
   }
+
+  // Paket sa 2 obroka: tačno ta 2 obroka; uz pun paket polje NE sme da
+  // postoji (Nikola ga tada odbija). Dodatak: bez njega polja nema.
+  const obroci = selectedMeals();
+  if (obroci.length > 0) reg.obroci = obroci;
+  const dodatak = activeAddOn();
+  if (dodatak) reg.dodatak = dodatak;
 
   // Namirnice → enum niz (bez duplikata), samo ako ih ima.
   const namirnice = [

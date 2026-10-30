@@ -1,4 +1,14 @@
-import type { DietId, Lang, PackageId, PaymentMethod, PlanId, Sex } from "../types";
+import type {
+  AddOnCode,
+  DietId,
+  Lang,
+  MealSlot,
+  PackageId,
+  PaymentMethod,
+  PlanId,
+  Sex,
+} from "../types";
+import { ADD_ONS, MEAL_SLOTS } from "./extras";
 import { GOALS } from "./goals";
 import { PLANS } from "./plans";
 import { DIET_TYPES } from "./dietTypes";
@@ -104,6 +114,19 @@ const SR_UI = {
   sumSave: "Sačuvaj",
   sumTotal: "Ukupno",
   partnerPrice: "Partnerska cena",
+
+  // Paket sa 2 obroka i dodatak (Nutribox 3.0)
+  kindFull: "Ceo dan",
+  kindFullSub: "Svi obroci u danu",
+  kindPartial: "2 obroka",
+  kindPartialSub: "2 glavna obroka + užina",
+  mealsTitle: "Izaberi 2 obroka (užina je uključena):",
+  mealSnack: "užina",
+  errMeals: "Molimo izaberite tačno 2 obroka.",
+  addOnTitle: "Dodaj nešto uz paket?",
+  addOnSubtitle: "Dodatak dobijaš svakog dana paketa. Cena je za ceo paket.",
+  addOnNone: "Bez dodatka",
+  sumAddOn: "Dodatak",
 
   // Greške
   errGoal: "Molimo izaberite cilj.",
@@ -221,6 +244,18 @@ const EN_UI: Record<UiKey, string> = {
   sumTotal: "Total",
   partnerPrice: "Partner price",
 
+  kindFull: "Full day",
+  kindFullSub: "All meals of the day",
+  kindPartial: "2 meals",
+  kindPartialSub: "2 main meals + a snack",
+  mealsTitle: "Choose 2 meals (a snack is included):",
+  mealSnack: "snack",
+  errMeals: "Please choose exactly 2 meals.",
+  addOnTitle: "Add something to your plan?",
+  addOnSubtitle: "You get the add-on every day of your plan. The price is for the whole plan.",
+  addOnNone: "No add-on",
+  sumAddOn: "Add-on",
+
   errGoal: "Please choose a goal.",
   errSex: "Please choose who the package is for.",
   errPlan: "Please choose a package.",
@@ -331,6 +366,18 @@ const RU_UI: Record<UiKey, string> = {
   sumTotal: "Итого",
   partnerPrice: "Партнёрская цена",
 
+  kindFull: "Весь день",
+  kindFullSub: "Все приёмы пищи за день",
+  kindPartial: "2 приёма пищи",
+  kindPartialSub: "2 основных приёма пищи + перекус",
+  mealsTitle: "Выберите 2 приёма пищи (перекус включён):",
+  mealSnack: "перекус",
+  errMeals: "Пожалуйста, выберите ровно 2 приёма пищи.",
+  addOnTitle: "Добавить что-нибудь к плану?",
+  addOnSubtitle: "Добавка будет каждый день плана. Цена указана за весь план.",
+  addOnNone: "Без добавки",
+  sumAddOn: "Добавка",
+
   errGoal: "Пожалуйста, выберите цель.",
   errSex: "Пожалуйста, выберите, для кого пакет.",
   errPlan: "Пожалуйста, выберите пакет.",
@@ -383,6 +430,8 @@ export interface DataLabels {
   allergens: Record<string, string>;
   packages: Record<PackageId, { name: string; subtitle: string }>;
   packageGroups: Record<PackageGroup, string>;
+  meals: Record<MealSlot, string>;
+  addOns: Record<AddOnCode, string>;
   payments: Record<PaymentMethod, { title: string; desc: string }>;
   /** Naslov grupe u listi zona dostave. Ključ = srpski naziv grada iz
    *  delivery.ts. Samo prikaz - u payload ide naselje, ne grad. Grad bez
@@ -409,6 +458,8 @@ const SR_DATA: DataLabels = {
   allergens: mapBy(ALL_ALLERGENS, (a) => a, (a) => a),
   packages: mapBy(PACKAGES, (p) => p.id, (p) => ({ name: p.name, subtitle: p.subtitle })),
   packageGroups: mapBy(PACKAGE_GROUPS, (g) => g.id, (g) => g.label),
+  meals: mapBy(MEAL_SLOTS, (m) => m.id, (m) => m.label),
+  addOns: mapBy(ADD_ONS, (a) => a.code, (a) => a.name),
   payments: mapBy(PAYMENT_OPTIONS, (o) => o.value, (o) => ({ title: o.title, desc: o.desc })),
   cities: mapBy(NASELJA_PO_GRADU, (g) => g.grad, (g) => g.grad),
 };
@@ -460,6 +511,12 @@ const EN_DATA: DataLabels = {
     probni: { name: "1-day plan", subtitle: "1 day - try it before you decide" },
   },
   packageGroups: { mesecni: "Monthly", nedeljni: "Weekly", probni: "Daily" },
+  meals: { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner" },
+  addOns: {
+    soup: "Seasonal soup or potage",
+    snack: "Extra snack",
+    soup_snack: "Seasonal soup and extra snack",
+  },
   payments: {
     Kartica: {
       title: "Pay by card",
@@ -524,6 +581,12 @@ const RU_DATA: DataLabels = {
     probni: { name: "План на 1 день", subtitle: "1 день — попробуйте, прежде чем решить" },
   },
   packageGroups: { mesecni: "На месяц", nedeljni: "На неделю", probni: "На день" },
+  meals: { breakfast: "Завтрак", lunch: "Обед", dinner: "Ужин" },
+  addOns: {
+    soup: "Сезонный суп или крем-суп",
+    snack: "Дополнительный перекус",
+    soup_snack: "Сезонный суп и дополнительный перекус",
+  },
   payments: {
     Kartica: {
       title: "Оплата картой",

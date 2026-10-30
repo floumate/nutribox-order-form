@@ -1,4 +1,4 @@
-import type { PackageId } from "../types";
+import type { PackageId, PackageKind } from "../types";
 import { PRICING_V3 } from "./flags";
 
 // =====================================================================
@@ -98,4 +98,10 @@ export function getPackage(id: PackageId): PackageDef | undefined {
  */
 export function raiffeisenCode(pkg: PackageDef, isMax: boolean): string {
   return isMax && !PRICING_V3 ? pkg.raiffeisenPlanMax : pkg.raiffeisenPlan;
+}
+
+/** Isto, uz paket sa 2 obroka: "28_day" → "partial_28_day" (Nikola, 30.10.2026). */
+export function packageCode(pkg: PackageDef, isMax: boolean, kind: PackageKind): string {
+  const code = raiffeisenCode(pkg, isMax);
+  return kind === "partial" ? `partial_${code}` : code;
 }

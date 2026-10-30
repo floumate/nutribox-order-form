@@ -3,9 +3,18 @@ import { urlContext } from "./urlParams";
 import { getPhoneNumber } from "./phone";
 import { getPlan, getMacros } from "../config/plans";
 import { getDiet } from "../config/dietTypes";
-import { computePrice, isPartnerOrder } from "../config/pricing";
+import { ADD_ONS, MEAL_SLOTS } from "../config/extras";
 import { buildRegistration } from "./registration";
+import {
+  activeAddOn,
+  addOnAmount,
+  orderKind,
+  orderTotal,
+  partnerActive,
+  selectedMeals,
+} from "./order";
 import { ENV } from "../config/env";
+import { EXTRAS_ENABLED } from "../config/flags";
 import { peekVisitId } from "./setterTracking";
 import { getLang } from "./i18n";
 
@@ -19,9 +28,8 @@ export function buildPayload(): Record<string, unknown> {
   const diet = state.tipIshrane ? getDiet(state.tipIshrane) : undefined;
   const macros =
     state.plan && state.pol ? getMacros(state.plan, state.pol) : null;
-  const price = state.paket
-    ? computePrice(state.paket, urlContext, state.plan, state.pol)
-    : null;
+  // Ukupno za plaćanje (paket + dodatak) - isti iznos koji pouzeće naplati.
+  const price = orderTotal();
 
   // Imena polja USKLAĐENA sa starom 28-dnevnom formom (da Make/GHL mapiranje
   // radi bez remapiranja). Nova polja (motivacija/Kucni-broj/nutriChef) su
@@ -86,7 +94,20 @@ export function buildPayload(): Record<string, unknown> {
 
   // "da" kad je porudžbina preko partner linka (Nutribox 3.0), da tim vidi
   // zašto je cena niža. Prazno inače.
-  payload.partner = isPartnerOrder(urlContext) ? "da" : "";
+  payload.partner = partnerActive() ? "da" : "";
+
+  // Paket sa 2 obroka i dodatak (Nutribox 3.0), na srpskom - za tim. Šalje
+  // se samo dok je to uključeno, da se Make payload na prod ne menja.
+  if (EXTRAS_ENABLED) {
+    const kind = orderKind();
+    const addOn = activeAddOn();
+    payload.tipPaketa = kind === "partial" ? "2 obroka + užina" : "Ceo dan";
+    payload.obroci = selectedMeals()
+      .map((id) => MEAL_SLOTS.find((m) => m.id === id)?.label ?? id)
+      .join(", ");
+    payload.dodatak = addOn ? (ADD_ONS.find((a) => a.code === addOn)?.name ?? addOn) : "";
+    payload.cenaDodatka = addOn ? String(addOnAmount()) : "";
+  }
 
   // Odakle je kupac došao (GHL polje Source) i UTM oznake reklame.
   payload.source = urlContext.source;

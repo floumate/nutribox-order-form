@@ -17,6 +17,15 @@ const CHECKOUT: Record<typeof ENV, string> = {
   staging: "https://customer-api.staging.nutribox.dev/card-payments/checkout",
 };
 
+/** Cene dodataka po paketu (GET, javno). Vrati
+ *  [{ packageCode, addOns: [{ code, name, price: { value } }] }]. CORS
+ *  propušta https://floumate.github.io, localhost ne (lokalno važe cene iz
+ *  extras.ts). */
+const ADD_ON_PRICES: Record<typeof ENV, string> = {
+  prod: "https://customer-api.prod.nutribox.dev/public/v1/package-add-on-prices",
+  staging: "https://customer-api.staging.nutribox.dev/public/v1/package-add-on-prices",
+};
+
 /** Bazni URL za thank-you stranice (hvala-*). */
 const THANK_YOU_BASE: Record<typeof ENV, string> = {
   prod: "https://www.nutribox.rs",
@@ -31,6 +40,8 @@ export const ENDPOINTS = {
   abandoned: "https://hook.eu2.make.com/gnawubotwvk1tb8wyiqz31q2ncmoryd2",
 
   raiffeisenCheckout: CHECKOUT[ENV],
+
+  addOnPrices: ADD_ON_PRICES[ENV],
 
   thankYouBase: THANK_YOU_BASE[ENV],
 } as const;

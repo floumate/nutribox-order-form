@@ -15,6 +15,15 @@ export type PackageId =
   | "5-dnevni"
   | "probni";
 
+/** Vrsta paketa (Nutribox 3.0): ceo dan ili 2 glavna obroka + užina. */
+export type PackageKind = "full" | "partial";
+
+/** Glavni obroci za paket sa 2 obroka - Nikolini kodovi (`obroci`, `mealSlots`). */
+export type MealSlot = "breakfast" | "lunch" | "dinner";
+
+/** Dodatak uz pun paket - Nikolini kodovi (`dodatak`, `addOn`). */
+export type AddOnCode = "soup" | "snack" | "soup_snack";
+
 export type PaymentMethod = "Kartica" | "Pouzeće" | "Firma";
 
 /** Jezik forme. Menja samo PRIKAZ - vrednosti u payload-u ostaju srpske. */
@@ -65,6 +74,12 @@ export interface FormState {
   /** Namirnice izabrane za isključivanje (zavisi od tipa ishrane). */
   izuzeteNamirnice: string[];
   paket: PackageId | null;
+  /** Ceo dan ili 2 obroka + užina (samo uz EXTRAS_ENABLED). */
+  tipPaketa: PackageKind;
+  /** Izabrana 2 glavna obroka kad je tipPaketa "partial". */
+  obroci: MealSlot[];
+  /** Dodatak uz pun paket, null = bez dodatka. */
+  dodatak: AddOnCode | null;
   datumDostave: string; // d.m.Y (flatpickr)
   dostava: DostavaData;
 
@@ -85,6 +100,9 @@ export function createInitialState(): FormState {
     tipIshrane: null,
     izuzeteNamirnice: [],
     paket: null,
+    tipPaketa: "full",
+    obroci: [],
+    dodatak: null,
     datumDostave: "",
     dostava: {
       naselje: "",

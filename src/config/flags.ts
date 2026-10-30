@@ -104,6 +104,24 @@ const PARTNER_BY_ENV: Record<Env, boolean> = {
 export const PARTNER_ENABLED = PARTNER_BY_ENV[ENV] && PRICING_V3;
 
 /**
+ * Nutribox 3.0, Nikolin dodatak (30.10.2026):
+ *   - paket sa 2 glavna obroka + užina (`partial_*`), ista cena za sve
+ *     veličine, kupac bira tačno 2 obroka (`obroci` / `mealSlots`);
+ *   - dodatak uz pun paket: supa, užina ili oba (`dodatak` / `addOn`),
+ *     cene sa Nikolinog API-ja (extras.ts).
+ * Ne važi uz ?ns=year, ?paket= i custom plan. Radi samo uz nove cene.
+ *
+ * Na prod TEK POSLE Nikolinog deploy-a: stari backend ne zna ni partial
+ * kodove ni dodatke.
+ */
+const EXTRAS_BY_ENV: Record<Env, boolean> = {
+  prod: false,
+  staging: true,
+};
+
+export const EXTRAS_ENABLED = EXTRAS_BY_ENV[ENV] && PRICING_V3;
+
+/**
  * Jezici forme, po okruženju.
  *
  *   ["sr"]             = forma samo na srpskom, bez izbora jezika

@@ -1,4 +1,4 @@
-import type { Lang, PackageId, PlanId, Sex } from "../types";
+import type { Lang, PackageId, PackageKind, PlanId, Sex } from "../types";
 import { getMacros, isMaxPlan } from "./plans";
 import { PARTNER_ENABLED, PRICING_V3 } from "./flags";
 
@@ -38,6 +38,18 @@ const PARTNER_DISCOUNT: Partial<Record<PackageId, number>> = {
   "20-dnevni": 6000,
   "7-dnevni": 2100,
   "5-dnevni": 1500,
+};
+
+/**
+ * Paket sa 2 glavna obroka + užina (Nikola, 30.10.2026): ista cena za sve
+ * veličine, porcija je najviše M. Partner popust za njega za sada ne važi
+ * (čeka se odgovor Vuksana/Nikole).
+ */
+const PARTIAL_PRICES: Partial<Record<PackageId, number>> = {
+  "28-dnevni": 58400,
+  "20-dnevni": 44400,
+  "7-dnevni": 16400,
+  "5-dnevni": 12400,
 };
 
 /** Porudžbina preko partner linka, kad je partner uključen (flags.ts). */
@@ -152,13 +164,15 @@ export interface PriceContext {
 /**
  * Vrati mašinsku cenu (ceo broj) za paket u datom kontekstu, ili null.
  * Plan i pol određuju cenovni nivo: do 3.0 NutriMax vs ostali, od 3.0
- * veličinu po kalorijama.
+ * veličinu po kalorijama. `kind` = ceo dan ili 2 obroka (bez dodatka -
+ * ukupnu cenu sa dodatkom računa lib/order.ts).
  */
 export function computePrice(
   packageId: PackageId,
   ctx: PriceContext,
   plan: PlanId | null,
   pol: Sex | null,
+  kind: PackageKind = "full",
 ): number | null {
   // 1) Custom plan ima najviši prioritet.
   if (ctx.isCustomPlan && CUSTOM_PRICES[ctx.customPlanName] != null) {
@@ -167,6 +181,7 @@ export function computePrice(
 
   // Nutribox 3.0: samo veličina, bez kodova popusta; partner - popust.
   if (PRICING_V3) {
+    if (kind === "partial") return PARTIAL_PRICES[packageId] ?? null;
     const full = PRICES_V3[packageId]?.[sizeTier(plan, pol)];
     if (full == null) return null;
     return isPartnerOrder(ctx) ? full - (PARTNER_DISCOUNT[packageId] ?? 0) : full;

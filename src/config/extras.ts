@@ -27,16 +27,16 @@ export const ADD_ONS: { code: AddOnCode; name: string }[] = [
 /**
  * Cena dodatka za CEO plan, po Nikolinom kodu trajanja - ista uz pun paket
  * i uz paket sa 2 obroka. Cene su iz Dušanovog prototipa (Danilo: ove važe,
- * ne Nikolin API).
+ * ne Nikolin API), osim supe 7d = 3.080 (Danilo, 31.10.2026: konačna cena).
  *
  * ⚠️ Kartica naplati iznos koji izračuna Nikolin backend - njegov API je
- * 30.10.2026 imao drugačije cene (supa 7d 3.080, komplet 18.000 / 16.400 /
- * 6.860 / 4.900) i nijedan dodatak uz partial_*. Mora da se uskladi pre live-a.
+ * 30.10.2026 imao drugačiji komplet (18.000 / 16.400 / 6.860 / 4.900) i
+ * nijedan dodatak uz partial_*. Mora da se uskladi pre live-a.
  */
 const ADD_ON_PRICES: Record<string, Record<AddOnCode, number>> = {
   "28_day": { soup: 8400, snack: 9600, soup_snack: 15400 },
   "20_day": { soup: 7600, snack: 8800, soup_snack: 14800 },
-  "7_day": { soup: 3400, snack: 3780, soup_snack: 6400 },
+  "7_day": { soup: 3080, snack: 3780, soup_snack: 6400 },
   "5_day": { soup: 2200, snack: 2700, soup_snack: 4400 },
 };
 

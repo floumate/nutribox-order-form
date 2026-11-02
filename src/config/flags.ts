@@ -63,11 +63,10 @@ export const CHECKOUT_FIRST = CHECKOUT_FIRST_BY_ENV[ENV];
  * plaćanje karticom. Nikolin novi backend iz njih računa veličinu paketa i
  * iznos, a bez njih vraća 400.
  *
- * Na prod ide PRE Nikolinog deploy-a, na dan koji se dogovori. Trenutni
- * backend ova polja ignoriše, pa je bezbedno da izađe ranije od ostalog.
+ * Na prod od 02.11.2026 (Nikolin novi backend pušten na prod).
  */
 const SEND_GENDER_GOAL_BY_ENV: Record<Env, boolean> = {
-  prod: false,
+  prod: true,
   staging: true,
 };
 
@@ -78,11 +77,11 @@ export const SEND_GENDER_GOAL = SEND_GENDER_GOAL_BY_ENV[ENV];
  * kodova, bez probnog paketa i bez kodova popusta (NUTRI20, ONBOARDING10,
  * affiliate). Odluke: Vuksan 22.10.2026.
  *
- * Na prod se uključuje TEK POSLE Nikolinog deploy-a: stari backend bez
- * `_max` naplati NutriMax kao običan paket.
+ * Na prod od 02.11.2026, posle Nikolinog deploy-a (stari backend bez
+ * `_max` bi naplatio NutriMax kao običan paket).
  */
 const PRICING_V3_BY_ENV: Record<Env, boolean> = {
-  prod: false,
+  prod: true,
   staging: true,
 };
 
@@ -93,11 +92,11 @@ export const PRICING_V3 = PRICING_V3_BY_ENV[ENV];
  * prikaže partnersku cenu i pošalje `partner: true` u plaćanje karticom i u
  * registraciju. Radi samo uz nove cene (PRICING_V3).
  *
- * Na prod TEK POSLE Nikolinog deploy-a: do tada registracija odbija polje
- * `partner` (ide na ručnu proveru), a kartica ga ignoriše i naplati punu cenu.
+ * Na prod od 02.11.2026, posle Nikolinog deploy-a (stari backend je odbijao
+ * polje `partner` i naplaćivao punu cenu).
  */
 const PARTNER_BY_ENV: Record<Env, boolean> = {
-  prod: false,
+  prod: true,
   staging: true,
 };
 
@@ -114,11 +113,11 @@ export const PARTNER_ENABLED = PARTNER_BY_ENV[ENV] && PRICING_V3;
  * Dodatak se ne nudi uz ?ns=year, ?paket= i custom plan. Radi samo uz
  * nove cene.
  *
- * Na prod TEK POSLE Nikolinog deploy-a: stari backend ne zna ni partial
- * kodove ni dodatke.
+ * Na prod od 02.11.2026, posle Nikolinog deploy-a (stari backend nije znao
+ * ni partial kodove ni dodatke).
  */
 const EXTRAS_BY_ENV: Record<Env, boolean> = {
-  prod: false,
+  prod: true,
   staging: true,
 };
 
